@@ -1,0 +1,556 @@
+4 0 1
+beginScreenProperties
+h 897
+major 4
+minor 0
+release 1
+w 517
+x 0
+y 0
+bgColor index 3
+botShadowColor index 11
+btnFont "arial-bold-r-14.0"
+ctlBgColor1 index 3
+ctlBgColor2 index 14
+ctlFgColor1 index 25
+ctlFgColor2 index 0
+ctlFont "arial-bold-r-14.0"
+fgColor index 14
+font "arial-medium-r-14.0"
+showGrid
+snapToGrid
+textColor index 14
+title "Device - CAM"
+topShadowColor index 1
+endScreenProperties
+
+# (Group)
+object activeGroupClass
+beginObjectProperties
+h 30
+major 4
+minor 0
+release 0
+w 517
+x 0
+y 0
+
+
+beginGroup
+
+# (Rectangle)
+object activeRectangleClass
+beginObjectProperties
+h 25
+major 4
+minor 0
+release 0
+w 515
+x 0
+y 2
+fillColor index 0
+lineColor index 1
+endObjectProperties
+
+# (Rectangle)
+object activeRectangleClass
+beginObjectProperties
+h 25
+major 4
+minor 0
+release 0
+w 515
+x 1
+y 3
+fillColor index 0
+lineColor index 11
+endObjectProperties
+
+# (Related Display)
+object relatedDisplayClass
+beginObjectProperties
+h 24
+major 4
+minor 2
+release 0
+w 515
+x 1
+y 3
+bgColor index 3
+botShadowColor index 0
+button3Popup
+buttonLabel "tooltip"
+displayFileName {
+  0 "generic-tooltip"
+}
+fgColor index 14
+font "arial-bold-r-14.0"
+invisible
+numDsps 1
+numPvs 4
+setPosition {
+  0 "button"
+}
+topShadowColor index 0
+xPosOffset 5
+yPosOffset 5
+endObjectProperties
+
+# (Static Text)
+object activeXTextClass
+beginObjectProperties
+h 25
+major 4
+minor 1
+release 0
+w 557
+x 1
+y 3
+bgColor index 48
+fgColor index 14
+font "arial-bold-r-16.0"
+fontAlign "center"
+value {
+  "CAM Top"
+}
+endObjectProperties
+
+endGroup
+
+
+endObjectProperties
+
+# (Group)
+object activeGroupClass
+beginObjectProperties
+h 847
+major 4
+minor 0
+release 0
+w 392
+x 10
+y 40
+
+
+beginGroup
+
+# (Choice Button)
+object activeChoiceButtonClass
+beginObjectProperties
+h 25
+major 4
+minor 0
+release 0
+w 391
+x 10
+y 40
+bgColor index 3
+botShadowColor index 11
+controlPv "LOC\\$(!W)tab=e:0,roi,stat,arr,proc,over,fimg,tiff,hdf,mjpg"
+fgColor index 14
+font "arial-bold-r-12.0"
+inconsistentColor index 0
+orientation "horizontal"
+selectColor index 4
+topShadowColor index 1
+endObjectProperties
+
+# (Lines)
+object activeLineClass
+beginObjectProperties
+h 821
+major 4
+minor 0
+release 1
+w 392
+x 10
+y 66
+fillColor index 0
+lineColor index 1
+numPoints 3
+xPoints {
+  0 10
+  1 402
+  2 402
+}
+yPoints {
+  0 887
+  1 887
+  2 66
+}
+endObjectProperties
+
+# (Lines)
+object activeLineClass
+beginObjectProperties
+h 821
+major 4
+minor 0
+release 1
+w 392
+x 10
+y 66
+fillColor index 0
+lineColor index 11
+numPoints 3
+xPoints {
+  0 10
+  1 10
+  2 402
+}
+yPoints {
+  0 887
+  1 66
+  2 66
+}
+endObjectProperties
+
+# (Embedded Window)
+object activePipClass
+beginObjectProperties
+h 820
+major 4
+minor 1
+release 0
+w 390
+x 11
+y 66
+bgColor index 3
+botShadowColor index 0
+displayFileName {
+  0 "NDROI.edl"
+  1 "NDStats.edl"
+  2 "NDStdArrays.edl"
+  3 "NDProcess.edl"
+  4 "NDOverlay.edl"
+  5 "ffmpegFile.edl"
+  6 "NDFileTIFF.edl"
+  7 "NDFileHDF5.edl"
+  8 "ffmpegStream.edl"
+}
+displaySource "menu"
+fgColor index 14
+filePv "LOC\\$(!W)tab"
+noScroll
+numDsps 9
+sizeOfs 5
+symbols {
+  0 "P=PANDA:PANDABOX-01,R=:ROI:,label=roi"
+  1 "P=PANDA:PANDABOX-01,R=:STAT:,label=stat"
+  2 "P=PANDA:PANDABOX-01,R=:ARR:,label=arr"
+  3 "P=PANDA:PANDABOX-01,R=:PROC:,label=proc"
+  4 "P=PANDA:PANDABOX-01,R=:OVER:,label=over"
+  5 "P=PANDA:PANDABOX-01,R=:FIMG:,label=fimg"
+  6 "P=PANDA:PANDABOX-01,R=:TIFF:,label=tiff"
+  7 "P=PANDA:PANDABOX-01,R=:HDF5:,label=hdf"
+  8 "P=PANDA:PANDABOX-01,R=:MJPG:,label=mjpg"
+}
+topShadowColor index 0
+endObjectProperties
+
+endGroup
+
+
+endObjectProperties
+
+# (Group)
+object activeGroupClass
+beginObjectProperties
+h 20
+major 4
+minor 0
+release 0
+w 90
+x 417
+y 40
+
+
+beginGroup
+
+# (Related Display)
+object relatedDisplayClass
+beginObjectProperties
+h 20
+major 4
+minor 2
+release 0
+w 90
+x 417
+y 40
+bgColor index 3
+botShadowColor index 11
+buttonLabel ""
+displayFileName {
+  0 "CAM.stat.edl"
+}
+fgColor index 43
+font "arial-bold-r-14.0"
+numDsps 1
+numPvs 4
+topShadowColor index 1
+endObjectProperties
+
+# (Static Text)
+object activeXTextClass
+beginObjectProperties
+h 16
+major 4
+minor 1
+release 0
+w 86
+x 419
+y 42
+alarmPv "LOC\\dummy0=i:0"
+bgAlarm
+bgColor index 3
+fgColor index 43
+font "arial-bold-r-14.0"
+fontAlign "center"
+value {
+  "stat"
+}
+visInvert
+visMax "2"
+visMin "1"
+visPv "LOC\\dummy0=i:0"
+endObjectProperties
+
+# (Static Text)
+object activeXTextClass
+beginObjectProperties
+h 16
+major 4
+minor 1
+release 0
+w 86
+x 419
+y 42
+alarmPv "LOC\\dummy0=i:0"
+bgAlarm
+bgColor index 16
+fgColor index 43
+font "arial-bold-r-14.0"
+fontAlign "center"
+value {
+  "stat"
+}
+visMax "2"
+visMin "1"
+visPv "LOC\\dummy0=i:0"
+endObjectProperties
+
+endGroup
+
+
+endObjectProperties
+
+# (Group)
+object activeGroupClass
+beginObjectProperties
+h 20
+major 4
+minor 0
+release 0
+w 90
+x 417
+y 70
+
+
+beginGroup
+
+# (Related Display)
+object relatedDisplayClass
+beginObjectProperties
+h 20
+major 4
+minor 2
+release 0
+w 90
+x 417
+y 70
+bgColor index 3
+botShadowColor index 11
+buttonLabel ""
+displayFileName {
+  0 "CAM.roi.edl"
+}
+fgColor index 43
+font "arial-bold-r-14.0"
+numDsps 1
+numPvs 4
+topShadowColor index 1
+endObjectProperties
+
+# (Static Text)
+object activeXTextClass
+beginObjectProperties
+h 16
+major 4
+minor 1
+release 0
+w 86
+x 419
+y 72
+alarmPv "LOC\\dummy0=i:0"
+bgAlarm
+bgColor index 3
+fgColor index 43
+font "arial-bold-r-14.0"
+fontAlign "center"
+value {
+  "roi"
+}
+visInvert
+visMax "2"
+visMin "1"
+visPv "LOC\\dummy0=i:0"
+endObjectProperties
+
+# (Static Text)
+object activeXTextClass
+beginObjectProperties
+h 16
+major 4
+minor 1
+release 0
+w 86
+x 419
+y 72
+alarmPv "LOC\\dummy0=i:0"
+bgAlarm
+bgColor index 16
+fgColor index 43
+font "arial-bold-r-14.0"
+fontAlign "center"
+value {
+  "roi"
+}
+visMax "2"
+visMin "1"
+visPv "LOC\\dummy0=i:0"
+endObjectProperties
+
+endGroup
+
+
+endObjectProperties
+
+# (Group)
+object activeGroupClass
+beginObjectProperties
+h 30
+major 4
+minor 0
+release 0
+w 50
+x 0
+y 0
+
+
+beginGroup
+
+# (Circle)
+object activeCircleClass
+beginObjectProperties
+h 29
+major 4
+minor 0
+release 0
+w 48
+x 0
+y 0
+fillColor index 0
+lineColor index 1
+lineWidth 2
+endObjectProperties
+
+# (Circle)
+object activeCircleClass
+beginObjectProperties
+h 29
+major 4
+minor 0
+release 0
+w 48
+x 2
+y 2
+fillColor index 0
+lineColor index 11
+lineWidth 2
+endObjectProperties
+
+# (Circle)
+object activeCircleClass
+beginObjectProperties
+h 27
+major 4
+minor 0
+release 0
+w 47
+x 2
+y 2
+fill
+fillColor index 48
+lineColor index 49
+lineWidth 3
+endObjectProperties
+
+# (Circle)
+object activeCircleClass
+beginObjectProperties
+h 3
+major 4
+minor 0
+release 0
+w 4
+x 12
+y 6
+fill
+fillColor index 0
+lineColor index 1
+lineWidth 2
+endObjectProperties
+
+# (Static Text)
+object activeXTextClass
+beginObjectProperties
+h 30
+major 4
+minor 1
+release 0
+w 50
+x 0
+y 0
+bgColor index 3
+fgColor index 14
+font "arial-bold-r-14.0"
+fontAlign "center"
+useDisplayBg
+value {
+  "CAM"
+}
+endObjectProperties
+
+endGroup
+
+
+endObjectProperties
+
+# (Exit Button)
+object activeExitButtonClass
+beginObjectProperties
+h 20
+major 4
+minor 1
+release 0
+w 90
+x 417
+y 867
+3d
+bgColor index 3
+botShadowColor index 11
+fgColor index 46
+font "arial-medium-r-16.0"
+label "EXIT"
+topShadowColor index 1
+endObjectProperties

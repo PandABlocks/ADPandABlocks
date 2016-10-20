@@ -1,0 +1,134 @@
+# % macro, PORT, Asyn Port name for pandabox coms
+# % macro, P, Device prefix
+# % macro, R, Device suffix
+# % macro, ADDR, address for areaDetector port
+# % macro, TIMEOUT, timeout for areaDetector
+# % gui, $(PORT), edm, pandaboxDetector.edl, P=$(P), R=$(R), DEVICE=$(P)$(R)
+
+record(bi, "$(P)$(R)CONNECTED") {
+  field(DESC, "Is pandabox connected")
+  field(DTYP, "asynInt32")
+  field(INP, "@asyn($(PORT),0) ISCONNECTED")
+  field(ZNAM, "Not Connected")
+  field(ONAM, "Connected")
+  field(ZSV, "INVALID")
+  field(SCAN, "I/O Intr")
+}
+
+record(waveform, "$(P)$(R)HEADER") {
+  field(DESC, "Pandabox data header")
+  field(SCAN, "I/O Intr")
+  field(DTYP, "asynOctetRead")
+  field(INP, "@asyn($(PORT),0) HEADER")
+  field(FTVL, "CHAR")
+  field(NELM, "1024")
+ # field(SCAN, "I/O Intr")
+}
+
+#test param for testing
+record(longout, "$(P)$(R)TESTPARAM"){
+	field(DESC, "$(PORT), $(ADDR), $(TIMEOUT)")
+	field(DTYP, "asynInt32")
+	field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))TESTPARAM")
+    field(SCAN, "Passive")
+} 
+
+record(mbbo, "$(P)$(R)ColorMode") {
+  field(DISA, "1")
+}
+
+record(ao, "$(P)$(R)Gain") {
+  field(DISA, "1")
+}
+
+record(ai, "$(P)$(R)Gain_RBV") {
+  field(DISA, "1")
+}
+
+record(longout, "$(P)$(R)BinX") {
+  field(DISA, "1")
+}
+
+record(longin, "$(P)$(R)BinX_RBV") {
+  field(DISA, "1")
+}
+
+record(longout, "$(P)$(R)BinY") {
+  field(DISA, "1")
+}
+
+record(longin, "$(P)$(R)BinY_RBV") {
+  field(DISA, "1")
+}
+
+record(longout, "$(P)$(R)MinX") {
+  field(DISA, "1")
+}
+
+record(longin, "$(P)$(R)MinX_RBV") {
+  field(DISA, "1")
+}
+
+record(longout, "$(P)$(R)MinY") {
+  field(DISA, "1")
+}
+
+record(longin, "$(P)$(R)MinY_RBV") {
+  field(DISA, "1")
+}
+
+record(longout, "$(P)$(R)SizeX") {
+  field(DISA, "1")
+}
+
+record(longin, "$(P)$(R)SizeX_RBV") {
+  field(DISA, "1")
+}
+
+record(longout, "$(P)$(R)SizeY") {
+  field(DISA, "1")
+}
+
+record(longin, "$(P)$(R)SizeY_RBV") {
+  field(DISA, "1")
+}
+
+record(bo, "$(P)$(R)ReverseX") {
+  field(DISA, "1")
+}
+
+record(bi, "$(P)$(R)ReverseX_RBV") {
+  field(DISA, "1")
+}
+
+record(bo, "$(P)$(R)ReverseY") {
+  field(DISA, "1")
+}
+
+record(bi, "$(P)$(R)ReverseY_RBV") {
+  field(DISA, "1")
+}
+
+record(ao, "$(P)$(R)AcquireTime") {
+  field(DISA, "1")
+}
+
+record(ai, "$(P)$(R)AcquireTime_RBV") {
+  field(DISA, "1")
+}
+
+record(ao, "$(P)$(R)AcquirePeriod") {
+  field(DISA, "1")
+}
+
+record(ai, "$(P)$(R)AcquirePeriod_RBV") {
+  field(DISA, "1")
+}
+
+record(longout, "$(P)$(R)NumExposures") {
+  field(DISA, "1")
+}
+
+record(longin, "$(P)$(R)NumExposures_RBV") {
+  field(DISA, "1")
+}
