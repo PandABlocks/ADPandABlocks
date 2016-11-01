@@ -48,17 +48,17 @@ static const char *driverName = "pandabox";
 
 class Pandabox: public ADDriver {
 private:
-	/**Typedefs**/
-	typedef std::vector<std::map<std::string, std::string> > headerMap; //vector of maps to store header data. Each map is for an individual xml node
+    /**Typedefs**/
+    typedef std::vector<std::map<std::string, std::string> > headerMap; //vector of maps to store header data. Each map is for an individual xml node
 
 public:
-	Pandabox(const char *portName, const char* cmdSerialPortName, const char* dataSerialPortName, int maxPts, int maxBuffers, int maxMemory);
+    Pandabox(const char *portName, const char* cmdSerialPortName, const char* dataSerialPortName, int maxPts, int maxBuffers, int maxMemory);
 
-	/** These should be private, but get called from C, so must be public */
-	void readTaskCtrl();
+    /** These should be private, but get called from C, so must be public */
+    void readTaskCtrl();
     void readTaskData();
 
-	asynStatus sendCtrl(std::string txBuffer);
+    asynStatus sendCtrl(std::string txBuffer);
     asynStatus sendData(std::string txBuffer);
     asynStatus send(std::string txBuffer, asynOctet *pasynOctet, void* octetPvt, asynUser* pasynUser);
 
@@ -68,10 +68,10 @@ public:
 protected:
 
 #define FIRST_PARAM pandaboxIsConnected
-	int pandaboxIsConnected;        // int32 read  - is pandabox connected?
-	int pandaboxHeader;        	 // string read - data header
-	int testparam;				 // int32 write - initiates test setup
-	int pandaboxPCTime;             // float64array read - position compare timestamps
+    int pandaboxIsConnected;        // int32 read  - is pandabox connected?
+    int pandaboxHeader;             // string read - data header
+    int testparam;                 // int32 write - initiates test setup
+    int pandaboxPCTime;             // float64array read - position compare timestamps
 #define LAST_PARAM pandaboxPCTime
 #define NUM_PARAMS (&LAST_PARAM - &FIRST_PARAM + 1)
 
@@ -93,24 +93,24 @@ public:
     NDArray *pArray;
 
 private:
-	asynUser *pasynUser_ctrl;
-	asynCommon *pasynCommon_ctrl;
-	void *pcommonPvt_ctrl;
-	asynOctet *pasynOctet_ctrl;
-	void *octetPvt_ctrl;
+    asynUser *pasynUser_ctrl;
+    asynCommon *pasynCommon_ctrl;
+    void *pcommonPvt_ctrl;
+    asynOctet *pasynOctet_ctrl;
+    void *octetPvt_ctrl;
     asynUser *pasynUser_data;
     asynCommon *pasynCommon_data;
     void *pcommonPvt_data;
     asynOctet *pasynOctet_data;
     void *octetPvt_data;
-	epicsMessageQueueId msgQId, intQId;
-	int arrayCounter, numImagesCounter, imgMode, imgNo, arrayNumberStart;
-	bool capture;
+    epicsMessageQueueId msgQId, intQId;
+    int arrayCounter, numImagesCounter, imgMode, imgNo, arrayNumberStart;
+    bool capture;
     std::string header;
     size_t readBytes;
 
-	//vector of maps for the header values
-	headerMap headerValues;
+    //vector of maps for the header values
+    headerMap headerValues;
 
     //states for readDataTask state machine
     enum readStates{waitHeaderStart=0, waitHeaderEnd, waitDataEnd};
