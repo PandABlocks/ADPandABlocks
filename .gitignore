@@ -2,6 +2,9 @@
 O.*
 *.swp
 *BAK.adl
+.cproject
+.project
+RemoteSystemsTempFiles/
 bin/
 db/
 dbd/
