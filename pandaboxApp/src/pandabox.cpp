@@ -218,10 +218,11 @@ void Pandabox::readTaskData() {
     asynStatus status = asynSuccess;
     asynUser *pasynUserRead = pasynManager->duplicateAsynUser(pasynUser_data, 0, 0);
     int datalength = 0;
+    std::vector<char>::iterator it;
 
     char rxBuffer[NBUFF2];
     while (true) {
-        pasynUserRead->timeout = 1.0;//LONGWAIT;
+        pasynUserRead->timeout = 0;//LONGWAIT;
 
         status = pasynOctet_data->read(octetPvt_data, pasynUserRead, rxBuffer, readBytes,
                 &nBytesIn, &eomReason);
@@ -232,9 +233,11 @@ void Pandabox::readTaskData() {
         }
 
         totalBytesRead = nBytesIn;
+        cout << "TOTAL BYTES READ: " << totalBytesRead << endl;
 
         //convert to a string so it's easier to use
         std::vector<char> dataStream(rxBuffer, rxBuffer + nBytesIn);
+        std::vector<char> dataPacket(0,0);
 
         if (status) {
             //printf("Port not connected\n");
@@ -245,17 +248,23 @@ void Pandabox::readTaskData() {
             case waitHeaderStart:
                 if (std::search(dataStream.begin(), dataStream.end(), "<header>", "<header>" + strlen("<header>")) != dataStream.end())
                 {
+                    //we have a header so we have started acquiring
+                    cout << "ACQUIRING HEADER " << endl;
+                    this->setIntegerParam(ADAcquire, 1);
                     header.append(dataStream.begin(),dataStream.end());
                     state = waitHeaderEnd;
+                    callParamCallbacks();
                 }
                 break;
 
             case waitHeaderEnd:
+                cout << "WAITING HEADER END" << endl;
                 /*accumulate the header until we reach the end, then process*/
                 header.append(dataStream.begin(),dataStream.end());
                 header.append("\n");
                 if(header.find("</header>") != string::npos && (eomReason & ASYN_EOM_EOS))
                 {
+                    cout << "FOUND HEADER END" << endl;
                     headerValues = parseHeader(&header);
                     //change the input eos as the data isn't terminated with a newline
                     pasynOctet_data->setInputEos(octetPvt_data, pasynUser_data, "", 0);
@@ -263,28 +272,87 @@ void Pandabox::readTaskData() {
                     //read the extra newline at the end of the header
                     status = pasynOctet_data->read(octetPvt_data, pasynUserRead, rxBuffer, 1,
                             &nBytesIn, &eomReason);
-                    datalength = atoi(getHeaderValue(1, "sample_bytes").c_str());
-                    readBytes = (int)datalength + 8; //length of the data to be read + first 8 bytes + end character
+                 //   datalength = atoi(getHeaderValue(1, "sample_bytes").c_str());
+//                    readBytes = (int)datalength + 8; //length of the data to be read + first 8 bytes + end character
+                    readBytes = 4; //first 4 bytes of the input
                     state = waitDataEnd;
                 }
                 break;
 
             case waitDataEnd:
                 /*when "BIN" is received, start rocessing data*/
-                if (eomReason & ASYN_EOM_CNT)
-                {
-                    if (std::search(dataStream.begin(), dataStream.begin()+4, "BIN ", "BIN " + strlen("BIN ")) != dataStream.begin()+4)
+                //if (eomReason & ASYN_EOM_CNT)
+                //{
+                    //search for "BIN " 
+                    //get the iterator for the point where this is found
+                    //read the next four bytes and put required amount of data
+                        //into another buffer
+                    //if don't have enough, get the next amount from the next
+                    //input stream
+                    //pass the full buffer to the function to process the data
+                 //   cout << "READING DATA" << ", SIZE: "<< dataStream.size() << endl;
+//               //     datalength = atoi(getHeaderValue(1, "sample_bytes").c_str());
+                 //   it = std::search(dataStream.begin(), dataStream.end(), "BIN ", "BIN " + strlen("BIN "));
+                
+                
+                 //   while(it!= dataStream.end())
+                 //   {
+                 //       int dataLen = (int) dataStream[it-dataStream.begin() ]; //get an int* to the data
+                 //       cout << "FOUND: " << dataStream[it - dataStream.begin()] << ", " << *it << endl;
+                 //       if(dataStream.size() > dataLen)
+                 //       {
+                 //           vector<char> tmpBuff(it, it + dataLen);
+                 //           dataPacket.insert(dataPacket.end(), tmpBuff.begin(), tmpBuff.end());
+                 //           cout << "EXPECTED DATA LENGTH: " << datalength << endl;
+                 //           cout << "EXPECTED PACKET LENGTH: " << dataLen << endl;
+                 //           cout << "PROCESSING SIZE: " << dataPacket.size() << endl;
+                 //           parseData(dataPacket);
+                 //           dataPacket.clear();
+                 //       }
+                 //       else if(dataStream.size() < dataLen)
+                 //       {
+                 //           vector<char> tmpBuff(it, dataStream.end());
+                 //           dataPacket = tmpBuff;
+                 //           break;
+                 //           //we need to read another packet to get the rest of
+                 //           //the data
+                 //       }
+                 //       it = std::search(it + datalength + 8, dataStream.end(), "BIN ", "BIN " + strlen("BIN "));
+                 //   }
+                //}
+
+  //                if (std::search(dataStream.begin(), dataStream.begin()+4, "BIN ", "BIN " + strlen("BIN ")) != dataStream.begin()+4)
+                    if(std::search(dataStream.begin(), dataStream.end(), "BIN ", "BIN " + strlen("BIN ")) != dataStream.end())
                     {
-                        parseData(dataStream);
+
+                        cout << "BIN DATA " << endl;
+                        datalength = atoi(getHeaderValue(1, "sample_bytes").c_str());
+                        //should read the next four bytes here instead of
+                        //getting the length from the header..?
+                        readBytes = (int)datalength;
+                        status = pasynOctet_data->read(octetPvt_data, pasynUserRead, rxBuffer, readBytes,
+                                &nBytesIn, &eomReason);
+                        std::vector<char> binData(rxBuffer, rxBuffer + nBytesIn);
+                        cout << "DATA IN( " << binData.size() << ") " << binData[0] << binData[1] << binData[5] << endl;
+                        double* doubleData = (double*) &binData[4];
+                        cout << "DOUBLE IN: " << doubleData[0] << ", " << doubleData[6]<< ", " << doubleData[7] <<endl;
+                        parseData(binData);
+                        //reset number of bytes to be read to 4
+                        readBytes = 4;
                     }
-                }
-                else if (dataStream.size() > 4)//if (eomReason & ASYN_EOM_END)
-                {
-                    if(std::search(dataStream.begin(), dataStream.begin()+4, "END ", "END " + strlen("END ")) != dataStream.begin()+4)
+                    else if(std::search(dataStream.begin(), dataStream.end(), "END ", "END " + strlen("END ")) != dataStream.end())
                     {
+                        cout << "END OF DATA " << endl;
                         endCapture();
                     }
-                }
+    //            }
+                //else if (dataStream.size() > 4)//if (eomReason & ASYN_EOM_END)
+                //{
+                //    if(std::search(dataStream.begin(), dataStream.begin()+4, "END ", "END " + strlen("END ")) != dataStream.begin()+4)
+                //    {
+                //        endCapture();
+                //    }
+                //}
                 break;
         }
 
@@ -293,17 +361,21 @@ void Pandabox::readTaskData() {
 //                    driverName, functionName, (int)nBytesIn, rxBuffer);
 //        }
     }
+    callParamCallbacks();
 }
 
 void  Pandabox::endCapture()
 {
     //check the next 4 bytes to see if it matches the total arrays read.
+    //reset the states
     this->state = waitHeaderStart;
     this->header = "";
     //change the input eos back to newline for the header
     this->pasynOctet_data->setInputEos(octetPvt_data, pasynUser_data, "\n", 1);
     this->readBytes = NBUFF2-1; //reset the amount of bytes to read
-
+    //set the acquire light to 0
+    this->setIntegerParam(ADAcquire, 0);
+    callParamCallbacks();
 }
 Pandabox::headerMap Pandabox::parseHeader(std::string* headerString)
 {
@@ -405,10 +477,10 @@ void Pandabox::parseData(std::vector<char> dataBuffer){
 /*Return True if the end is found, else return false*/
     const char *functionName = "parseData";
     int * intData = (int*) &dataBuffer.front(); //get an int* to the data
-    int dataLen = intData[1]; //second 4 bytes is transmitted length of the frame (data + first 8 bytes)
+    int dataLen = intData[0] - 8; //second 4 bytes is transmitted length of the frame (data + first 8 bytes)
     int buffLen = dataBuffer.size(); //actual length of received input data stream (could be multiple lines)
     int dataNo = headerValues.size() - 1; //number of received data points (total header fields - 'data' = number of captured fields)
-
+    cout << "dataLen: " << dataLen << ", buffLen: " << buffLen << ", dataNo: " << dataNo << endl;
     //check to see if we have read all the data in, and do another read if we haven't
     if(dataLen > buffLen)
     {
@@ -435,10 +507,10 @@ void Pandabox::outputData(int dataLen, int dataNo, vector<char> data)
             }
         }
         int idx = 0;
-        int ptridx = 8; //skip the first 8 bytes
+        int ptridx = 4; //skip the first 8 bytes
         int noDataSets = data.size() / setLen; //noPoints/ dataNo; //number of data sets in the received binary data
-        double* doubleData = (double*) &data[8];
-        uint32_t* uint32Data = (uint32_t*) &data[8];
+        double* doubleData = (double*) &data[ptridx];
+        uint32_t* uint32Data = (uint32_t*) &data[ptridx];
         string dataType;
         //find other possible data types..
 
