@@ -23,7 +23,7 @@
 /* The size of our transmit and receive buffers,
  * max filename length and string param buffers */
 #define NBUFF 255
-#define NBUFF2 2048//1024
+#define NBUFF2 4096//1024
 
 /* This is the number of waveforms to store */
 #define NARRAYS 10
@@ -78,7 +78,7 @@ protected:
 private:
     void setDataFormat();
     headerMap parseHeader(std::string* headerString);
-    void parseData(std::vector<char> dataBuffer);
+    void parseData(std::vector<char> dataBuffer, int dataLen);
     void allocateFrame();
     void wrapFrame();
     asynStatus extractHeaderData(xmlTextReaderPtr xmlreader, std::map<std::string, std::string>* values);
@@ -113,7 +113,7 @@ private:
     headerMap headerValues;
 
     //states for readDataTask state machine
-    enum readStates{waitHeaderStart=0, waitHeaderEnd, waitDataEnd};
+    enum readStates{waitHeaderStart=0, waitHeaderEnd, waitDataStart, receivingData, waitDataEnd,};
     readStates state; //init state for the data read
 
     std::map<asynStatus, std::string> errorMsg;
