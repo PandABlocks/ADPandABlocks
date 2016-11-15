@@ -215,7 +215,7 @@ void Pandabox::readTaskData() {
     int eomReason;
     asynStatus status = asynSuccess;
     asynUser *pasynUserRead = pasynManager->duplicateAsynUser(pasynUser_data, 0, 0);
-    int datalength, bytesCopied = 0;
+    uint32_t datalength, bytesCopied = 0;
     std::vector<char>::iterator it;
 
     char rxBuffer[NBUFF2];
@@ -287,7 +287,9 @@ void Pandabox::readTaskData() {
                         cout << "FOUND BIN HERE: " << it - dataStream.begin()  << endl;
                         cout << "DATA STREAM SIZE: " << dataStream.end() - dataStream.begin() << ", " << dataStream.size() << endl;
                         //read next four bytes to get the packet size
-                        datalength = (int) *(it + 4);
+                        uint32_t * intData = (uint32_t*) &dataStream[it - dataStream.begin() + 4]; //get an int* to the data
+                        datalength = intData[0]; //second 4 bytes is transmitted length of the frame (data + first 8 bytes)
+                        //datalength = (uint32_t) *(it + 4);
                         cout << "DATA LENGTH: " << datalength << ", " << dataStream.end() - (it + 8) << endl;
                         //check to see there is enough bytes remaining in the buffer for the whole packet
                         if( (dataStream.end() - (it + 8)) < (datalength - 8)){
@@ -304,9 +306,11 @@ void Pandabox::readTaskData() {
                             //process the data
                             dataPacket.insert(dataPacket.begin(), it, it + datalength);
                             cout << "BYTES COPIED2: " << it + datalength - it << endl;
+                            cout << "DP SIZE: " << dataPacket.size() << endl;
                             parseData(dataPacket, datalength);
+                            dataPacket.clear();
                         }
-                        //increment the iterator and keep searchign through the
+                        //increment the iterator and keep searching through the
                         //received data stream
                         it = it + 4;
                         it = std::search(it, dataStream.end(), "BIN ", "BIN " + strlen("BIN "));
@@ -320,7 +324,7 @@ void Pandabox::readTaskData() {
                     }
                     if(std::search(dataStream.begin(), dataStream.end(), "END ", "END " + strlen("END ")) != dataStream.end())
                     {
-                        cout << "END FOUND ! " << dataStream[dataStream.end() - it] << endl;
+                        cout << "! END FOUND ! " << dataStream[dataStream.end() - it] << endl;
                         endCapture();
                         dataPacket.clear();
                     }
@@ -477,80 +481,83 @@ void Pandabox::parseData(std::vector<char> dataBuffer, int dataLen){
 void Pandabox::outputData(int dataLen, int dataNo, vector<char> data)
 {
     cout << "OUTPUT DATA: " << endl;
-        int linecount = 0; //number of lines of data received and parsed
-        //get the length of an individual dataSet
-        int setLen = 0;
-        for(int i = 0; i < headerValues.size()-1; i++)
+    int linecount = 0; //number of lines of data received and parsed
+    //get the length of an individual dataSet
+    int setLen = 0;
+    for(int i = 0; i < headerValues.size()-1; i++)
+    {
+        if(getHeaderValue(i+1, "type") == "double")
         {
-            if(getHeaderValue(i+1, "type") == "double")
+            setLen += sizeof(double);
+        }
+        else if (getHeaderValue(i+1, "type") == "uint32")
+        {
+            setLen += sizeof(uint32_t);
+        }
+    }
+    int idx = 0;
+    int ptridx = 8; //skip the first 8 bytes
+    int noDataSets = data.size() / setLen; //noPoints/ dataNo; //number of data sets in the received binary data
+    double* doubleData = (double*) &data[ptridx];
+    uint32_t* uint32Data = (uint32_t*) &data[ptridx];
+    string dataType;
+    //find other possible data types..
+
+    //loop over the data sets in the received data
+    for(int j = 0; j < noDataSets; j++)
+    {
+        //allocate a frame for each data set
+        allocateFrame();
+        if(this->pArray != NULL) {
+            //loop over each data point in the data set
+            for(int i = 0; i < dataNo; i++)
             {
-                setLen += sizeof(double);
-            }
-            else if (getHeaderValue(i+1, "type") == "uint32")
-            {
-                setLen += sizeof(uint32_t);
+                idx = (j*dataNo + i);//current data point index in the float array
+                    // NDAttributes are used to store the actual captured data
+                    std::string desc("sample value");
+                    NDAttrSource_t sourceType = NDAttrSourceUndefined;
+                    const char *pSource = "source string";
+                    //find out what type the individual point is
+                    //from the header and assign the approperiate pointer.
+                    dataType = getHeaderValue(i+1, "type");
+                    if(dataType == "double")
+                    {
+                    // Create the NDAttributes and initialise them with data value (headerValue[0] is the data info)
+                        NDAttribute *pAttribute = new NDAttribute(
+                            getHeaderValue(i+1, "name").c_str(),
+                            desc.c_str(), sourceType,
+                            pSource, NDAttrFloat64,
+                            &doubleData[0]);
+                        this->pArray->pAttributeList->add(pAttribute);
+                        ((double *)this->pArray->pData)[i] = doubleData[0];
+                        ptridx += sizeof(double);
+                    }
+                    else if(dataType == "uint32")
+                    {
+                                        // Create the NDAttributes and initialise them with data value (headerValue[0] is the data info)
+                        NDAttribute *pAttribute = new NDAttribute(
+                            getHeaderValue(i+1, "name").c_str(),
+                            desc.c_str(), sourceType,
+                            pSource, NDAttrUInt32,
+                            &uint32Data[0]);
+                        this->pArray->pAttributeList->add(pAttribute);
+                        ((uint32_t *)this->pArray->pData)[i] = uint32Data[0];
+                        ptridx += sizeof(uint32_t);
+                    };
+                    doubleData = (double*) &data[ptridx];
+                    uint32Data = (uint32_t*) &data[ptridx];
             }
         }
-        int idx = 0;
-        int ptridx = 8; //skip the first 8 bytes
-        int noDataSets = data.size() / setLen; //noPoints/ dataNo; //number of data sets in the received binary data
-        double* doubleData = (double*) &data[ptridx];
-        uint32_t* uint32Data = (uint32_t*) &data[ptridx];
-        string dataType;
-        //find other possible data types..
+        //copy the data in as uint8
+        //(uint8_t*)this->pArray->pData = &data[0];
+        //copy((uint8_t*)this->pArray->pData, (uint8_t*)this->pArray->pData + data.size(), data.begin());
+        /* Ship off the NDArray*/
+        wrapFrame();
 
-        //loop over the data sets in the received data
-        for(int j = 0; j < noDataSets; j++)
-        {
-            //allocate a frame for each data set
-            allocateFrame();
-            if(this->pArray != NULL) {
-                //loop over each data point in the data set
-                for(int i = 0; i < dataNo; i++)
-                {
-                    idx = (j*dataNo + i);//current data point index in the float array
-                        // NDAttributes are used to store the actual captured data
-                        std::string desc("sample value");
-                        NDAttrSource_t sourceType = NDAttrSourceUndefined;
-                        const char *pSource = "source string";
-                        //find out what type the individual point is
-                        //from the header and assign the approperiate pointer.
-                        dataType = getHeaderValue(i+1, "type");
-                        if(dataType == "double")
-                        {
-                        // Create the NDAttributes and initialise them with data value (headerValue[0] is the data info)
-                            NDAttribute *pAttribute = new NDAttribute(
-                                getHeaderValue(i+1, "name").c_str(),
-                                desc.c_str(), sourceType,
-                                pSource, NDAttrFloat64,
-                                &doubleData[0]);
-                            this->pArray->pAttributeList->add(pAttribute);
-                            ((double *)this->pArray->pData)[i] = doubleData[0];
-                            ptridx += sizeof(double);
-                        }
-                        else if(dataType == "uint32")
-                        {
-                                            // Create the NDAttributes and initialise them with data value (headerValue[0] is the data info)
-                            NDAttribute *pAttribute = new NDAttribute(
-                                getHeaderValue(i+1, "name").c_str(),
-                                desc.c_str(), sourceType,
-                                pSource, NDAttrUInt32,
-                                &uint32Data[0]);
-                            this->pArray->pAttributeList->add(pAttribute);
-                            ((uint32_t *)this->pArray->pData)[i] = uint32Data[0];
-                            ptridx += sizeof(uint32_t);
-                        };
-                        doubleData = (double*) &data[ptridx];
-                        uint32Data = (uint32_t*) &data[ptridx];
-                }
-            }
-            /* Ship off the NDArray*/
-            wrapFrame();
-
-            /* Increment number of lines processed*/
-            linecount++;
-            callParamCallbacks();
-        }
+        /* Increment number of lines processed*/
+        linecount++;
+        callParamCallbacks();
+    }
 }
 
 void Pandabox::allocateFrame() {
@@ -573,6 +580,7 @@ void Pandabox::allocateFrame() {
 void Pandabox::wrapFrame() {
     if(this->capture)
     {
+        cout << "SENDING FRAME " << endl;
         getIntegerParam(NDArrayCounter, &(this->arrayCounter));
         getIntegerParam(ADNumImagesCounter, &(this->numImagesCounter));
         // Set the time stamp
