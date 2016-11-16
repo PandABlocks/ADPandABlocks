@@ -334,6 +334,7 @@ void Pandabox::readTaskData() {
 
 void  Pandabox::endCapture()
 {
+    this->state = waitHeaderStart;
     //check the next 4 bytes to see if it matches the total arrays read.
     //reset the header string
     this->header = "";
