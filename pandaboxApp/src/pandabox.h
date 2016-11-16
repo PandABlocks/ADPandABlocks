@@ -23,7 +23,7 @@
 /* The size of our transmit and receive buffers,
  * max filename length and string param buffers */
 #define NBUFF 255
-#define NBUFF2 4096//1024
+#define NBUFF2 65536
 
 /* This is the number of waveforms to store */
 #define NARRAYS 10
@@ -87,6 +87,8 @@ private:
     void getAllData(std::vector<char>* inBuffer, int dataLen, int buffLen);
     //void outputData(int dataLen, int dataNo, double* floatData);
     void outputData(int dataLen, int dataNo, std::vector<char> data);
+    asynStatus readHeaderLine(char* rxBuffer, size_t* nBytesIn);
+    asynStatus readDataBytes(char* rxBuffer, int nBytes);
     void endCapture();
 
 public:
@@ -113,7 +115,7 @@ private:
     headerMap headerValues;
 
     //states for readDataTask state machine
-    enum readStates{waitHeaderStart=0, waitHeaderEnd, waitDataStart, receivingData, waitDataEnd,};
+    enum readStates{waitHeaderStart=0, waitHeaderEnd, waitDataStart, receivingData, dataEnd,};
     readStates state; //init state for the data read
 
     std::map<asynStatus, std::string> errorMsg;
