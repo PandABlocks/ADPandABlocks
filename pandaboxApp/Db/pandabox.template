@@ -3,7 +3,9 @@
 # % macro, R, Device suffix
 # % macro, ADDR, address for areaDetector port
 # % macro, TIMEOUT, timeout for areaDetector
-# % gui, $(PORT), edm, pandaboxDetector.edl, P=$(P), R=$(R), DEVICE=$(P)$(R)
+# % gui, $(PORT), edmtab, pandaboxDetector.edl, P=$(P), R=$(R), DEVICE=$(P)$(R)
+
+include "ADBase.template"
 
 record(bi, "$(P)$(R)CONNECTED") {
   field(DESC, "Is pandabox connected")
