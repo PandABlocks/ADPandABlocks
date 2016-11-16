@@ -27,12 +27,7 @@ SUPPORT=/dls_sw/prod/R3.14.12.3/support
 ASYN=$(SUPPORT)/asyn/4-26
 
 # areaDetector for plugins like NDPluginStats
-ADCORE=$(SUPPORT)/ADCore/2-3dls3
-
-ADUTIL=$(SUPPORT)/adUtil/2-3
-
-# BLGui for creating a gui
-BLGUI=      $(SUPPORT)/BLGui/3-11
+ADCORE=$(SUPPORT)/ADCore/2-4dls6
 
 # If using the sequencer, point SNCSEQ at its top directory:
 #SNCSEQ=$(EPICS_BASE)/../modules/soft/seq
