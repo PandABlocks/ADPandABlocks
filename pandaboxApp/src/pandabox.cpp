@@ -252,6 +252,7 @@ void Pandabox::readTaskData() {
                     //we have a header so we have started acquiring
                     cout << "ACQUIRING HEADER " << endl;
                     this->setIntegerParam(ADAcquire, 1);
+                    setIntegerParam(NDArrayCounter, 0);
                     header.append(it, dataStream.end());
                     state = waitHeaderEnd;
                     callParamCallbacks();
