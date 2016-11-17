@@ -57,7 +57,6 @@ Pandabox::Pandabox(const char* portName, const char* cmdSerialPortName, const ch
     this->numImagesCounter = 0;
     this->imgMode = ADImageContinuous;
     this->imgNo = 0;
-    this->arrayNumberStart = 0;
     this->capture = true;
     this->readBytes = NBUFF2-1;
 
@@ -575,11 +574,11 @@ void Pandabox::wrapFrame() {
         this->arrayCounter++;
         this->numImagesCounter++;
         //send disarm signal if we are in a mode that requires it
-        if(this->imgMode == ADImageSingle &&  this->arrayCounter == this->arrayNumberStart + 1)
+        if(this->imgMode == ADImageSingle &&  this->arrayCounter == 1)
         {
             this->capture = false;
         }
-        else if(this->imgMode == ADImageMultiple && this->arrayCounter == this->arrayNumberStart + this->imgNo)
+        else if(this->imgMode == ADImageMultiple && this->arrayCounter == this->imgNo)
         {
             this->capture = false;
         }
@@ -671,7 +670,6 @@ asynStatus Pandabox::writeInt32(asynUser *pasynUser, epicsInt32 value) {
         if(value)
         {
             //set the current array number
-            this->arrayNumberStart = this->arrayCounter;
             this->capture = true;
             asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR,
                     "SEND ARM CMD:\n");
