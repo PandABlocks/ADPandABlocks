@@ -261,7 +261,7 @@ void Pandabox::readTaskData() {
         switch(state) {
             case waitHeaderStart:
                 readHeaderLine(rxBuffer, &nBytesIn);
-                if (strcmp(rxBuffer, "<header>") == 0) {
+                if (strcmp(rxBuffer, "<header>\0") == 0) {
                     //we have a header so we have started acquiring
                     cout << "ACQUIRING HEADER " << endl;
                     this->setIntegerParam(ADAcquire, 1);
@@ -281,7 +281,7 @@ void Pandabox::readTaskData() {
                 cout << "RxBUFF: " << rxBuffer << endl;
                 header.append(rxBuffer);
                 header.append("\n");
-                if (strcmp(rxBuffer, "</header>") == 0) {
+                if (strcmp(rxBuffer, "</header>\0") == 0) {
                     cout << "FOUND HEADER END" << endl;
                     headerValues = parseHeader(&header);
                     //change the input eos as the data isn't terminated with a newline
