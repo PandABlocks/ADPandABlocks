@@ -213,7 +213,6 @@ asynStatus Pandabox::readHeaderLine(char* rxBuffer, size_t *nBytesIn) {
     asynStatus status;
 
     pasynUser_data->timeout = 1000;
-    cout << "DOING HEADER READ" << endl;
     status = pasynOctet_data->read(octetPvt_data, pasynUser_data, rxBuffer, NBUFF2,
             nBytesIn, &eomReason);
     if(status)
@@ -222,7 +221,6 @@ asynStatus Pandabox::readHeaderLine(char* rxBuffer, size_t *nBytesIn) {
                 driverName, functionName, errorMsg[status].c_str());
     }
     assert (eomReason == ASYN_EOM_EOS);
-    cout << "TOTAL BYTES READ: " << nBytesIn << endl;
     return status;
 }
 
@@ -233,7 +231,6 @@ asynStatus Pandabox::readDataBytes(char* rxBuffer, int nBytes) {
     asynStatus status;
 
     pasynUser_data->timeout = 1000;
-    cout << "DOING DATA READ OF " << nBytes << endl;
     status = pasynOctet_data->read(octetPvt_data, pasynUser_data, rxBuffer, nBytes,
             &nBytesIn, &eomReason);
     if(status)
@@ -242,7 +239,6 @@ asynStatus Pandabox::readDataBytes(char* rxBuffer, int nBytes) {
                 driverName, functionName, errorMsg[status].c_str());
     }
     assert (nBytes == nBytesIn);
-    cout << "TOTAL BYTES READ: " << nBytes << endl;
     return status;
 }
 
@@ -253,8 +249,10 @@ void Pandabox::readTaskData() {
     asynStatus status = asynSuccess;
     uint32_t datalength, bytesCopied = 0;
     std::vector<char>::iterator it;
+    std::vector<char> dataPacket(0,0);
     char rxBuffer[NBUFF2];
     int eomReason;
+    uint32_t dataLength = 0;
     while (true) {
 
         switch(state) {
@@ -262,26 +260,21 @@ void Pandabox::readTaskData() {
                 readHeaderLine(rxBuffer, &nBytesIn);
                 if (strcmp(rxBuffer, "<header>\0") == 0) {
                     //we have a header so we have started acquiring
-                    cout << "ACQUIRING HEADER " << endl;
                     this->setIntegerParam(ADAcquire, 1);
                     setIntegerParam(NDArrayCounter, 0);
                     header.append(rxBuffer);
                     header.append("\n");
-                    cout << "Header is'" << header << "'" << endl;
                     state = waitHeaderEnd;
                     callParamCallbacks();
                 }
                 break;
 
             case waitHeaderEnd:
-                cout << "WAITING HEADER END" << endl;
                 readHeaderLine(rxBuffer, &nBytesIn);
                 /*accumulate the header until we reach the end, then process*/
-                cout << "RxBUFF: " << rxBuffer << endl;
                 header.append(rxBuffer);
                 header.append("\n");
                 if (strcmp(rxBuffer, "</header>\0") == 0) {
-                    cout << "FOUND HEADER END" << endl;
                     headerValues = parseHeader(&header);
                     //change the input eos as the data isn't terminated with a newline
                     pasynOctet_data->setInputEos(octetPvt_data, pasynUser_data, "", 0);
@@ -290,7 +283,6 @@ void Pandabox::readTaskData() {
                     status = pasynOctet_data->read(octetPvt_data, pasynUser_data, rxBuffer, 1,
                             &nBytesIn, &eomReason);
 
-                    cout << "TOTAL end header BYTES READ: " << nBytesIn << endl;
                     state = waitDataStart;
                 }
                 break;
@@ -298,7 +290,6 @@ void Pandabox::readTaskData() {
             case waitDataStart:
                 // read "BIN " or "END "
                 readDataBytes(rxBuffer, 4);
-                cout << "READ DATA: " << rxBuffer << endl;
                 if (strncmp(rxBuffer, "BIN ", 4) == 0) {
                     state = receivingData;
                 }
@@ -308,21 +299,18 @@ void Pandabox::readTaskData() {
                 break;
 
             case receivingData:
-                {
-                    // read next four bytes to get the packet size
-                    readDataBytes(rxBuffer, 4);
-                    uint32_t dataLength = ((uint32_t*) rxBuffer)[0] - 8;
-                    cout << "DATA LENGTH: " << dataLength;
-                    // read the rest of the packet
-                    readDataBytes(rxBuffer, dataLength);
-                    std::vector<char> dataPacket(rxBuffer, rxBuffer + dataLength);
-                    parseData(dataPacket, dataLength);
-                    state = waitDataStart;
-                }
+                // read next four bytes to get the packet size
+                readDataBytes(rxBuffer, 4);
+                dataLength = ((uint32_t*) rxBuffer)[0] - 8;
+                // read the rest of the packet
+                readDataBytes(rxBuffer, dataLength);
+                dataPacket.clear();
+                dataPacket.insert(dataPacket.begin(), rxBuffer, rxBuffer + dataLength);
+                parseData(dataPacket, dataLength);
+                state = waitDataStart;
                 break;
 
             case dataEnd:
-                cout << "END DATA FOUND" << endl;
                 endCapture();
                 state = waitHeaderStart;
                 break;
@@ -433,7 +421,6 @@ void Pandabox::getAllData(std::vector<char>* inBuffer, int dataLen, int buffLen)
     status = pasynOctet_data->read(octetPvt_data, pasynUserRead, rxBuffer, readBytes,
             &nBytesIn, &eomReason);
 
-    cout << "TOTAL getAllData BYTES READ: " << readBytes << endl;
     inBuffer->insert(inBuffer->end(), rxBuffer, rxBuffer+nBytesIn);
     if(status)
     {
@@ -449,7 +436,6 @@ void Pandabox::parseData(std::vector<char> dataBuffer, int dataLen){
 //    int dataLen = intData[0] - 8; //second 4 bytes is transmitted length of the frame (data + first 8 bytes)
     int buffLen = dataBuffer.size(); //actual length of received input data stream (could be multiple lines)
     int dataNo = headerValues.size() - 1; //number of received data points (total header fields - 'data' = number of captured fields)
-    cout << "dataLen: " << dataLen << ", buffLen: " << buffLen << ", dataNo: " << dataNo << endl;
     //check to see if we have read all the data in, and do another read if we haven't
     if(dataLen > buffLen)
     {
@@ -461,7 +447,6 @@ void Pandabox::parseData(std::vector<char> dataBuffer, int dataLen){
 //void Pandabox::outputData(int dataLen, int dataNo, double* floatData)
 void Pandabox::outputData(int dataLen, int dataNo, vector<char> data)
 {
-    cout << "OUTPUT DATA: " << endl;
     int linecount = 0; //number of lines of data received and parsed
     //get the length of an individual dataSet
     int setLen = 0;
@@ -561,7 +546,6 @@ void Pandabox::allocateFrame() {
 void Pandabox::wrapFrame() {
     if(this->capture)
     {
-        cout << "SENDING FRAME " << endl;
         getIntegerParam(NDArrayCounter, &(this->arrayCounter));
         getIntegerParam(ADNumImagesCounter, &(this->numImagesCounter));
         // Set the time stamp
