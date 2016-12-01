@@ -230,174 +230,174 @@ BOOST_AUTO_TEST_CASE(sequence_test_short_slow)
     usleep(waitTime);
 }
 
-//BOOST_AUTO_TEST_CASE(sequence_test_short_fast)
-//{
-//       //these should come from the actual test script
-//        double count, ts;
-//        double prescale = 0.01;
-//        double timer_step = prescale *2;
-//        double count_start = 100;
-//        double count_step = 50;
-//        double counter = count_start + count_step;
-//        double timer = prescale;
-//        int frames = 50;
-//        setSequenceParams(count_step, count_start, prescale, frames);
+BOOST_AUTO_TEST_CASE(sequence_test_short_fast)
+{
+       //these should come from the actual test script
+        double count, ts;
+        double prescale = 0.01;
+        double timer_step = prescale *2;
+        double count_start = 100;
+        double count_step = 50;
+        double counter = count_start + count_step;
+        double timer = prescale;
+        int frames = 50;
+        setSequenceParams(count_step, count_start, prescale, frames);
+
+    //    wait till all the arrays are there
+        cout << "WAITING.." << endl;
+        while(ds->arrays.size() != frames){
+            cout << "acquired frames: " << ds->arrays.size() << "\r" << std::flush;
+        }
+        cout << endl;
+        cout << "RECEIVED ALL ARRAYS: "<< ds->arrays.size() << endl;
+
+        for(unsigned int i = 0; i< ds->arrays.size(); i++)
+        {
+            ds->arrays[i]->pAttributeList->find("COUNTER1.OUT")->getValue(NDAttrFloat64, &count );
+            ds->arrays[i]->pAttributeList->find("PCAP.CAPTURE_TS")->getValue(NDAttrFloat64, &ts );
+            BOOST_REQUIRE_CLOSE( timer, ts, 0.001 );
+            BOOST_REQUIRE_CLOSE(counter, count, 0.001 );
+            counter += count_step;
+            timer += timer_step;
+        }
+
+        BOOST_REQUIRE_EQUAL((size_t)frames, ds->arrays.size());
+
+        //wait to give a chance to send the next set of data
+        unsigned int waitTime = 2e6;
+        usleep(waitTime);
+}
+
+BOOST_AUTO_TEST_CASE(sequence_test_long_slow)
+{
+    //these should come from the actual test script
+    double count, ts;
+    double prescale = 0.05;
+    double timer_step = prescale *2;
+    double count_start = 100;
+    double count_step = 50;
+    double counter = count_start + count_step;
+    double timer = prescale;
+    int frames = 500;
+    setSequenceParams(count_step, count_start, prescale, frames);
+
+//    wait till all the arrays are there
+    cout << "WAITING.." << endl;
+    while(ds->arrays.size() != frames){
+        cout << "acquired frames: " << ds->arrays.size() << "\r" << std::flush;
+    }
+    cout << endl;
+    cout << "RECEIVED ALL ARRAYS: "<< ds->arrays.size() << endl;
+
+    for(unsigned int i = 0; i< ds->arrays.size(); i++)
+    {
+        ds->arrays[i]->pAttributeList->find("COUNTER1.OUT")->getValue(NDAttrFloat64, &count );
+        ds->arrays[i]->pAttributeList->find("PCAP.CAPTURE_TS")->getValue(NDAttrFloat64, &ts );
+        BOOST_REQUIRE_CLOSE( timer, ts, 0.001 );
+        BOOST_REQUIRE_CLOSE(counter, count, 0.001 );
+        counter += count_step;
+        timer += timer_step;
+    }
+
+    BOOST_REQUIRE_EQUAL((size_t)frames, ds->arrays.size());
+
+    //wait to give a chance to send the next set of data
+    unsigned int waitTime = 2e6;
+    usleep(waitTime);
+}
+
+BOOST_AUTO_TEST_CASE(sequence_test_long_fast)
+{
+    //these should come from the actual test script
+    double count, ts;
+    double prescale = 0.01;
+    double timer_step = prescale *2;
+    double count_start = 100;
+    double count_step = 50;
+    double counter = count_start + count_step;
+    double timer = prescale;
+    int frames = 50; //5000
+    setSequenceParams(count_step, count_start, prescale, frames);
+
+//    wait till all the arrays are there
+    cout << "WAITING.." << endl;
+    while(ds->arrays.size() != frames){
+        cout << "acquired frames: " << ds->arrays.size() << "\r" << std::flush;
+    }
+    cout << endl;
+    cout << "RECEIVED ALL ARRAYS: "<< ds->arrays.size() << endl;
+
+    for(unsigned int i = 0; i< ds->arrays.size(); i++)
+    {
+        ds->arrays[i]->pAttributeList->find("COUNTER1.OUT")->getValue(NDAttrFloat64, &count );
+        ds->arrays[i]->pAttributeList->find("PCAP.CAPTURE_TS")->getValue(NDAttrFloat64, &ts );
+        BOOST_REQUIRE_CLOSE( timer, ts, 0.001 );
+        BOOST_REQUIRE_CLOSE(counter, count, 0.001 );
+        counter += count_step;
+        timer += timer_step;
+    }
+
+    BOOST_REQUIRE_EQUAL((size_t)frames, ds->arrays.size());
+
+    //wait to give a chance to send the next set of data
+    unsigned int waitTime = 2e6;
+    usleep(waitTime);
+}
+
+//test sending n frames
+BOOST_AUTO_TEST_CASE(sequence_test)
+{
+
+    //these should come from the actual test script
+    double count, ts;
+    double prescale = 0.01;
+    double timer_step = prescale *2;
+    double count_start = 100;
+    double count_step = 50;
+    double counter = count_start + count_step;
+    double timer = prescale;
+    int frames = 100;
+    setSequenceParams(count_step, count_start, prescale, frames);
+
+//    setParams("testseqlong");
 //
-//    //    wait till all the arrays are there
-//        cout << "WAITING.." << endl;
-//        while(ds->arrays.size() != frames){
-//            cout << "acquired frames: " << ds->arrays.size() << "\r" << std::flush;
-//        }
-//        cout << endl;
-//        cout << "RECEIVED ALL ARRAYS: "<< ds->arrays.size() << endl;
+
+//    unsigned int waitTime = 100e6;
+//    //other test scenarios -
 //
-//        for(unsigned int i = 0; i< ds->arrays.size(); i++)
-//        {
-//            ds->arrays[i]->pAttributeList->find("COUNTER1.OUT")->getValue(NDAttrFloat64, &count );
-//            ds->arrays[i]->pAttributeList->find("PCAP.CAPTURE_TS")->getValue(NDAttrFloat64, &ts );
-//            BOOST_REQUIRE_CLOSE( timer, ts, 0.001 );
-//            BOOST_REQUIRE_CLOSE(counter, count, 0.001 );
-//            counter += count_step;
-//            timer += timer_step;
-//        }
-//
-//        BOOST_REQUIRE_EQUAL((size_t)frames, ds->arrays.size());
-//
-//        //wait to give a chance to send the next set of data
-//        unsigned int waitTime = 2e6;
-//        usleep(waitTime);
-//}
-//
-//BOOST_AUTO_TEST_CASE(sequence_test_long_slow)
-//{
-//    //these should come from the actual test script
-//    double count, ts;
-//    double prescale = 0.05;
-//    double timer_step = prescale *2;
-//    double count_start = 100;
-//    double count_step = 50;
-//    double counter = count_start + count_step;
-//    double timer = prescale;
-//    int frames = 500;
-//    setSequenceParams(count_step, count_start, prescale, frames);
-//
-////    wait till all the arrays are there
-//    cout << "WAITING.." << endl;
-//    while(ds->arrays.size() != frames){
-//        cout << "acquired frames: " << ds->arrays.size() << "\r" << std::flush;
-//    }
-//    cout << endl;
-//    cout << "RECEIVED ALL ARRAYS: "<< ds->arrays.size() << endl;
-//
-//    for(unsigned int i = 0; i< ds->arrays.size(); i++)
-//    {
-//        ds->arrays[i]->pAttributeList->find("COUNTER1.OUT")->getValue(NDAttrFloat64, &count );
-//        ds->arrays[i]->pAttributeList->find("PCAP.CAPTURE_TS")->getValue(NDAttrFloat64, &ts );
-//        BOOST_REQUIRE_CLOSE( timer, ts, 0.001 );
-//        BOOST_REQUIRE_CLOSE(counter, count, 0.001 );
-//        counter += count_step;
-//        timer += timer_step;
-//    }
-//
-//    BOOST_REQUIRE_EQUAL((size_t)frames, ds->arrays.size());
-//
-//    //wait to give a chance to send the next set of data
-//    unsigned int waitTime = 2e6;
+//    //this wait should really be waiting for the 'END' from the data
 //    usleep(waitTime);
-//}
-//
-//BOOST_AUTO_TEST_CASE(sequence_test_long_fast)
-//{
-//    //these should come from the actual test script
-//    double count, ts;
-//    double prescale = 0.01;
-//    double timer_step = prescale *2;
-//    double count_start = 100;
-//    double count_step = 50;
-//    double counter = count_start + count_step;
-//    double timer = prescale;
-//    int frames = 50; //5000
-//    setSequenceParams(count_step, count_start, prescale, frames);
-//
-////    wait till all the arrays are there
-//    cout << "WAITING.." << endl;
-//    while(ds->arrays.size() != frames){
-//        cout << "acquired frames: " << ds->arrays.size() << "\r" << std::flush;
-//    }
-//    cout << endl;
-//    cout << "RECEIVED ALL ARRAYS: "<< ds->arrays.size() << endl;
-//
-//    for(unsigned int i = 0; i< ds->arrays.size(); i++)
-//    {
-//        ds->arrays[i]->pAttributeList->find("COUNTER1.OUT")->getValue(NDAttrFloat64, &count );
-//        ds->arrays[i]->pAttributeList->find("PCAP.CAPTURE_TS")->getValue(NDAttrFloat64, &ts );
-//        BOOST_REQUIRE_CLOSE( timer, ts, 0.001 );
-//        BOOST_REQUIRE_CLOSE(counter, count, 0.001 );
-//        counter += count_step;
-//        timer += timer_step;
-//    }
-//
-//    BOOST_REQUIRE_EQUAL((size_t)frames, ds->arrays.size());
-//
-//    //wait to give a chance to send the next set of data
-//    unsigned int waitTime = 2e6;
-//    usleep(waitTime);
-//}
-//
-////test sending n frames
-//BOOST_AUTO_TEST_CASE(sequence_test)
-//{
-//
-//    //these should come from the actual test script
-//    double count, ts;
-//    double prescale = 0.01;
-//    double timer_step = prescale *2;
-//    double count_start = 100;
-//    double count_step = 50;
-//    double counter = count_start + count_step;
-//    double timer = prescale;
-//    int frames = 100;
-//    setSequenceParams(count_step, count_start, prescale, frames);
-//
-////    setParams("testseqlong");
-////
-//
-////    unsigned int waitTime = 100e6;
-////    //other test scenarios -
-////
-////    //this wait should really be waiting for the 'END' from the data
-////    usleep(waitTime);
-//
-//
-////    wait till all the arrays are there
-//    cout << "WAITING.." << endl;
-//    while(ds->arrays.size() != frames){
-//        cout << "acquired frames: " << ds->arrays.size() << "\r" << std::flush;
-//    }
-//    cout << endl;
-//    cout << "RECEIVED ALL ARRAYS: "<< ds->arrays.size() << endl;
-//
-//    for(unsigned int i = 0; i< ds->arrays.size(); i++)
-//    {
-////        cout << "ARRAY[0]       : " << ((double *)ds->arrays[i]->pData)[0];
-////        cout << ", ARRAY[1]    : " << ((double *)ds->arrays[i]->pData)[1] << endl;
-//        ds->arrays[i]->pAttributeList->find("COUNTER1.OUT")->getValue(NDAttrFloat64, &count );
-//        ds->arrays[i]->pAttributeList->find("PCAP.CAPTURE_TS")->getValue(NDAttrFloat64, &ts );
-////        cout << "PCAP.CAPTURE_TS: " << ts << ", COUNTER1.OUT: "<< count <<  endl;
-////        cout << "TIMER          : " << timer << ", COUNTER      :" << counter << endl;
-//        BOOST_REQUIRE_CLOSE( timer, ts, 0.001 );
-//        BOOST_REQUIRE_CLOSE(counter, count, 0.001 );
-//        counter += count_step;
-//        timer += timer_step;
-//    }
-//
-//    BOOST_REQUIRE_EQUAL((size_t)frames, ds->arrays.size());
-//
-//    //wait to give a chance to send the next set of data
-//    unsigned int waitTime = 2e6;
-//    usleep(waitTime);
-//}
-//
+
+
+//    wait till all the arrays are there
+    cout << "WAITING.." << endl;
+    while(ds->arrays.size() != frames){
+        cout << "acquired frames: " << ds->arrays.size() << "\r" << std::flush;
+    }
+    cout << endl;
+    cout << "RECEIVED ALL ARRAYS: "<< ds->arrays.size() << endl;
+
+    for(unsigned int i = 0; i< ds->arrays.size(); i++)
+    {
+//        cout << "ARRAY[0]       : " << ((double *)ds->arrays[i]->pData)[0];
+//        cout << ", ARRAY[1]    : " << ((double *)ds->arrays[i]->pData)[1] << endl;
+        ds->arrays[i]->pAttributeList->find("COUNTER1.OUT")->getValue(NDAttrFloat64, &count );
+        ds->arrays[i]->pAttributeList->find("PCAP.CAPTURE_TS")->getValue(NDAttrFloat64, &ts );
+//        cout << "PCAP.CAPTURE_TS: " << ts << ", COUNTER1.OUT: "<< count <<  endl;
+//        cout << "TIMER          : " << timer << ", COUNTER      :" << counter << endl;
+        BOOST_REQUIRE_CLOSE( timer, ts, 0.001 );
+        BOOST_REQUIRE_CLOSE(counter, count, 0.001 );
+        counter += count_step;
+        timer += timer_step;
+    }
+
+    BOOST_REQUIRE_EQUAL((size_t)frames, ds->arrays.size());
+
+    //wait to give a chance to send the next set of data
+    unsigned int waitTime = 2e6;
+    usleep(waitTime);
+}
+
 //other test scenarios -
 
 
