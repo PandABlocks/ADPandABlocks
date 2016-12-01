@@ -159,6 +159,7 @@ Pandabox::Pandabox(const char* portName, const char* cmdSerialPortName, const ch
     pasynOctet_data->flush(octetPvt_data, pasynUser_data);
     pasynOctet_data->setInputEos(octetPvt_data, pasynUser_data, "\n", 1);
     pasynOctet_data->setOutputEos(octetPvt_data, pasynUser_data, "\n", 1);
+    pasynUser_data->timeout = LONGWAIT;
 
     /* Create the thread that reads from the device  */
     if (epicsThreadCreate("PandaboxReadTask2", epicsThreadPriorityMedium,
@@ -210,11 +211,13 @@ void Pandabox::readTaskCtrl() {
 asynStatus Pandabox::readHeaderLine(char* rxBuffer, size_t *nBytesIn) {
     const char *functionName = "readHeaderLine";
     int eomReason;
-    asynStatus status;
+    asynStatus status = asynTimeout;
 
-    pasynUser_data->timeout = 1000;
-    status = pasynOctet_data->read(octetPvt_data, pasynUser_data, rxBuffer, NBUFF2,
-            nBytesIn, &eomReason);
+    while (status == asynTimeout) {
+        status = pasynOctet_data->read(octetPvt_data, pasynUser_data, rxBuffer, 
+                NBUFF2, nBytesIn, &eomReason);
+    }
+    
     if(status)
     {
         asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR,"%s:%s: Error reading data: %s'\n",
@@ -228,11 +231,13 @@ asynStatus Pandabox::readDataBytes(char* rxBuffer, int nBytes) {
     const char *functionName = "readDataBytes";
     int eomReason;
     size_t nBytesIn;
-    asynStatus status;
+    asynStatus status = asynTimeout;
 
-    pasynUser_data->timeout = 1000;
-    status = pasynOctet_data->read(octetPvt_data, pasynUser_data, rxBuffer, nBytes,
-            &nBytesIn, &eomReason);
+    while (status == asynTimeout) {
+        status = pasynOctet_data->read(octetPvt_data, pasynUser_data, rxBuffer, 
+                nBytes, &nBytesIn, &eomReason);
+    }
+
     if(status)
     {
         asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR,"%s:%s: Error reading data: %s'\n",
@@ -247,7 +252,6 @@ void Pandabox::readTaskData() {
     const char *functionName = "readTaskData";
     size_t nBytesIn;
     asynStatus status = asynSuccess;
-    uint32_t datalength, bytesCopied = 0;
     std::vector<char>::iterator it;
     std::vector<char> dataPacket(0,0);
     char rxBuffer[NBUFF2];
@@ -432,8 +436,6 @@ void Pandabox::getAllData(std::vector<char>* inBuffer, int dataLen, int buffLen)
 void Pandabox::parseData(std::vector<char> dataBuffer, int dataLen){
 /*Return True if the end is found, else return false*/
     const char *functionName = "parseData";
-    int * intData = (int*) &dataBuffer.front(); //get an int* to the data
-//    int dataLen = intData[0] - 8; //second 4 bytes is transmitted length of the frame (data + first 8 bytes)
     int buffLen = dataBuffer.size(); //actual length of received input data stream (could be multiple lines)
     int dataNo = headerValues.size() - 1; //number of received data points (total header fields - 'data' = number of captured fields)
     //check to see if we have read all the data in, and do another read if we haven't
@@ -580,6 +582,7 @@ void Pandabox::wrapFrame() {
         sendCtrl(cmdString);
         this->setIntegerParam(ADAcquire, 0);
         endCapture();
+	callParamCallbacks();
     }
 }
 
