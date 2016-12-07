@@ -137,12 +137,12 @@ struct PandaboxGlobalFixture
 
     PandaboxGlobalFixture()
     {
-
         simProcess = startSim();
         //instead of waiting here, we should somehow read 'Server started' from the output
         unsigned int microseconds = 3e6;
         usleep(microseconds);
-        connectToPandabox();
+        connectToPandabox(); // BK: flatten this function here so it is clearly
+                             // visible that z2 is created here with new
 
     }
     ~PandaboxGlobalFixture()
@@ -183,6 +183,7 @@ struct PandaboxFixture
     {
         delete dummy_driver;
         delete arrayPool;
+        // BK are we leaking ds?
     }
 };
 
@@ -209,6 +210,7 @@ BOOST_AUTO_TEST_CASE(sequence_test_short_slow)
     cout << "WAITING.." << endl;
     while(ds->arrays.size() != frames){
         cout << "acquired frames: " << ds->arrays.size() << "\r" << std::flush;
+        // BK: std::endl := end of line + flush
     }
     cout << endl;
     cout << "RECEIVED ALL ARRAYS: "<< ds->arrays.size() << endl;
@@ -223,7 +225,7 @@ BOOST_AUTO_TEST_CASE(sequence_test_short_slow)
         timer += timer_step;
     }
 
-    BOOST_REQUIRE_EQUAL((size_t)frames, ds->arrays.size());
+    BOOST_REQUIRE_EQUAL((size_t)frames, ds->arrays.size()); // BK if this is nto true the test hangs before this test, so this will always be true
 
     //wait to give a chance to send the next set of data
     unsigned int waitTime = 2e6;
@@ -261,7 +263,7 @@ BOOST_AUTO_TEST_CASE(sequence_test_short_fast)
             timer += timer_step;
         }
 
-        BOOST_REQUIRE_EQUAL((size_t)frames, ds->arrays.size());
+        BOOST_REQUIRE_EQUAL((size_t)frames, ds->arrays.size()); // BK: same error as before
 
         //wait to give a chance to send the next set of data
         unsigned int waitTime = 2e6;
@@ -406,7 +408,7 @@ BOOST_AUTO_TEST_CASE(parse_header_test)
 {
     /* INPUT : xml header
      * OUTPUT: std::map<std::string, std::string>
-     */
+     */ // BK: Missing?
 }
 
 //parse data test

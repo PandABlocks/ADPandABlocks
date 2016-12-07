@@ -31,3 +31,5 @@ clean: ;
 # Special rule to get rid of installed documentation dir
 uninstall:
 	$(RMDIR) $(DOCDIR)
+
+realclean: uninstall

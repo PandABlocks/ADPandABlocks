@@ -1,8 +1,8 @@
 #ifndef PANDABOX_H
-#define PANDABOX2_H
+#define PANDABOX2_H // BK: Should be PANDABOX_H
 
 #include <string.h>
-#include <cstring>
+#include <cstring> // BK, duplication of string.h
 #include <string>
 #include <map>
 #include <vector>
@@ -15,13 +15,12 @@
 #include "drvAsynIPPort.h"
 #include "asynShellCommands.h"
 
-
-
 /* This is the number of messages on our queue */
 #define NQUEUE 10000
 
 /* The size of our transmit and receive buffers,
  * max filename length and string param buffers */
+// BK: ambigious names, maybe N_IO_BUFF and N_FILEPATH_BUFF, N_STRING_PARAM_BUFF
 #define NBUFF 255
 #define NBUFF2 65536
 
@@ -44,7 +43,7 @@
  */
 #define LONGWAIT 1000.0
 
-static const char *driverName = "pandabox";
+static const char *driverName = "pandabox"; // BK: Should probably be defined in the cpp file
 
 class Pandabox: public ADDriver {
 private:
@@ -58,6 +57,7 @@ public:
     void readTaskCtrl();
     void readTaskData();
 
+    // BK: any reason why these are not private?
     asynStatus sendCtrl(std::string txBuffer);
     asynStatus sendData(std::string txBuffer);
     asynStatus send(std::string txBuffer, asynOctet *pasynOctet, void* octetPvt, asynUser* pasynUser);
@@ -92,36 +92,37 @@ private:
     void endCapture();
 
 public:
-    NDArray *pArray;
+    NDArray *pArray; // BK: Should this be private?
 
 private:
     asynUser *pasynUser_ctrl;
-    asynCommon *pasynCommon_ctrl;
-    void *pcommonPvt_ctrl;
+    asynCommon *pasynCommon_ctrl; // BK: Unused
+    void *pcommonPvt_ctrl; // BK: Unused
     asynOctet *pasynOctet_ctrl;
-    void *octetPvt_ctrl;
+    void *octetPvt_ctrl; // BK: is there a good reason for this to be part of the global state?
     asynUser *pasynUser_data;
     asynCommon *pasynCommon_data;
     void *pcommonPvt_data;
     asynOctet *pasynOctet_data;
     void *octetPvt_data;
-    epicsMessageQueueId msgQId, intQId;
-    int arrayCounter, numImagesCounter, imgMode, imgNo, arrayNumberStart;
+    epicsMessageQueueId msgQId, intQId; // BK: unused
+    int arrayCounter, numImagesCounter, imgMode, imgNo, arrayNumberStart; // BK: arrayNumberStart unused
     bool capture;
-    std::string header;
-    size_t readBytes;
+    std::string header; // BK: Isolated to one function shouldn't be in global state
+    size_t readBytes; // BK: should be local, never really used as a class field
 
     //vector of maps for the header values
     headerMap headerValues;
 
     //states for readDataTask state machine
-    enum readStates{waitHeaderStart=0, waitHeaderEnd, waitDataStart, receivingData, dataEnd,};
+    enum readStates{waitHeaderStart=0, waitHeaderEnd, waitDataStart, receivingData, dataEnd,}; // BK: First value is always zero in enum, there is no direct dependency on this 0; name of the enum should probably be in singular as it names a type
     readStates state; //init state for the data read
 
-    std::map<asynStatus, std::string> errorMsg;
+    std::map<asynStatus, std::string> errorMsg; // BK: Could be moved outside of class
 };
 
 
+// BK: the following functions should be defined in the cpp file
 /* C function to call new message from  task from epicsThreadCreate */
 static void readTaskCtrlC(void *userPvt) {
     Pandabox *pPvt = (Pandabox *) userPvt;
