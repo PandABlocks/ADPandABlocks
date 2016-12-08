@@ -108,7 +108,7 @@ private:
     epicsMessageQueueId msgQId, intQId; // BK: unused
     int arrayCounter, numImagesCounter, imgMode, imgNo, arrayNumberStart; // BK: arrayNumberStart unused
     bool capture;
-    std::string header; // BK: Isolated to one function shouldn't be in global state
+    std::string header;
     size_t readBytes; // BK: should be local, never really used as a class field
 
     //vector of maps for the header values
