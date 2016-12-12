@@ -258,7 +258,6 @@ void Pandabox::readTaskData() {
                     if (strcmp(rxBuffer, "<header>\0") == 0) {
                         //we have a header so we have started acquiring
                         setIntegerParam(ADAcquire, 1);
-                        setIntegerParam(NDArrayCounter, 0);
                         header.append(rxBuffer);
                         header.append("\n");
                         state = waitHeaderEnd;
