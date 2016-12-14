@@ -557,6 +557,7 @@ void Pandabox::allocateFrame() {
 void Pandabox::wrapFrame() {
     if(capture)
     {
+        this->lock();
         getIntegerParam(NDArrayCounter, &(arrayCounter));
         getIntegerParam(ADNumImagesCounter, &(numImagesCounter));
         // Set the time stamp
@@ -575,19 +576,22 @@ void Pandabox::wrapFrame() {
         {
             capture = false;
         }
-        else if(imgMode == ADImageMultiple && arrayCounter == imgNo)
+        else if(imgMode == ADImageMultiple && numImagesCounter == imgNo)
         {
             capture = false;
         }
         // Set the unique ID
         if (pArray != NULL) {
             pArray->uniqueId = arrayCounter;
-            // Ship the array off
-            doCallbacksGenericPointer(pArray, NDArrayData, 0);
         }
         // Update the counters
         setIntegerParam(NDArrayCounter, arrayCounter);
         setIntegerParam(ADNumImagesCounter, numImagesCounter);
+        this->unlock();
+        if (pArray != NULL) {
+            // Ship the array off
+            doCallbacksGenericPointer(pArray, NDArrayData, 0);
+        }
     }
     if(!capture)
     {
@@ -666,6 +670,7 @@ asynStatus Pandabox::writeInt32(asynUser *pasynUser, epicsInt32 value) {
             asynPrint(pasynUserSelf, ASYN_TRACEIO_DRIVER,
                     "SEND ARM CMD:\n");
             sendCtrl("*PCAP.ARM=");
+            setIntegerParam(ADNumImagesCounter, 0);
         }
         else
         {
