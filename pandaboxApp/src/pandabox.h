@@ -1,8 +1,7 @@
 #ifndef PANDABOX_H
-#define PANDABOX2_H // BK: Should be PANDABOX_H
+#define PANDABOX_H
 
-#include <string.h>
-#include <cstring> // BK, duplication of string.h
+#include <cstring>
 #include <string>
 #include <map>
 #include <vector>
@@ -43,12 +42,11 @@
  */
 #define LONGWAIT 1000.0
 
-static const char *driverName = "pandabox"; // BK: Should probably be defined in the cpp file
-
 class Pandabox: public ADDriver {
 private:
     /**Typedefs**/
-    typedef std::vector<std::map<std::string, std::string> > headerMap; //vector of maps to store header data. Each map is for an individual xml node
+    //vector of maps to store header data. Each map is for an individual xml node
+    typedef std::vector<std::map<std::string, std::string> > headerMap; 
 
 public:
     Pandabox(const char *portName, const char* cmdSerialPortName, const char* dataSerialPortName, int maxPts, int maxBuffers, int maxMemory);
@@ -85,19 +83,14 @@ private:
     std::string getHeaderValue(int index, std::string attribute);
     void setParams();
     void getAllData(std::vector<char>* inBuffer, int dataLen, int buffLen);
-    //void outputData(int dataLen, int dataNo, double* floatData);
     void outputData(int dataLen, int dataNo, std::vector<char> data);
     asynStatus readHeaderLine(char* rxBuffer, size_t* nBytesIn);
     asynStatus readDataBytes(char* rxBuffer, int nBytes);
     void endCapture();
 
-public:
-    NDArray *pArray; // BK: Should this be private?
-
 private:
+    NDArray *pArray; 
     asynUser *pasynUser_ctrl;
-    asynCommon *pasynCommon_ctrl; // BK: Unused
-    void *pcommonPvt_ctrl; // BK: Unused
     asynOctet *pasynOctet_ctrl;
     void *octetPvt_ctrl; // BK: is there a good reason for this to be part of the global state?
     asynUser *pasynUser_data;
@@ -105,8 +98,7 @@ private:
     void *pcommonPvt_data;
     asynOctet *pasynOctet_data;
     void *octetPvt_data;
-    epicsMessageQueueId msgQId, intQId; // BK: unused
-    int arrayCounter, numImagesCounter, imgMode, imgNo, arrayNumberStart; // BK: arrayNumberStart unused
+    int arrayCounter, numImagesCounter, imgMode, imgNo;
     bool capture;
     std::string header;
     size_t readBytes; // BK: should be local, never really used as a class field
@@ -120,17 +112,4 @@ private:
 
     std::map<asynStatus, std::string> errorMsg; // BK: Could be moved outside of class
 };
-
-
-// BK: the following functions should be defined in the cpp file
-/* C function to call new message from  task from epicsThreadCreate */
-static void readTaskCtrlC(void *userPvt) {
-    Pandabox *pPvt = (Pandabox *) userPvt;
-    pPvt->readTaskCtrl();
-}
-
-static void readTaskDataC(void *userPvt) {
-    Pandabox *pPvt = (Pandabox *) userPvt;
-    pPvt->readTaskData();
-}
 #endif

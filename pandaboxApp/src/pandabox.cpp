@@ -11,14 +11,12 @@
 // BK: Commented out code should be deleted
 
 // BK, some headers are not used or duplicated
-#include <sstream> // BK, Not used
 #include <stddef.h>
-#include <stdlib.h>
 #include <stdarg.h>
-#include <math.h> // BK, if you need anything from here include <cmath>
+#include <cmath>
 #include <stdio.h>
 #include <cstring>
-#include <cstdlib> // BK, duplication with stdlib.h, also problematic due to use namespace std
+#include <cstdlib>
 #include <errno.h>
 #include <iostream>
 #include <vector>
@@ -35,7 +33,21 @@
 #include "pandabox.h"
 
 
+// BK: the following functions should be defined in the cpp file
+/* C function to call new message from  task from epicsThreadCreate */
+static void readTaskCtrlC(void *userPvt) {
+    Pandabox *pPvt = (Pandabox *) userPvt;
+    pPvt->readTaskCtrl();
+}
+
+static void readTaskDataC(void *userPvt) {
+    Pandabox *pPvt = (Pandabox *) userPvt;
+    pPvt->readTaskData();
+}
+
 using namespace std; // BK: This should be removed. Most of the things from std are already prefixed and this can be an annoyance in the future.
+
+static const char *driverName = "pandabox";
 
 
 Pandabox::Pandabox(const char* portName, const char* cmdSerialPortName, const char* dataSerialPortName, int maxPts, int maxBuffers, int maxMemory) :
@@ -91,16 +103,6 @@ Pandabox::Pandabox(const char* portName, const char* cmdSerialPortName, const ch
     setIntegerParam(ADStatus, ADStatusIdle);
     setStringParam(ADStatusMessage, "Idle");
 
-    /* Create a message queue to hold completed messages and interrupts */
-    this->msgQId = epicsMessageQueueCreate(NQUEUE, sizeof(char*));
-    this->intQId = epicsMessageQueueCreate(NQUEUE, sizeof(char*)); // BK: queues are never used?
-    if (this->msgQId == NULL || this->intQId == NULL) {
-        // BK: Apart from the error message the client does not know that an error occurred and that the driver is not fully initialized.
-        asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR,
-                "%s:%s: epicsMessageQueueCreate failure\n", driverName, functionName);
-        return;
-    }
-
     /* Connect to the device port */
     /* Copied from asynOctecSyncIO->connect */
     pasynUser_ctrl = pasynManager->createAsynUser(0, 0);
@@ -116,8 +118,6 @@ Pandabox::Pandabox(const char* portName, const char* cmdSerialPortName, const ch
                 "%s:%s: %s interface not supported", driverName, functionName, asynCommonType);
         return;
     }
-    pasynCommon_ctrl = (asynCommon *) pasynInterface->pinterface; // BK: Unused
-    pcommonPvt_ctrl = pasynInterface->drvPvt; // BK: Unused
     pasynInterface = pasynManager->findInterface(pasynUser_ctrl, asynOctetType, 1);
     if (!pasynInterface) {
         asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR,
@@ -266,7 +266,6 @@ void Pandabox::readTaskData() {
     const char *functionName = "readTaskData";
     size_t nBytesIn;
     asynStatus status = asynSuccess;
-    std::vector<char>::iterator it; // BK: Unused
     std::vector<char> dataPacket(0,0);
     char rxBuffer[NBUFF2];
     int eomReason;
@@ -377,7 +376,7 @@ Pandabox::headerMap Pandabox::parseHeader(std::string* headerString)
     if(status == asynSuccess)
     {
         /*walk the xml nodes*/
-        while ((ret = xmlTextReaderRead(xmlreader)) == 1) // BK, ret is not used 
+        while ((xmlTextReaderRead(xmlreader)) == 1)
         {
             const xmlChar* xmlNodeName = NULL; // BK, can be defined on the same line, no NULL necesarry;
             /*get the node names*/
