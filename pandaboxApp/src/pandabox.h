@@ -49,13 +49,14 @@ private:
     typedef std::vector<std::map<std::string, std::string> > headerMap; 
 
 public:
-    Pandabox(const char *portName, const char* cmdSerialPortName, const char* dataSerialPortName, int maxPts, int maxBuffers, int maxMemory);
+    Pandabox(const char *portName, const char* cmdSerialPortName,
+            const char* dataSerialPortName, int maxPts, int maxBuffers, int maxMemory);
 
     /** These should be private, but get called from C, so must be public */
     void readTaskCtrl();
     void readTaskData();
 
-    // BK: any reason why these are not private?
+    /** These functions are used in the tests, so they are public */
     asynStatus sendCtrl(std::string txBuffer);
     asynStatus sendData(std::string txBuffer);
     asynStatus send(std::string txBuffer, asynOctet *pasynOctet, void* octetPvt, asynUser* pasynUser);
@@ -101,7 +102,7 @@ private:
     int arrayCounter, numImagesCounter, imgMode, imgNo;
     bool capture;
     std::string header;
-    size_t readBytes; // BK: should be local, never really used as a class field
+    size_t readBytes; // BK: should be local, never really used as a class field, CT: this depends if getAllData is necessesary or if it is redundant because of the Asyn.read()
 
     //vector of maps for the header values
     headerMap headerValues;
