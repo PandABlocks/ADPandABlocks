@@ -31,8 +31,6 @@ static void readTaskDataC(void *userPvt) {
     pPvt->readTaskData();
 }
 
-using namespace std; // BK: This should be removed. Most of the things from std are already prefixed and this can be an annoyance in the future.
-
 static const char *driverName = "pandabox";
 
 
@@ -389,8 +387,8 @@ asynStatus Pandabox::extractHeaderData(xmlTextReaderPtr xmlreader, std::map<std:
           xmlChar* xvalue = xmlNodeListGetString(node->doc, attribute->children, 1);
 
           /*Insert the values into the data_value map*/
-          string value((const char*)xvalue);
-          string name((const char*)attribute->name);
+          std::string value((const char*)xvalue);
+          std::string name((const char*)attribute->name);
           (*values)[name] = value;
 
           xmlFree(xvalue);
@@ -439,7 +437,7 @@ void Pandabox::parseData(std::vector<char> dataBuffer, int dataLen){
 }
 
 //void Pandabox::outputData(int dataLen, int dataNo, double* floatData)
-void Pandabox::outputData(int dataLen, int dataNo, vector<char> data) // BK: data vector must be declared const even if you pass it to value to ensure that it is not reallocated while you are iterating over it with raw pointers (it should not be but iterating over nonconst vector with raw pointers is undefined behaviour)
+void Pandabox::outputData(int dataLen, int dataNo, std::vector<char> data) // BK: data vector must be declared const even if you pass it to value to ensure that it is not reallocated while you are iterating over it with raw pointers (it should not be but iterating over nonconst vector with raw pointers is undefined behaviour)
 {
     int linecount = 0; //number of lines of data received and parsed
     //get the length of an individual dataSet
@@ -460,7 +458,7 @@ void Pandabox::outputData(int dataLen, int dataNo, vector<char> data) // BK: dat
     int noDataSets = data.size() / setLen; //number of data sets in the received binary data
     double* doubleData = (double*) &data[ptridx];
     uint32_t* uint32Data = (uint32_t*) &data[ptridx];
-    string dataType;
+    std::string dataType;
     //find other possible data types..
 
     //loop over the data sets in the received data
@@ -567,7 +565,7 @@ void Pandabox::wrapFrame() {
     }
     if(!this->capture)
     {
-        string cmdString = "*PCAP.DISARM="; // BK: unnecessary local
+        std::string cmdString = "*PCAP.DISARM="; // BK: unnecessary local
         sendCtrl(cmdString);
         this->setIntegerParam(ADAcquire, 0);
         endCapture();
@@ -613,7 +611,7 @@ asynStatus Pandabox::send(std::string txBuffer, asynOctet *pasynOctet, void* oct
 
 void Pandabox::setDataFormat() {
     /* set the data header to be in XML, BINARY, SCALED format*/
-    string formatString = "XML FRAMED SCALED\n"; // BK: Unnecessary local
+    std::string formatString = "XML FRAMED SCALED\n"; // BK: Unnecessary local
     sendData(formatString);
 }
 
@@ -649,7 +647,7 @@ asynStatus Pandabox::writeInt32(asynUser *pasynUser, epicsInt32 value) {
             this->capture = true;
             asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR, // BK, Trace error is probably not the right value?
                     "SEND ARM CMD:\n");
-            string cmdString = "*PCAP.ARM="; // BK, unnecessary local
+            std::string cmdString = "*PCAP.ARM="; // BK, unnecessary local
             sendCtrl(cmdString);
         }
         else
@@ -657,7 +655,7 @@ asynStatus Pandabox::writeInt32(asynUser *pasynUser, epicsInt32 value) {
             this->capture = false;
             asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR, // BK, Trace error is probably not the right value?
                     "SEND DISARM CMD:\n");
-            string cmdString = "*PCAP.DISARM="; // BK, unnecessary local
+            std::string cmdString = "*PCAP.DISARM="; // BK, unnecessary local
             sendCtrl(cmdString);
             endCapture();
         }
