@@ -1,5 +1,3 @@
-// BK: pandabox header should be included first, this way you can be sure that
-//     the pandabox header includes everything it needs.
 // BK: This driver will only work on machines with the same endianness as panda.
 // BK: const modifiers on input parameters and methods are missing
 // BK: Prefer const references in params instead of pointers where the passed 
@@ -10,27 +8,15 @@
 //     which is confusing
 // BK: Commented out code should be deleted
 
-// BK, some headers are not used or duplicated
-#include <stddef.h>
-#include <stdarg.h>
-#include <cmath>
-#include <stdio.h>
-#include <cstring>
-#include <cstdlib>
-#include <errno.h>
-#include <iostream>
-#include <vector>
-#include <algorithm>
+#include "pandabox.h"
+
 #include <stdint.h>
-#include <epicsString.h>
-#include <epicsTime.h>
 #include <epicsExport.h>
 #include <iocsh.h>
 
 #include <libxml/xmlreader.h>
 
 #include "epicsThread.h"
-#include "pandabox.h"
 
 
 // BK: the following functions should be defined in the cpp file
