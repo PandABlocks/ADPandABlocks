@@ -69,7 +69,6 @@ protected:
 #define FIRST_PARAM pandaboxIsConnected
     int pandaboxIsConnected;        // int32 read  - is pandabox connected?
     int pandaboxHeader;             // string read - data header
-    int testparam;                 // int32 write - initiates test setup
     int pandaboxPCTime;             // float64array read - position compare timestamps
 #define LAST_PARAM pandaboxPCTime
 #define NUM_PARAMS (&LAST_PARAM - &FIRST_PARAM + 1)
@@ -82,7 +81,6 @@ private:
     void wrapFrame();
     asynStatus extractHeaderData(xmlTextReaderPtr xmlreader, std::map<std::string, std::string>* values);
     std::string getHeaderValue(int index, std::string attribute);
-    void setParams();
     void getAllData(std::vector<char>* inBuffer, int dataLen, int buffLen);
     void outputData(int dataLen, int dataNo, std::vector<char> data);
     asynStatus readHeaderLine(char* rxBuffer, size_t* nBytesIn);

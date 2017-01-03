@@ -57,9 +57,6 @@ Pandabox::Pandabox(const char* portName, const char* cmdSerialPortName, const ch
     asynStatus status = asynSuccess;
     asynInterface *pasynInterface;
     asynInterface *pasynInterface_data; //  BK: it seems that pasynInterface_data can be replaced by pasynInterface
-//    char buffer[6400]; /* 100 chars per element on sys bus is overkill... */
-//    char str[NBUFF];
-//    const reg *r;
 
     /* For areaDetector image */
     this->pArray = NULL;
@@ -76,9 +73,6 @@ Pandabox::Pandabox(const char* portName, const char* cmdSerialPortName, const ch
 
     /*Create a parameter to store the header value */
     createParam("HEADER", asynParamOctet, &pandaboxHeader);
-
-    /*test param to setup a capture experiment*/
-    createParam("TESTPARAM", asynParamInt32, &testparam);
 
     /* initialise areaDetector parameters */
     setStringParam(ADManufacturer, "Diamond Light Source Ltd.");
@@ -433,7 +427,6 @@ void Pandabox::getAllData(std::vector<char>* inBuffer, int dataLen, int buffLen)
 }
 
 void Pandabox::parseData(std::vector<char> dataBuffer, int dataLen){
-/*Return True if the end is found, else return false*/ // BK: lost comment?
     const char *functionName = "parseData";
     int buffLen = dataBuffer.size(); //actual length of received input data stream (could be multiple lines)
     int dataNo = headerValues.size() - 1; //number of received data points (total header fields - 'data' = number of captured fields)
@@ -464,7 +457,7 @@ void Pandabox::outputData(int dataLen, int dataNo, vector<char> data) // BK: dat
     }
     int idx = 0;
     int ptridx = 0; //skip the first 8 bytes
-    int noDataSets = data.size() / setLen; //noPoints/ dataNo; //number of data sets in the received binary data
+    int noDataSets = data.size() / setLen; //number of data sets in the received binary data
     double* doubleData = (double*) &data[ptridx];
     uint32_t* uint32Data = (uint32_t*) &data[ptridx];
     string dataType;
@@ -515,9 +508,6 @@ void Pandabox::outputData(int dataLen, int dataNo, vector<char> data) // BK: dat
                     uint32Data = (uint32_t*) &data[ptridx];
             }
         }
-        //copy the data in as uint8
-        //(uint8_t*)this->pArray->pData = &data[0];
-        //copy((uint8_t*)this->pArray->pData, (uint8_t*)this->pArray->pData + data.size(), data.begin());
         /* Ship off the NDArray*/
         wrapFrame();
 
@@ -672,10 +662,6 @@ asynStatus Pandabox::writeInt32(asynUser *pasynUser, epicsInt32 value) {
             endCapture();
         }
     }
-    else if (param == testparam)
-    {
-            setParams();
-    }
 
     if(status)
     {
@@ -686,38 +672,6 @@ asynStatus Pandabox::writeInt32(asynUser *pasynUser, epicsInt32 value) {
     callParamCallbacks();
     return status;
 }
-
-//----------------------------------
-void Pandabox::setParams(){
-/* Temporary function in absence of web interface for setup for testing*/
-        std::string cmds[21]= {
-                "*PCAP.DISARM=",
-                "*CAPTURE=",
-                "COUNTER1.STEP=50",
-                "COUNTER1.START=100",
-                "COUNTER1.ENABLE=SEQ1.ACTIVE",
-                "COUNTER1.TRIG=SEQ1.OUTA",
-                "COUNTER1.OUT.CAPTURE=Triggered",
-                "SEQ1.PRESCALE=0.05",
-                "SEQ1.TABLE_CYCLE=1",
-                "SEQ1.TABLE<",
-                "500",
-                "520109824",
-                "1",
-                "1",
-                "",
-                "SEQ1.ENABLE=PCAP.ACTIVE",
-                "SEQ1.INPA=BITS.ONE",
-                "PCAP.ENABLE=SEQ1.ACTIVE",
-                "PCAP.FRAME=BITS.ZERO",
-                "PCAP.CAPTURE=SEQ1.OUTA",
-                "PCAP.CAPTURE_TS.CAPTURE=Trigger"};
-        for(int i = 0; i < 21; i ++)
-        {
-            sendCtrl(cmds[i]);
-        }
-}
-//--------------------------------------
 
 
 extern "C" int pandaboxConfig(const char *portName, const char* cmdSerialPortName,
