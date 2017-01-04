@@ -74,6 +74,7 @@ protected:
 #define NUM_PARAMS (&LAST_PARAM - &FIRST_PARAM + 1)
 
 private:
+    asynStatus connectToDevicePort(asynUser* pasynUser, const char* serialPortName);
     void setDataFormat();
     headerMap parseHeader(std::string* headerString);
     void parseData(std::vector<char> dataBuffer, int dataLen);
@@ -109,6 +110,5 @@ private:
     enum readStates{waitHeaderStart=0, waitHeaderEnd, waitDataStart, receivingData, dataEnd,}; // BK: First value is always zero in enum, there is no direct dependency on this 0; name of the enum should probably be in singular as it names a type
     readStates state; //init state for the data read
 
-    std::map<asynStatus, std::string> errorMsg; // BK: Could be moved outside of class
 };
 #endif

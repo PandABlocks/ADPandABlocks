@@ -6,7 +6,6 @@
 //     usually reserved for output parameters
 // BK: this-> used in some cases and not in others, also in the same function 
 //     which is confusing
-// BK: Commented out code should be deleted
 
 #include "pandabox.h"
 
@@ -32,7 +31,7 @@ static void readTaskDataC(void *userPvt) {
 }
 
 static const char *driverName = "pandabox";
-
+static std::map<asynStatus, std::string> errorMsg;
 
 Pandabox::Pandabox(const char* portName, const char* cmdSerialPortName, const char* dataSerialPortName, int maxPts, int maxBuffers, int maxMemory) :
         ADDriver(portName, 1 /*maxAddr*/, NUM_PARAMS, maxBuffers, maxMemory,
@@ -44,7 +43,7 @@ Pandabox::Pandabox(const char* portName, const char* cmdSerialPortName, const ch
     //private variables
     state = waitHeaderStart; //init state for the data read
 
-    errorMsg[asynSuccess] = "asynSuccess"; // BK: errorMsg could be made static and defined outside the class as it contains nothing that is class instance specific.
+    errorMsg[asynSuccess] = "asynSuccess";
     errorMsg[asynTimeout] = "asynTimeout";
     errorMsg[asynOverflow] = "asynOverflow";
     errorMsg[asynError] = "asynError";
@@ -54,7 +53,6 @@ Pandabox::Pandabox(const char* portName, const char* cmdSerialPortName, const ch
     const char *functionName = "Pandabox";
     asynStatus status = asynSuccess;
     asynInterface *pasynInterface;
-    asynInterface *pasynInterface_data; //  BK: it seems that pasynInterface_data can be replaced by pasynInterface
 
     /* For areaDetector image */
     this->pArray = NULL;
@@ -102,6 +100,9 @@ Pandabox::Pandabox(const char* portName, const char* cmdSerialPortName, const ch
                 "%s:%s: %s interface not supported", driverName, functionName, asynOctetType);
         return;
     }
+    
+    pasynUser_ctrl = pasynManager->createAsynUser(0, 0);
+    //status = connectToDevicePort(pasynUser_ctrl, cmdSerialPortName);
     pasynOctet_ctrl = (asynOctet *) pasynInterface->pinterface;
     octetPvt_ctrl = pasynInterface->drvPvt;
 
@@ -130,22 +131,22 @@ Pandabox::Pandabox(const char* portName, const char* cmdSerialPortName, const ch
                 "%s:%s: Connect failed, port=%s, error=%d\n", driverName, functionName, dataSerialPortName, status);
         return;
     }
-    pasynInterface_data = pasynManager->findInterface(pasynUser_data, asynCommonType, 1);
-    if (!pasynInterface_data) {
+    pasynInterface = pasynManager->findInterface(pasynUser_data, asynCommonType, 1);
+    if (!pasynInterface) {
         asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR,
                 "%s:%s: %s interface not supported", driverName, functionName, asynCommonType);
         return;
     }
-    pasynCommon_data = (asynCommon *) pasynInterface_data->pinterface; // BK: saving a single pointer multiple times with different casts to a class state
-    pcommonPvt_data = pasynInterface_data->drvPvt; // BK: same pointer saved multiple times?
-    pasynInterface_data = pasynManager->findInterface(pasynUser_data, asynOctetType, 1);
-    if (!pasynInterface_data) {
+    pasynCommon_data = (asynCommon *) pasynInterface->pinterface; // BK: saving a single pointer multiple times with different casts to a class state
+    pcommonPvt_data = pasynInterface->drvPvt; // BK: same pointer saved multiple times?
+    pasynInterface = pasynManager->findInterface(pasynUser_data, asynOctetType, 1);
+    if (!pasynInterface) {
         asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR,
                 "%s:%s: %s interface not supported", driverName, functionName, asynOctetType);
         return;
     }
-    pasynOctet_data = (asynOctet *) pasynInterface_data->pinterface;
-    octetPvt_data = pasynInterface_data->drvPvt;
+    pasynOctet_data = (asynOctet *) pasynInterface->pinterface;
+    octetPvt_data = pasynInterface->drvPvt;
 
     /* Set EOS and flush */
     pasynOctet_data->flush(octetPvt_data, pasynUser_data);
@@ -166,6 +167,29 @@ Pandabox::Pandabox(const char* portName, const char* cmdSerialPortName, const ch
     setDataFormat(); // BK: consider inlining the function, it is just one line and it is not used anywhere else
 
 };
+
+asynStatus Pandabox::connectToDevicePort(asynUser* pasynUser, const char* serialPortName) {
+    /* Connect to the device port */
+    /* Copied from asynOctecSyncIO->connect */
+    const char *functionName = "connectToDevicePort";
+    asynInterface *pasynInterface;
+    asynStatus status = pasynManager->connectDevice(pasynUser, serialPortName, 0);
+    if (status != asynSuccess) {
+        asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR,
+                "%s:%s: Connect failed, port=%s, error=%d\n", driverName, functionName, serialPortName, status);
+    }
+    pasynInterface = pasynManager->findInterface(pasynUser, asynCommonType, 1);
+    if (!pasynInterface) {
+        asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR,
+                "%s:%s: %s interface not supported", driverName, functionName, asynCommonType);
+    }
+    pasynInterface = pasynManager->findInterface(pasynUser, asynOctetType, 1);
+    if (!pasynInterface) {
+        asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR,
+                "%s:%s: %s interface not supported", driverName, functionName, asynOctetType);
+    }
+    return status;
+}
 
 /* This is the function that will be run for the read thread */
 void Pandabox::readTaskCtrl() {
