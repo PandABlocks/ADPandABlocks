@@ -82,6 +82,7 @@ Pandabox::Pandabox(const char* portName, const char* cmdSerialPortName, const ch
     /* Connect to the device port */
     /* Copied from asynOctecSyncIO->connect */
     pasynUser_ctrl = pasynManager->createAsynUser(0, 0);
+    //pasynInterface = connectToDevicePort(pasynUser_ctrl, cmdSerialPortName);
     status = pasynManager->connectDevice(pasynUser_ctrl, cmdSerialPortName, 0);
     if (status != asynSuccess) {
         asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR,
@@ -101,8 +102,6 @@ Pandabox::Pandabox(const char* portName, const char* cmdSerialPortName, const ch
         return;
     }
     
-    pasynUser_ctrl = pasynManager->createAsynUser(0, 0);
-    //status = connectToDevicePort(pasynUser_ctrl, cmdSerialPortName);
     pasynOctet_ctrl = (asynOctet *) pasynInterface->pinterface;
     octetPvt_ctrl = pasynInterface->drvPvt;
 
@@ -164,15 +163,14 @@ Pandabox::Pandabox(const char* portName, const char* cmdSerialPortName, const ch
     }
 
     /*set the receiving format on the data channel*/
-    setDataFormat(); // BK: consider inlining the function, it is just one line and it is not used anywhere else
-
+    sendData("XML FRAMED SCALED\n");
 };
 
-asynStatus Pandabox::connectToDevicePort(asynUser* pasynUser, const char* serialPortName) {
-    /* Connect to the device port */
-    /* Copied from asynOctecSyncIO->connect */
+asynInterface* Pandabox::connectToDevicePort(asynUser* pasynUser, const char* serialPortName) {
     const char *functionName = "connectToDevicePort";
     asynInterface *pasynInterface;
+    /* Connect to the device port */
+    /* Copied from asynOctecSyncIO->connect */
     asynStatus status = pasynManager->connectDevice(pasynUser, serialPortName, 0);
     if (status != asynSuccess) {
         asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR,
@@ -182,19 +180,22 @@ asynStatus Pandabox::connectToDevicePort(asynUser* pasynUser, const char* serial
     if (!pasynInterface) {
         asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR,
                 "%s:%s: %s interface not supported", driverName, functionName, asynCommonType);
+        return pasynInterface;
     }
     pasynInterface = pasynManager->findInterface(pasynUser, asynOctetType, 1);
     if (!pasynInterface) {
         asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR,
                 "%s:%s: %s interface not supported", driverName, functionName, asynOctetType);
+        return pasynInterface;
     }
-    return status;
+    //return status;
 }
 
 /* This is the function that will be run for the read thread */
 void Pandabox::readTaskCtrl() {
     const char *functionName = "readTaskCtrl";
-    char *rxBuffer;
+    //char *rxBuffer;
+    char rxBuffer[NBUFF];
     size_t nBytesIn;
     int eomReason;
     asynStatus status = asynSuccess;
@@ -202,24 +203,18 @@ void Pandabox::readTaskCtrl() {
 
     while (true) {
         pasynUserRead->timeout = LONGWAIT;
-        /* Malloc some data to put the reply from pandabox. This is freed if there is an
-         * error, otherwise it is put on a queue, and the receiving thread should free it
-         */
-        rxBuffer = (char *) malloc(NBUFF); // BK: consider putting this to the stack, it's small
         status = pasynOctet_ctrl->read(octetPvt_ctrl, pasynUserRead, rxBuffer, NBUFF - 1,
                 &nBytesIn, &eomReason);
         if (status) {
-            epicsThreadSleep(TIMEOUT); // BK: we leak rxBuffer here
+            epicsThreadSleep(TIMEOUT);
         } else if (eomReason & ASYN_EOM_EOS) {
             // Replace the terminator with a null so we can use it as a string
             rxBuffer[nBytesIn] = '\0';
             asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW,
                     "%s:%s: Message: '%s'\n", driverName, functionName, rxBuffer);
-            free(rxBuffer);
         } else {
             asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR,
                     "%s:%s: Bad message 'bt%.*s'\n", driverName, functionName, (int)nBytesIn, rxBuffer);
-            free(rxBuffer);
         }
     }
 }
@@ -365,9 +360,7 @@ Pandabox::headerMap Pandabox::parseHeader(std::string* headerString)
 
     asynStatus status = asynSuccess;
     int ret = 0;
-    xmlTextReaderPtr xmlreader = NULL; // BK, can be defined on the same line, no NULL pre-definition necessary;
-
-    xmlreader = xmlReaderForMemory(headerString->c_str(), (int)headerString->length(), NULL, NULL, 0);
+    xmlTextReaderPtr xmlreader = xmlReaderForMemory(headerString->c_str(), (int)headerString->length(), NULL, NULL, 0);
 
     if (xmlreader == NULL){
         //do some error handling
@@ -630,13 +623,6 @@ asynStatus Pandabox::send(std::string txBuffer, asynOctet *pasynOctet, void* oct
         }
     }
     return status;
-}
-
-
-void Pandabox::setDataFormat() {
-    /* set the data header to be in XML, BINARY, SCALED format*/
-    std::string formatString = "XML FRAMED SCALED\n"; // BK: Unnecessary local
-    sendData(formatString);
 }
 
 /** Called when asyn clients call pasynInt32->write().

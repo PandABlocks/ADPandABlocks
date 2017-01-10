@@ -74,8 +74,7 @@ protected:
 #define NUM_PARAMS (&LAST_PARAM - &FIRST_PARAM + 1)
 
 private:
-    asynStatus connectToDevicePort(asynUser* pasynUser, const char* serialPortName);
-    void setDataFormat();
+    asynInterface* connectToDevicePort(asynUser* pasynUser, const char* serialPortName);
     headerMap parseHeader(std::string* headerString);
     void parseData(std::vector<char> dataBuffer, int dataLen);
     void allocateFrame();
