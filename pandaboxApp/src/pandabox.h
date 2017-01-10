@@ -82,9 +82,9 @@ private:
     asynStatus extractHeaderData(xmlTextReaderPtr xmlreader, std::map<std::string, std::string>* values);
     std::string getHeaderValue(int index, std::string attribute);
     void getAllData(std::vector<char>* inBuffer, int dataLen, int buffLen);
-    void outputData(int dataLen, int dataNo, std::vector<char> data);
+    void outputData(int dataLen, int dataNo, const std::vector<char> data);
     asynStatus readHeaderLine(char* rxBuffer, size_t* nBytesIn);
-    asynStatus readDataBytes(char* rxBuffer, int nBytes);
+    asynStatus readDataBytes(char* rxBuffer, size_t nBytes);
     void endCapture();
 
 private:
