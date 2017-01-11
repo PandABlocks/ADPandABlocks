@@ -1,24 +1,23 @@
-// BK: This driver will only work on machines with the same endianness as panda.
 // BK: const modifiers on input parameters and methods are missing
 // BK: Prefer const references in params instead of pointers where the passed 
 //     objects are not changed, references if the memory position of the object
 //     is not changed in method (the reference cannot be null), pointers are 
 //     usually reserved for output parameters
-// BK: this-> used in some cases and not in others, also in the same function 
-//     which is confusing
 
 #include "pandabox.h"
 
 #include <stdint.h>
 #include <epicsExport.h>
 #include <iocsh.h>
+#include <stdexcept>
+#include <iostream>
 
 #include <libxml/xmlreader.h>
 
+#include <epicsEndian.h>
 #include "epicsThread.h"
 
 
-// BK: the following functions should be defined in the cpp file
 /* C function to call new message from  task from epicsThreadCreate */
 static void readTaskCtrlC(void *userPvt) {
     Pandabox *pPvt = (Pandabox *) userPvt;
@@ -29,6 +28,8 @@ static void readTaskDataC(void *userPvt) {
     Pandabox *pPvt = (Pandabox *) userPvt;
     pPvt->readTaskData();
 }
+
+typedef int static_assert_endianness[EPICS_BYTE_ORDER != EPICS_ENDIAN_BIG ? 1 : -1];
 
 static const char *driverName = "pandabox";
 static std::map<asynStatus, std::string> errorMsg;
@@ -122,8 +123,7 @@ Pandabox::Pandabox(const char* portName, const char* cmdSerialPortName, const ch
 
     /* Connect to the data port */
     /* Copied from asynOctecSyncIO->connect */
-    // BK : this block of code duplicates a lot of things done in the previous block
-    pasynUser_data = pasynManager->createAsynUser(0, 0); // BK: we already have a pasynUser_ctrl with same params
+    pasynUser_data = pasynManager->createAsynUser(0, 0);
     status = pasynManager->connectDevice(pasynUser_data, dataSerialPortName, 0);
     if (status != asynSuccess) {
         asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
@@ -136,8 +136,8 @@ Pandabox::Pandabox(const char* portName, const char* cmdSerialPortName, const ch
                 "%s:%s: %s interface not supported", driverName, functionName, asynCommonType);
         return;
     }
-    pasynCommon_data = (asynCommon *) pasynInterface->pinterface; // BK: saving a single pointer multiple times with different casts to a class state
-    pcommonPvt_data = pasynInterface->drvPvt; // BK: same pointer saved multiple times?
+    pasynCommon_data = (asynCommon *) pasynInterface->pinterface;
+    pcommonPvt_data = pasynInterface->drvPvt;
     pasynInterface = pasynManager->findInterface(pasynUser_data, asynOctetType, 1);
     if (!pasynInterface) {
         asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
@@ -218,15 +218,16 @@ void Pandabox::readTaskCtrl() {
         }
     }
 }
-
-asynStatus Pandabox::readHeaderLine(char* rxBuffer, size_t *nBytesIn) { // BK: nBytesIn is always discarded when this function is called, do we need this param?maybe all requirements on this size could be checked from this function?
+asynStatus Pandabox::readHeaderLine(char* rxBuffer, int buffSize) {
+    /*buffSize is the size fo rxBuffer*/
     const char *functionName = "readHeaderLine";
     int eomReason;
+    size_t nBytesIn;
     asynStatus status = asynTimeout;
-
+    //check to see if rxBuffer is
     while (status == asynTimeout) {
         status = pasynOctet_data->read(octetPvt_data, pasynUser_data, rxBuffer, 
-                NBUFF2, nBytesIn, &eomReason); // BK: functions only expect 4 bytes to be set in nBytesIn, we are reading NBUFF2 bytes. Also size of rxBuffer is not checked anywhere, if somebody provides a buffer that is smaller we are going to write all over the memory.
+                buffSize, &nBytesIn, &eomReason);
     }
     
     if(status)
@@ -271,7 +272,7 @@ void Pandabox::readTaskData() {
     while (true) {
         switch(state) {
             case waitHeaderStart:
-                readHeaderLine(rxBuffer, &nBytesIn);
+                readHeaderLine(rxBuffer, NBUFF2);
                 if (strcmp(rxBuffer, "<header>\0") == 0) {
                     //we have a header so we have started acquiring
                     setIntegerParam(ADAcquire, 1);
@@ -284,7 +285,7 @@ void Pandabox::readTaskData() {
                 break;
 
             case waitHeaderEnd:
-                readHeaderLine(rxBuffer, &nBytesIn);
+                readHeaderLine(rxBuffer, NBUFF2);
                 /*accumulate the header until we reach the end, then process*/
                 header.append(rxBuffer);
                 header.append("\n");
@@ -316,7 +317,6 @@ void Pandabox::readTaskData() {
                 // read next four bytes to get the packet size
                 readDataBytes(rxBuffer, 4);
                 dataLength = (*(uint32_t*) rxBuffer) - 8;//subtract 8 (the packet prefix information)
-                //dataLength = ((uint32_t*) rxBuffer)[0] - 8; // BK: only works for one endianesness, also looks rather odd, I'd create a function that does this explicitly with bitshifts.
                 // read the rest of the packet
                 readDataBytes(rxBuffer, dataLength);
                 dataPacket.clear();
@@ -389,7 +389,7 @@ Pandabox::headerMap Pandabox::parseHeader(std::string* headerString)
         }
     }
 
-    callParamCallbacks(); // BK: I don't think we are changing any of the params in this function
+    callParamCallbacks();
     return tmpHeaderValues;
 }
 
@@ -418,7 +418,15 @@ asynStatus Pandabox::extractHeaderData(xmlTextReaderPtr xmlreader, std::map<std:
 std::string Pandabox::getHeaderValue(int index, std::string attribute)
 {
     /*return the value of an attribute of a given element*/
-    return headerValues[index].find(attribute)->second; // BK: What happens if not in map?
+    //first check index (do find on headerValues
+    if (headerValues[index].find(attribute) != headerValues[index].end())
+    {
+        return headerValues[index].find(attribute)->second;
+    }
+    else
+    {
+         throw std::out_of_range("attribute not in map");
+    }
 }
 
 void Pandabox::getAllData(std::vector<char>* inBuffer, int dataLen, int buffLen)
@@ -455,79 +463,80 @@ void Pandabox::parseData(std::vector<char> dataBuffer, int dataLen){
 
 void Pandabox::outputData(int dataLen, int dataNo, const std::vector<char> data)
 {
-    int linecount = 0; //number of lines of data received and parsed
-    //get the length of an individual dataSet
-    int setLen = 0;
-    for(int i = 0; i < headerValues.size()-1; ++i)
-    {
-        if(getHeaderValue(i+1, "type") == "double")
+    try{
+        int linecount = 0; //number of lines of data received and parsed
+        //get the length of an individual dataSet
+        int setLen = 0;
+        for(int i = 0; i < headerValues.size()-1; ++i)
         {
-            setLen += sizeof(double);
-        }
-        else if (getHeaderValue(i+1, "type") == "uint32")
-        {
-            setLen += sizeof(uint32_t);
-        }
-    }
-    int idx = 0;
-    int ptridx = 0; //skip the first 8 bytes
-    int noDataSets = data.size() / setLen; //number of data sets in the received binary data
-    double* doubleData = (double*) &data[ptridx];
-    uint32_t* uint32Data = (uint32_t*) &data[ptridx];
-    std::string dataType;
-    //find other possible data types..
-
-    //loop over the data sets in the received data
-    for(int j = 0; j < noDataSets; ++j)
-    {
-        //allocate a frame for each data set
-        allocateFrame();
-        if(pArray != NULL) {
-            //loop over each data point in the data set
-            for(int i = 0; i < dataNo; ++i)
+            if(getHeaderValue(i+1, "type") == "double")
             {
-                idx = (j*dataNo + i);//current data point index in the float array
-                    // NDAttributes are used to store the actual captured data
-                    std::string desc("sample value");
-                    NDAttrSource_t sourceType = NDAttrSourceUndefined;
-                    const char *pSource = "source string";
-                    //find out what type the individual point is
-                    //from the header and assign the approperiate pointer.
-                    dataType = getHeaderValue(i+1, "type");
-                    if(dataType == "double")
-                    {
-                    // Create the NDAttributes and initialise them with data value (headerValue[0] is the data info)
-                        NDAttribute *pAttribute = new NDAttribute(
-                            getHeaderValue(i+1, "name").c_str(),
-                            desc.c_str(), sourceType,
-                            pSource, NDAttrFloat64,
-                            doubleData);
-                        pArray->pAttributeList->add(pAttribute);
-                        ((double *)pArray->pData)[i] = doubleData[0];
-                        ptridx += sizeof(double);
-                    }
-                    else if(dataType == "uint32")
-                    {
-                                        // Create the NDAttributes and initialise them with data value (headerValue[0] is the data info)
-                        NDAttribute *pAttribute = new NDAttribute(
-                            getHeaderValue(i+1, "name").c_str(),
-                            desc.c_str(), sourceType,
-                            pSource, NDAttrUInt32,
-                            uint32Data);
-                        pArray->pAttributeList->add(pAttribute);
-                        ((uint32_t *)pArray->pData)[i] = uint32Data[0];
-                        ptridx += sizeof(uint32_t);
-                    };
-                    doubleData = (double*) &data[ptridx]; // BK: you can just have one pointer and cast it according to the data, increasing it according to the data
-                    uint32Data = (uint32_t*) &data[ptridx];
+                setLen += sizeof(double);
+            }
+            else if (getHeaderValue(i+1, "type") == "uint32")
+            {
+                setLen += sizeof(uint32_t);
             }
         }
-        /* Ship off the NDArray*/
-        wrapFrame();
+        int idx = 0;
+        const char* ptridx = &data.front();
+        int noDataSets = data.size() / setLen; //number of data sets in the received binary data
+        std::string dataType;
+        //find other possible data types..
 
-        /* Increment number of lines processed*/
-        linecount++;
-        callParamCallbacks();
+        //loop over the data sets in the received data
+        for(int j = 0; j < noDataSets; ++j)
+        {
+            //allocate a frame for each data set
+            allocateFrame();
+            if(pArray != NULL) {
+                //loop over each data point in the data set
+                for(int i = 0; i < dataNo; ++i)
+                {
+                    idx = (j*dataNo + i);//current data point index in the float array
+                        // NDAttributes are used to store the actual captured data
+                        std::string desc("sample value");
+                        NDAttrSource_t sourceType = NDAttrSourceUndefined;
+                        const char *pSource = "source string";
+                        //find out what type the individual point is
+                        //from the header and assign the approperiate pointer.
+                        dataType = getHeaderValue(i+1, "type");
+                        if(dataType == "double")
+                        {
+                        // Create the NDAttributes and initialise them with data value (headerValue[0] is the data info)
+                            NDAttribute *pAttribute = new NDAttribute(
+                                getHeaderValue(i+1, "name").c_str(),
+                                desc.c_str(), sourceType,
+                                pSource, NDAttrFloat64,
+                                (double*)ptridx);
+                            pArray->pAttributeList->add(pAttribute);
+                            ((double *)pArray->pData)[i] = *(double*)ptridx;
+                            ptridx += sizeof(double);
+                        }
+                        else if(dataType == "uint32")
+                        {
+                                            // Create the NDAttributes and initialise them with data value (headerValue[0] is the data info)
+                            NDAttribute *pAttribute = new NDAttribute(
+                                getHeaderValue(i+1, "name").c_str(),
+                                desc.c_str(), sourceType,
+                                pSource, NDAttrUInt32,
+                                (uint32_t*)ptridx);
+                            pArray->pAttributeList->add(pAttribute);
+                            ((uint32_t *)pArray->pData)[i] = *(double*)ptridx;
+                            ptridx += sizeof(uint32_t);
+                        };
+                }
+            }
+            /* Ship off the NDArray*/
+            wrapFrame();
+
+            /* Increment number of lines processed*/
+            linecount++;
+            callParamCallbacks();
+        }
+    }
+    catch(const std::out_of_range& e){
+        //if attribute is not in header map, go back to beginning ?
     }
 }
 
@@ -653,14 +662,14 @@ asynStatus Pandabox::writeInt32(asynUser *pasynUser, epicsInt32 value) {
         {
             //set the current array number
             capture = true;
-            asynPrint(pasynUserSelf, ASYN_TRACE_ERROR, // BK, Trace error is probably not the right value?
+            asynPrint(pasynUserSelf, ASYN_TRACEIO_DRIVER,
                     "SEND ARM CMD:\n");
             sendCtrl("*PCAP.ARM=");
         }
         else
         {
             capture = false;
-            asynPrint(pasynUserSelf, ASYN_TRACE_ERROR, // BK, Trace error is probably not the right value?
+            asynPrint(pasynUserSelf, ASYN_TRACEIO_DRIVER,
                     "SEND DISARM CMD:\n");
             sendCtrl("*PCAP.DISARM=");
             endCapture();

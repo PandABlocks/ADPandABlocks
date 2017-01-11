@@ -83,7 +83,7 @@ private:
     std::string getHeaderValue(int index, std::string attribute);
     void getAllData(std::vector<char>* inBuffer, int dataLen, int buffLen);
     void outputData(int dataLen, int dataNo, const std::vector<char> data);
-    asynStatus readHeaderLine(char* rxBuffer, size_t* nBytesIn);
+    asynStatus readHeaderLine(char* rxBuffer, int buffSize);
     asynStatus readDataBytes(char* rxBuffer, size_t nBytes);
     void endCapture();
 
