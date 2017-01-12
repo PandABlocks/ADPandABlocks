@@ -210,7 +210,11 @@ asynStatus Pandabox::readHeaderLine(char* rxBuffer, const size_t buffSize) const
         asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,"%s:%s: Error reading data: %s'\n",
                 driverName, functionName, errorMsg[status].c_str());
     }
-    assert (eomReason == ASYN_EOM_EOS); // BK: I would also log this before asserting, just to make debugging easier if it happens
+    if (eomReason != ASYN_EOM_EOS)
+    {
+         throw std::runtime_error("attribute not in map");
+    }
+    //assert (eomReason == ASYN_EOM_EOS); // BK: I would also log this before asserting, just to make debugging easier if it happens
     return status;
 }
 
@@ -230,7 +234,11 @@ asynStatus Pandabox::readDataBytes(char* rxBuffer, const size_t nBytes) const {
         asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,"%s:%s: Error reading data: %s'\n",
                 driverName, functionName, errorMsg[status].c_str());
     }
-    assert (nBytes == nBytesIn); // BK: I would also log this before asserting, just to make debugging easier if it happens
+    if(nBytes != nBytesIn)
+    {
+         throw std::runtime_error("attribute not in map");
+    }
+   // assert (nBytes == nBytesIn); // BK: I would also log this before asserting, just to make debugging easier if it happens
     return status;
 }
 
@@ -243,68 +251,74 @@ void Pandabox::readTaskData() {
     char rxBuffer[N_BUFF_DATA];
     int eomReason;
     uint32_t dataLength = 0;
+    try{
+        while (true) {
+            switch(state) {
+                case waitHeaderStart:
+                    readHeaderLine(rxBuffer, N_BUFF_DATA);
+                    if (strcmp(rxBuffer, "<header>\0") == 0) {
+                        //we have a header so we have started acquiring
+                        setIntegerParam(ADAcquire, 1);
+                        setIntegerParam(NDArrayCounter, 0);
+                        header.append(rxBuffer);
+                        header.append("\n");
+                        state = waitHeaderEnd;
+                        callParamCallbacks();
+                    }
+                    break;
 
-    while (true) {
-        switch(state) {
-            case waitHeaderStart:
-                readHeaderLine(rxBuffer, N_BUFF_DATA);
-                if (strcmp(rxBuffer, "<header>\0") == 0) {
-                    //we have a header so we have started acquiring
-                    setIntegerParam(ADAcquire, 1);
-                    setIntegerParam(NDArrayCounter, 0);
+                case waitHeaderEnd:
+                    readHeaderLine(rxBuffer, N_BUFF_DATA);
+                    /*accumulate the header until we reach the end, then process*/
                     header.append(rxBuffer);
                     header.append("\n");
-                    state = waitHeaderEnd;
-                    callParamCallbacks();
-                }
-                break;
+                    if (strcmp(rxBuffer, "</header>\0") == 0) {
+                        headerValues = parseHeader(&header);
+                        //change the input eos as the data isn't terminated with a newline
+                        pasynOctet_data->setInputEos(octetPvt_data, pasynUser_data, "", 0);
 
-            case waitHeaderEnd:
-                readHeaderLine(rxBuffer, N_BUFF_DATA);
-                /*accumulate the header until we reach the end, then process*/
-                header.append(rxBuffer);
-                header.append("\n");
-                if (strcmp(rxBuffer, "</header>\0") == 0) {
-                    headerValues = parseHeader(&header);
-                    //change the input eos as the data isn't terminated with a newline
-                    pasynOctet_data->setInputEos(octetPvt_data, pasynUser_data, "", 0);
+                        //read the extra newline at the end of the header
+                        status = pasynOctet_data->read(octetPvt_data, pasynUser_data, rxBuffer, 1,
+                                &nBytesIn, &eomReason);
 
-                    //read the extra newline at the end of the header
-                    status = pasynOctet_data->read(octetPvt_data, pasynUser_data, rxBuffer, 1,
-                            &nBytesIn, &eomReason);
+                        state = waitDataStart;
+                    }
+                    break;
 
+                case waitDataStart:
+                    // read "BIN " or "END "
+                    readDataBytes(rxBuffer, 4);
+                    if (strncmp(rxBuffer, "BIN ", 4) == 0) {
+                        state = receivingData;
+                    }
+                    else if (strncmp(rxBuffer, "END ", 4) == 0) {
+                        state = dataEnd;
+                    }
+                    break;
+
+                case receivingData:
+                    // read next four bytes to get the packet size
+                    readDataBytes(rxBuffer, 4);
+                    dataLength = (*(uint32_t*) rxBuffer) - 8;//subtract 8 (the packet prefix information)
+                    // read the rest of the packet
+                    readDataBytes(rxBuffer, dataLength);
+                    dataPacket.clear();
+                    dataPacket.insert(dataPacket.begin(), rxBuffer, rxBuffer + dataLength);
+                    parseData(dataPacket, dataLength);
                     state = waitDataStart;
-                }
-                break;
+                    break;
 
-            case waitDataStart:
-                // read "BIN " or "END "
-                readDataBytes(rxBuffer, 4);
-                if (strncmp(rxBuffer, "BIN ", 4) == 0) {
-                    state = receivingData;
-                }
-                else if (strncmp(rxBuffer, "END ", 4) == 0) {
-                    state = dataEnd;
-                }
-                break;
-
-            case receivingData:
-                // read next four bytes to get the packet size
-                readDataBytes(rxBuffer, 4);
-                dataLength = (*(uint32_t*) rxBuffer) - 8;//subtract 8 (the packet prefix information)
-                // read the rest of the packet
-                readDataBytes(rxBuffer, dataLength);
-                dataPacket.clear();
-                dataPacket.insert(dataPacket.begin(), rxBuffer, rxBuffer + dataLength);
-                parseData(dataPacket, dataLength);
-                state = waitDataStart;
-                break;
-
-            case dataEnd:
-                endCapture();
-                state = waitHeaderStart;
-                break;
+                case dataEnd:
+                    endCapture();
+                    state = waitHeaderStart;
+                    break;
+            }
         }
+    }
+    catch(const std::runtime_error& e){
+    //return to beginning state if there is an exception
+        state = waitHeaderStart;
+        status = asynError;
     }
     callParamCallbacks();
 }
