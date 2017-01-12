@@ -19,9 +19,8 @@
 
 /* The size of our transmit and receive buffers,
  * max filename length and string param buffers */
-// BK: ambigious names, maybe N_IO_BUFF and N_FILEPATH_BUFF, N_STRING_PARAM_BUFF
-#define NBUFF 255
-#define NBUFF2 65536
+#define N_BUFF_CTRL 255
+#define N_BUFF_DATA 65536
 
 /* This is the number of waveforms to store */
 #define NARRAYS 10
@@ -57,9 +56,9 @@ public:
     void readTaskData();
 
     /** These functions are used in the tests, so they are public */
-    asynStatus sendCtrl(std::string txBuffer);
-    asynStatus sendData(std::string txBuffer);
-    asynStatus send(std::string txBuffer, asynOctet *pasynOctet, void* octetPvt, asynUser* pasynUser);
+    asynStatus sendCtrl(const std::string txBuffer);
+    asynStatus sendData(const std::string txBuffer);
+    asynStatus send(const std::string txBuffer, asynOctet *pasynOctet, void* octetPvt, asynUser* pasynUser);
 
     /* These are the methods that we override from asynPortDriver */
     virtual asynStatus writeInt32(asynUser *pasynUser, epicsInt32 value);
@@ -74,17 +73,16 @@ protected:
 #define NUM_PARAMS (&LAST_PARAM - &FIRST_PARAM + 1)
 
 private:
-    asynInterface* connectToDevicePort(asynUser* pasynUser, const char* serialPortName);
-    headerMap parseHeader(std::string* headerString);
-    void parseData(std::vector<char> dataBuffer, int dataLen);
+    headerMap parseHeader(const std::string* headerString);
+    void parseData(std::vector<char> dataBuffer, const int dataLen);
     void allocateFrame();
     void wrapFrame();
-    asynStatus extractHeaderData(xmlTextReaderPtr xmlreader, std::map<std::string, std::string>* values);
-    std::string getHeaderValue(int index, std::string attribute);
-    void getAllData(std::vector<char>* inBuffer, int dataLen, int buffLen);
-    void outputData(int dataLen, int dataNo, const std::vector<char> data);
-    asynStatus readHeaderLine(char* rxBuffer, int buffSize);
-    asynStatus readDataBytes(char* rxBuffer, size_t nBytes);
+    asynStatus extractHeaderData(const xmlTextReaderPtr xmlreader, std::map<std::string, std::string>* values)const;
+    std::string getHeaderValue(const int index, const std::string attribute)const;
+    void getAllData(std::vector<char>* inBuffer, const int dataLen,const  int buffLen)const;
+    void outputData(const int dataLen, const int dataNo, const std::vector<char> data);
+    asynStatus readHeaderLine(char* rxBuffer, const size_t buffSize)const;
+    asynStatus readDataBytes(char* rxBuffer, const size_t nBytes)const;
     void endCapture();
 
 private:
@@ -106,8 +104,8 @@ private:
     headerMap headerValues;
 
     //states for readDataTask state machine
-    enum readStates{waitHeaderStart=0, waitHeaderEnd, waitDataStart, receivingData, dataEnd,}; // BK: First value is always zero in enum, there is no direct dependency on this 0; name of the enum should probably be in singular as it names a type
-    readStates state; //init state for the data read
+    enum readState{waitHeaderStart, waitHeaderEnd, waitDataStart, receivingData, dataEnd,};
+    readState state; //init state for the data read
 
 };
 #endif
