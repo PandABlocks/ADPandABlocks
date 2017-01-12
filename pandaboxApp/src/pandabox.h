@@ -68,6 +68,7 @@ protected:
 #define FIRST_PARAM pandaboxIsConnected
     int pandaboxIsConnected;        // int32 read  - is pandabox connected?
     int pandaboxHeader;             // string read - data header
+    int pandaboxDataEnd;            // string read - end of data string
     int pandaboxPCTime;             // float64array read - position compare timestamps
 #define LAST_PARAM pandaboxPCTime
 #define NUM_PARAMS (&LAST_PARAM - &FIRST_PARAM + 1)

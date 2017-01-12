@@ -70,7 +70,11 @@ Pandabox::Pandabox(const char* portName, const char* cmdSerialPortName, const ch
 
     /*Create a parameter to store the header value */
     createParam("HEADER", asynParamOctet, &pandaboxHeader);
-
+    
+    /*Create a parameter to store the end of data string */
+    createParam("DATAEND", asynParamOctet, &pandaboxDataEnd);
+    setStringParam(pandaboxDataEnd, "");
+    
     /* initialise areaDetector parameters */
     setStringParam(ADManufacturer, "Diamond Light Source Ltd.");
     setStringParam(ADModel, "Pandabox");
@@ -288,11 +292,14 @@ void Pandabox::readTaskData() {
                 case waitDataStart:
                     // read "BIN " or "END "
                     readDataBytes(rxBuffer, 4);
+                    std::cout<< "DATA: " << rxBuffer << std::endl;
                     if (strncmp(rxBuffer, "BIN ", 4) == 0) {
                         state = receivingData;
                     }
                     else if (strncmp(rxBuffer, "END ", 4) == 0) {
                         state = dataEnd;
+                        std::cout<< "END OF DATA: " << rxBuffer << std::endl;
+                        setStringParam(pandaboxDataEnd, rxBuffer);
                     }
                     break;
 

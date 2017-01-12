@@ -3,8 +3,8 @@ beginScreenProperties
 major 4
 minor 0
 release 1
-x 2225
-y 376
+x 943
+y 223
 w 390
 h 820
 font "arial-bold-r-12.0"
@@ -94,6 +94,24 @@ y 550
 w 365
 h 255
 controlPv "$(DEVICE)HEADER"
+fgColour index 25
+fgAlarm
+bgColour index 3
+fill
+font "arial-bold-r-12.0"
+endObjectProperties
+
+# (multiLineTextUpdate)
+object multiLineTextUpdateClass
+beginObjectProperties
+major 10
+minor 0
+release 0
+x 10
+y 500
+w 365
+h 30
+controlPv "$(DEVICE)DATAEND"
 fgColour index 25
 fgAlarm
 bgColour index 3
