@@ -292,14 +292,11 @@ void Pandabox::readTaskData() {
                 case waitDataStart:
                     // read "BIN " or "END "
                     readDataBytes(rxBuffer, 4);
-                    std::cout<< "DATA: " << rxBuffer << std::endl;
                     if (strncmp(rxBuffer, "BIN ", 4) == 0) {
                         state = receivingData;
                     }
                     else if (strncmp(rxBuffer, "END ", 4) == 0) {
                         state = dataEnd;
-                        std::cout<< "END OF DATA: " << rxBuffer << std::endl;
-                        setStringParam(pandaboxDataEnd, rxBuffer);
                     }
                     break;
 
@@ -338,6 +335,10 @@ void Pandabox::endCapture()
     header = "";
     //change the input eos back to newline for the header
     pasynOctet_data->setInputEos(octetPvt_data, pasynUser_data, "\n", 1);
+    //read the rest of the end of data string and update the param
+    char rxBuffer[N_BUFF_DATA];
+    readHeaderLine(rxBuffer, N_BUFF_DATA);
+    setStringParam(pandaboxDataEnd, rxBuffer);
     readBytes = N_BUFF_DATA-1; //reset the amount of bytes to read
     //set the acquire light to 0
     setIntegerParam(ADAcquire, 0);
