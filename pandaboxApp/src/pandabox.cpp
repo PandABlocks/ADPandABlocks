@@ -208,14 +208,11 @@ asynStatus Pandabox::readHeaderLine(char* rxBuffer, const size_t buffSize) const
         status = pasynOctet_data->read(octetPvt_data, pasynUser_data, rxBuffer, 
                 buffSize, &nBytesIn, &eomReason);
     }
-    
-    if(status)
-    {
+    if(status) {
         asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,"%s:%s: Error reading data: %s'\n",
                 driverName, functionName, errorMsg[status].c_str());
     }
-    if (eomReason != ASYN_EOM_EOS)
-    {
+    if (eomReason != ASYN_EOM_EOS) {
          throw std::runtime_error("attribute not in map");
     }
     //assert (eomReason == ASYN_EOM_EOS); // BK: I would also log this before asserting, just to make debugging easier if it happens
@@ -233,13 +230,11 @@ asynStatus Pandabox::readDataBytes(char* rxBuffer, const size_t nBytes) const {
                 nBytes, &nBytesIn, &eomReason);
     }
 
-    if(status)
-    {
+    if(status) {
         asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,"%s:%s: Error reading data: %s'\n",
                 driverName, functionName, errorMsg[status].c_str());
     }
-    if(nBytes != nBytesIn)
-    {
+    if(nBytes != nBytesIn) {
          throw std::runtime_error("attribute not in map");
     }
    // assert (nBytes == nBytesIn); // BK: I would also log this before asserting, just to make debugging easier if it happens
@@ -257,6 +252,7 @@ void Pandabox::readTaskData() {
     uint32_t dataLength = 0;
     try{
         while (true) {
+            std::cout << "STATE: " << state << std::endl;
             switch(state) {
                 case waitHeaderStart:
                     readHeaderLine(rxBuffer, N_BUFF_DATA);
@@ -315,6 +311,9 @@ void Pandabox::readTaskData() {
                 case dataEnd:
                     endCapture();
                     state = waitHeaderStart;
+                    readHeaderLine(rxBuffer, N_BUFF_DATA);
+                    setStringParam(pandaboxDataEnd, rxBuffer);
+                    callParamCallbacks();
                     break;
             }
         }
@@ -329,7 +328,6 @@ void Pandabox::readTaskData() {
 
 void Pandabox::endCapture()
 {
-    state = waitHeaderStart;
     //check the next 4 bytes to see if it matches the total arrays read.
     //reset the header string
     header = "";
@@ -337,8 +335,6 @@ void Pandabox::endCapture()
     pasynOctet_data->setInputEos(octetPvt_data, pasynUser_data, "\n", 1);
     //read the rest of the end of data string and update the param
     char rxBuffer[N_BUFF_DATA];
-    readHeaderLine(rxBuffer, N_BUFF_DATA);
-    setStringParam(pandaboxDataEnd, rxBuffer);
     readBytes = N_BUFF_DATA-1; //reset the amount of bytes to read
     //set the acquire light to 0
     setIntegerParam(ADAcquire, 0);
@@ -520,7 +516,9 @@ void Pandabox::outputData(const int dataLen, const int dataNo, const std::vector
                                 pSource, NDAttrUInt32,
                                 (uint32_t*)ptridx);
                             pArray->pAttributeList->add(pAttribute);
-                            ((uint32_t *)pArray->pData)[i] = *(double*)ptridx;
+                            uint32_t value = *(uint32_t*)ptridx;
+                            std::cout << "VAL: " << value << ", " << (double)value << std::endl;
+                            ((double*)pArray->pData)[i] = (double)value;
                             ptridx += sizeof(uint32_t);
                         };
                 }
@@ -666,11 +664,11 @@ asynStatus Pandabox::writeInt32(asynUser *pasynUser, epicsInt32 value) {
         }
         else
         {
-            capture = false;
             asynPrint(pasynUserSelf, ASYN_TRACEIO_DRIVER,
                     "SEND DISARM CMD:\n");
             sendCtrl("*PCAP.DISARM=");
             endCapture();
+            capture = false;
         }
     }
 
