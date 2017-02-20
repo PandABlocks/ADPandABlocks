@@ -243,7 +243,6 @@ asynStatus Pandabox::readDataBytes(char* rxBuffer, const size_t nBytes) const {
 
 /*this function reads from the data port*/
 void Pandabox::readTaskData() {
-    const char *functionName = "readTaskData";
     size_t nBytesIn;
     asynStatus status = asynSuccess;
     std::vector<char> dataPacket(0,0);
@@ -298,8 +297,12 @@ void Pandabox::readTaskData() {
 
                 case receivingData:
                     // read next four bytes to get the packet size
-                    readDataBytes(rxBuffer, 4);
-                    dataLength = (*(uint32_t*) rxBuffer) - 8;//subtract 8 (the packet prefix information)
+                    {
+                        uint32_t message_length;
+                        readDataBytes(reinterpret_cast<char *>(&message_length),
+                                4);
+                        dataLength = message_length - 8; // size of the packet prefix information is 8
+                    }
                     // read the rest of the packet
                     readDataBytes(rxBuffer, dataLength);
                     dataPacket.clear();
@@ -334,7 +337,6 @@ void Pandabox::endCapture()
     //change the input eos back to newline for the header
     pasynOctet_data->setInputEos(octetPvt_data, pasynUser_data, "\n", 1);
     //read the rest of the end of data string and update the param
-    char rxBuffer[N_BUFF_DATA];
     readBytes = N_BUFF_DATA-1; //reset the amount of bytes to read
     //set the acquire light to 0
     setIntegerParam(ADAcquire, 0);
@@ -354,7 +356,6 @@ Pandabox::headerMap Pandabox::parseHeader(const std::string* headerString)
     setStringParam(pandaboxHeader, headerString->c_str());
 
     asynStatus status = asynSuccess;
-    int ret = 0;
     xmlTextReaderPtr xmlreader = xmlReaderForMemory(headerString->c_str(), (int)headerString->length(), NULL, NULL, 0);
 
     if (xmlreader == NULL){
@@ -444,7 +445,6 @@ void Pandabox::getAllData(std::vector<char>* inBuffer, const int dataLen, const 
 }
 
 void Pandabox::parseData(std::vector<char> dataBuffer, const int dataLen){
-    const char *functionName = "parseData";
     int buffLen = dataBuffer.size(); //actual length of received input data stream (could be multiple lines)
     int dataNo = headerValues.size() - 1; //number of received data points (total header fields - 'data' = number of captured fields)
     //check to see if we have read all the data in, and do another read if we haven't
@@ -461,7 +461,7 @@ void Pandabox::outputData(const int dataLen, const int dataNo, const std::vector
         int linecount = 0; //number of lines of data received and parsed
         //get the length of an individual dataSet
         int setLen = 0;
-        for(int i = 0; i < headerValues.size()-1; ++i)
+        for(size_t i = 0; i < headerValues.size()-1; ++i)
         {
             if(getHeaderValue(i+1, "type") == "double")
             {
@@ -550,7 +550,9 @@ void Pandabox::allocateFrame() {
     dims[1] = FRAMEHEIGHT;
     pArray = pNDArrayPool->alloc(nDims, dims, NDFloat64, 0, NULL);
     //clear the attribute list to get rid of previous scans
-    pArray->pAttributeList->clear();
+    if (pArray != NULL) {
+        pArray->pAttributeList->clear();
+    }
 }
 
 void Pandabox::wrapFrame() {
@@ -561,9 +563,11 @@ void Pandabox::wrapFrame() {
         // Set the time stamp
         epicsTimeStamp arrayTime;
         epicsTimeGetCurrent(&arrayTime);
-        pArray->timeStamp = arrayTime.secPastEpoch;
-        // Save the NDAttributes if there are any
-        getAttributes(pArray->pAttributeList);
+        if (pArray != NULL) {
+            pArray->timeStamp = arrayTime.secPastEpoch;
+            // Save the NDAttributes if there are any
+            getAttributes(pArray->pAttributeList);
+        }
         // Update statistics
         arrayCounter++;
         numImagesCounter++;
@@ -577,9 +581,11 @@ void Pandabox::wrapFrame() {
             capture = false;
         }
         // Set the unique ID
-        pArray->uniqueId = arrayCounter;
-        // Ship the array off
-        doCallbacksGenericPointer(pArray, NDArrayData, 0);
+        if (pArray != NULL) {
+            pArray->uniqueId = arrayCounter;
+            // Ship the array off
+            doCallbacksGenericPointer(pArray, NDArrayData, 0);
+        }
         // Update the counters
         setIntegerParam(NDArrayCounter, arrayCounter);
         setIntegerParam(ADNumImagesCounter, numImagesCounter);
