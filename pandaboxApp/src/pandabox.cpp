@@ -243,12 +243,8 @@ asynStatus Pandabox::readDataBytes(char* rxBuffer, const size_t nBytes) const {
 
 /*this function reads from the data port*/
 void Pandabox::readTaskData() {
-    size_t nBytesIn;
     asynStatus status = asynSuccess;
-    std::vector<char> dataPacket(0,0);
     char rxBuffer[N_BUFF_DATA];
-    int eomReason;
-    uint32_t dataLength = 0;
     try{
         while (true) {
             std::cout << "STATE: " << state << std::endl;
@@ -276,6 +272,8 @@ void Pandabox::readTaskData() {
                         pasynOctet_data->setInputEos(octetPvt_data, pasynUser_data, "", 0);
 
                         //read the extra newline at the end of the header
+                        size_t nBytesIn; // ignored, needed for read
+                        int eomReason; // ignored, needed for read
                         status = pasynOctet_data->read(octetPvt_data, pasynUser_data, rxBuffer, 1,
                                 &nBytesIn, &eomReason);
 
@@ -300,14 +298,15 @@ void Pandabox::readTaskData() {
                         uint32_t message_length;
                         readDataBytes(reinterpret_cast<char *>(&message_length),
                                 4);
-                        dataLength = message_length - 8; // size of the packet prefix information is 8
+                        uint32_t dataLength = message_length - 8; // size of the packet prefix information is 8
+                        std::vector<char> dataPacket(0,0);
+                        // read the rest of the packet
+                        readDataBytes(rxBuffer, dataLength);
+                        dataPacket.clear();
+                        dataPacket.insert(dataPacket.begin(), rxBuffer, rxBuffer + dataLength);
+                        parseData(dataPacket, dataLength);
+                        state = waitDataStart;
                     }
-                    // read the rest of the packet
-                    readDataBytes(rxBuffer, dataLength);
-                    dataPacket.clear();
-                    dataPacket.insert(dataPacket.begin(), rxBuffer, rxBuffer + dataLength);
-                    parseData(dataPacket, dataLength);
-                    state = waitDataStart;
                     break;
 
                 case dataEnd:
