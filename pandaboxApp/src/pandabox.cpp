@@ -382,6 +382,7 @@ Pandabox::headerMap Pandabox::parseHeader(const std::string* headerString)
             }
         }
     }
+    xmlFreeTextReader(xmlreader);
 
     callParamCallbacks();
     return tmpHeaderValues;
