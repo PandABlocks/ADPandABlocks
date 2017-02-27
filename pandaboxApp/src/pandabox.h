@@ -45,7 +45,7 @@ class Pandabox: public ADDriver {
 private:
     /**Typedefs**/
     //vector of maps to store header data. Each map is for an individual xml node
-    typedef std::vector<std::map<std::string, std::string> > headerMap; 
+    typedef std::vector<std::map<std::string, std::string> > headerMap;
 
 public:
     Pandabox(const char *portName, const char* cmdSerialPortName,
@@ -74,20 +74,20 @@ protected:
 #define NUM_PARAMS (&LAST_PARAM - &FIRST_PARAM + 1)
 
 private:
-    headerMap parseHeader(const std::string* headerString);
+    headerMap parseHeader(const std::string& headerString);
     void parseData(std::vector<char> dataBuffer, const int dataLen);
     void allocateFrame();
     void wrapFrame();
-    asynStatus extractHeaderData(const xmlTextReaderPtr xmlreader, std::map<std::string, std::string>* values)const;
+    asynStatus extractHeaderData(const xmlTextReaderPtr xmlreader, std::map<std::string, std::string>& values)const;
     std::string getHeaderValue(const int index, const std::string attribute)const;
-    void getAllData(std::vector<char>* inBuffer, const int dataLen,const  int buffLen)const;
+    void getAllData(std::vector<char>& inBuffer, const int dataLen,const  int buffLen)const;
     void outputData(const int dataLen, const int dataNo, const std::vector<char> data);
     asynStatus readHeaderLine(char* rxBuffer, const size_t buffSize)const;
     asynStatus readDataBytes(char* rxBuffer, const size_t nBytes)const;
     void endCapture();
 
 private:
-    NDArray *pArray; 
+    NDArray *pArray;
     asynUser *pasynUser_ctrl;
     asynOctet *pasynOctet_ctrl;
     void *octetPvt_ctrl; // BK: is there a good reason for this to be part of the global state?

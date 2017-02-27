@@ -271,7 +271,7 @@ void Pandabox::readTaskData() {
                     header.append(rxBuffer);
                     header.append("\n");
                     if (strcmp(rxBuffer, "</header>\0") == 0) {
-                        headerValues = parseHeader(&header);
+                        headerValues = parseHeader(header);
                         //change the input eos as the data isn't terminated with a newline
                         pasynOctet_data->setInputEos(octetPvt_data, pasynUser_data, "", 0);
 
@@ -342,7 +342,7 @@ void Pandabox::endCapture()
     callParamCallbacks();
 }
 
-Pandabox::headerMap Pandabox::parseHeader(const std::string* headerString)
+Pandabox::headerMap Pandabox::parseHeader(const std::string& headerString)
 {
 /**return a map containing the header data corresponding to each xml node
  * the first map will always be the 'data' node,
@@ -352,10 +352,10 @@ Pandabox::headerMap Pandabox::parseHeader(const std::string* headerString)
     headerMap tmpHeaderValues;
 
     //set the header parameter
-    setStringParam(pandaboxHeader, headerString->c_str());
+    setStringParam(pandaboxHeader, headerString.c_str());
 
     asynStatus status = asynSuccess;
-    xmlTextReaderPtr xmlreader = xmlReaderForMemory(headerString->c_str(), (int)headerString->length(), NULL, NULL, 0);
+    xmlTextReaderPtr xmlreader = xmlReaderForMemory(headerString.c_str(), (int)headerString.length(), NULL, NULL, 0);
 
     if (xmlreader == NULL){
         //do some error handling
@@ -376,7 +376,7 @@ Pandabox::headerMap Pandabox::parseHeader(const std::string* headerString)
                 /*get the attributes for the data and field nodes and put on vector*/
                 if( name == "data" || name == "field")
                 {
-                    extractHeaderData(xmlreader, &tmpValues);
+                    extractHeaderData(xmlreader, tmpValues);
                     tmpHeaderValues.push_back(tmpValues);
                 }
             }
@@ -388,7 +388,7 @@ Pandabox::headerMap Pandabox::parseHeader(const std::string* headerString)
     return tmpHeaderValues;
 }
 
-asynStatus Pandabox::extractHeaderData(const xmlTextReaderPtr xmlreader, std::map<std::string, std::string>* values)const
+asynStatus Pandabox::extractHeaderData(const xmlTextReaderPtr xmlreader, std::map<std::string, std::string>& values)const
 {
     /*Get the attribute values for a node and place in the map values*/
     xmlNodePtr node= xmlTextReaderCurrentNode(xmlreader);
@@ -401,7 +401,7 @@ asynStatus Pandabox::extractHeaderData(const xmlTextReaderPtr xmlreader, std::ma
           /*Insert the values into the data_value map*/
           std::string value((const char*)xvalue);
           std::string name((const char*)attribute->name);
-          (*values)[name] = value;
+          values[name] = value;
 
           xmlFree(xvalue);
           attribute = attribute->next;
@@ -424,7 +424,7 @@ std::string Pandabox::getHeaderValue(const int index, const std::string attribut
     }
 }
 
-void Pandabox::getAllData(std::vector<char>* inBuffer, const int dataLen, const int buffLen)const
+void Pandabox::getAllData(std::vector<char>& inBuffer, const int dataLen, const int buffLen)const
 {
     const char *functionName = "getAllData";
     size_t nBytesIn;
@@ -436,7 +436,7 @@ void Pandabox::getAllData(std::vector<char>* inBuffer, const int dataLen, const 
     status = pasynOctet_data->read(octetPvt_data, pasynUserRead, rxBuffer, readBytes,
             &nBytesIn, &eomReason);
 
-    inBuffer->insert(inBuffer->end(), rxBuffer, rxBuffer+nBytesIn);
+    inBuffer.insert(inBuffer.end(), rxBuffer, rxBuffer+nBytesIn);
     if(status)
     {
         asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,"%s:%s: Error reading data: %d'\n",
@@ -450,7 +450,7 @@ void Pandabox::parseData(std::vector<char> dataBuffer, const int dataLen){
     //check to see if we have read all the data in, and do another read if we haven't
     if(dataLen > buffLen)
     {
-        getAllData(&dataBuffer, dataLen, buffLen);
+        getAllData(dataBuffer, dataLen, buffLen);
     }
     outputData(dataLen, dataNo, dataBuffer);
 }
