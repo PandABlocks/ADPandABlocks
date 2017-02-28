@@ -489,32 +489,28 @@ void Pandabox::outputData(const int dataLen, const int dataNo, const std::vector
                     idx = (j*dataNo + i);//current data point index in the float array
                         // NDAttributes are used to store the actual captured data
                         std::string desc("sample value");
-                        NDAttrSource_t sourceType = NDAttrSourceUndefined;
-                        const char *pSource = "source string";
                         //find out what type the individual point is
                         //from the header and assign the approperiate pointer.
                         dataType = getHeaderValue(i+1, "type");
                         if(dataType == "double")
                         {
                         // Create the NDAttributes and initialise them with data value (headerValue[0] is the data info)
-                            NDAttribute *pAttribute = new NDAttribute(
-                                getHeaderValue(i+1, "name").c_str(),
-                                desc.c_str(), sourceType,
-                                pSource, NDAttrFloat64,
-                                (double*)ptridx);
-                            pArray->pAttributeList->add(pAttribute);
+                            pArray->pAttributeList->add(
+                                    getHeaderValue(i+1, "name").c_str(),
+                                    desc.c_str(),
+                                    NDAttrFloat64,
+                                    (double*)ptridx);
                             ((double *)pArray->pData)[i] = *(double*)ptridx;
                             ptridx += sizeof(double);
                         }
                         else if(dataType == "uint32")
                         {
                                             // Create the NDAttributes and initialise them with data value (headerValue[0] is the data info)
-                            NDAttribute *pAttribute = new NDAttribute(
-                                getHeaderValue(i+1, "name").c_str(),
-                                desc.c_str(), sourceType,
-                                pSource, NDAttrUInt32,
-                                (uint32_t*)ptridx);
-                            pArray->pAttributeList->add(pAttribute);
+                            pArray->pAttributeList->add(
+                                    getHeaderValue(i+1, "name").c_str(),
+                                    desc.c_str(),
+                                    NDAttrUInt32,
+                                    (uint32_t*)ptridx);
                             uint32_t value = *(uint32_t*)ptridx;
                             std::cout << "VAL: " << value << ", " << (double)value << std::endl;
                             ((double*)pArray->pData)[i] = (double)value;
