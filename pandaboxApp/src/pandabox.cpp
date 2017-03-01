@@ -299,10 +299,9 @@ void Pandabox::readTaskData() {
                         readDataBytes(reinterpret_cast<char *>(&message_length),
                                 4);
                         uint32_t dataLength = message_length - 8; // size of the packet prefix information is 8
-                        std::vector<char> dataPacket(0,0);
                         // read the rest of the packet
                         readDataBytes(rxBuffer, dataLength);
-                        dataPacket.clear();
+                        std::vector<char> dataPacket;
                         dataPacket.insert(dataPacket.begin(), rxBuffer, rxBuffer + dataLength);
                         parseData(dataPacket, dataLength);
                         state = waitDataStart;
