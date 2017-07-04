@@ -27,6 +27,16 @@ record(waveform, "$(P)$(R)HEADER") {
  # field(SCAN, "I/O Intr")
 }
 
+record(waveform, "$(P)$(R)DATAEND") {
+  field(DESC, "Data end string")
+  field(SCAN, "I/O Intr")
+  field(DTYP, "asynOctetRead")
+  field(INP, "@asyn($(PORT),0) DATAEND")
+  field(FTVL, "CHAR")
+  field(NELM, "1024")
+ # field(SCAN, "I/O Intr")
+}
+
 #test param for testing
 record(longout, "$(P)$(R)TESTPARAM"){
 	field(DESC, "$(PORT), $(ADDR), $(TIMEOUT)")

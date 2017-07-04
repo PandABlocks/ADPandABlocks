@@ -1,30 +1,38 @@
+// BK: const modifiers on input parameters and methods are missing
+// BK: Prefer const references in params instead of pointers where the passed 
+//     objects are not changed, references if the memory position of the object
+//     is not changed in method (the reference cannot be null), pointers are 
+//     usually reserved for output parameters
 
-#include <sstream>
-#include <stddef.h>
-#include <stdlib.h>
-#include <stdarg.h>
-#include <math.h>
-#include <stdio.h>
-#include <cstring>
-#include <cstdlib>
-#include <errno.h>
-#include <iostream>
-#include <vector>
-#include <algorithm>
+#include "pandabox.h"
+
 #include <stdint.h>
-#include <epicsString.h>
-#include <epicsTime.h>
 #include <epicsExport.h>
 #include <iocsh.h>
+#include <stdexcept>
+#include <iostream>
 
 #include <libxml/xmlreader.h>
 
+#include <epicsEndian.h>
 #include "epicsThread.h"
-#include "pandabox.h"
 
 
-using namespace std;
+/* C function to call new message from  task from epicsThreadCreate */
+static void readTaskCtrlC(void *userPvt) {
+    Pandabox *pPvt = (Pandabox *) userPvt;
+    pPvt->readTaskCtrl();
+}
 
+static void readTaskDataC(void *userPvt) {
+    Pandabox *pPvt = (Pandabox *) userPvt;
+    pPvt->readTaskData();
+}
+
+typedef int static_assert_endianness[EPICS_BYTE_ORDER != EPICS_ENDIAN_BIG ? 1 : -1];
+
+static const char *driverName = "pandabox";
+static std::map<asynStatus, std::string> errorMsg;
 
 Pandabox::Pandabox(const char* portName, const char* cmdSerialPortName, const char* dataSerialPortName, int maxPts, int maxBuffers, int maxMemory) :
         ADDriver(portName, 1 /*maxAddr*/, NUM_PARAMS, maxBuffers, maxMemory,
@@ -46,19 +54,15 @@ Pandabox::Pandabox(const char* portName, const char* cmdSerialPortName, const ch
     const char *functionName = "Pandabox";
     asynStatus status = asynSuccess;
     asynInterface *pasynInterface;
-    asynInterface *pasynInterface_data;
-//    char buffer[6400]; /* 100 chars per element on sys bus is overkill... */
-//    char str[NBUFF];
-//    const reg *r;
 
     /* For areaDetector image */
-    this->pArray = NULL;
-    this->arrayCounter = 0;
-    this->numImagesCounter = 0;
-    this->imgMode = ADImageContinuous;
-    this->imgNo = 0;
-    this->capture = true;
-    this->readBytes = NBUFF2-1;
+    pArray = NULL;
+    arrayCounter = 0;
+    numImagesCounter = 0;
+    imgMode = ADImageContinuous;
+    imgNo = 0;
+    capture = true;
+    readBytes = N_BUFF_DATA-1;
 
     /* Connection status */
     createParam("ISCONNECTED", asynParamInt32, &pandaboxIsConnected);
@@ -66,10 +70,11 @@ Pandabox::Pandabox(const char* portName, const char* cmdSerialPortName, const ch
 
     /*Create a parameter to store the header value */
     createParam("HEADER", asynParamOctet, &pandaboxHeader);
-
-    /*test param to setup a capture experiment*/
-    createParam("TESTPARAM", asynParamInt32, &testparam);
-
+    
+    /*Create a parameter to store the end of data string */
+    createParam("DATAEND", asynParamOctet, &pandaboxDataEnd);
+    setStringParam(pandaboxDataEnd, "");
+    
     /* initialise areaDetector parameters */
     setStringParam(ADManufacturer, "Diamond Light Source Ltd.");
     setStringParam(ADModel, "Pandabox");
@@ -79,38 +84,29 @@ Pandabox::Pandabox(const char* portName, const char* cmdSerialPortName, const ch
     setIntegerParam(ADStatus, ADStatusIdle);
     setStringParam(ADStatusMessage, "Idle");
 
-    /* Create a message queue to hold completed messages and interrupts */
-    this->msgQId = epicsMessageQueueCreate(NQUEUE, sizeof(char*));
-    this->intQId = epicsMessageQueueCreate(NQUEUE, sizeof(char*));
-    if (this->msgQId == NULL || this->intQId == NULL) {
-        asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR,
-                "%s:%s: epicsMessageQueueCreate failure\n", driverName, functionName);
-        return;
-    }
-
     /* Connect to the device port */
     /* Copied from asynOctecSyncIO->connect */
     pasynUser_ctrl = pasynManager->createAsynUser(0, 0);
+    //pasynInterface = connectToDevicePort(pasynUser_ctrl, cmdSerialPortName);
     status = pasynManager->connectDevice(pasynUser_ctrl, cmdSerialPortName, 0);
     if (status != asynSuccess) {
-        asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR,
+        asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
                 "%s:%s: Connect failed, port=%s, error=%d\n", driverName, functionName, cmdSerialPortName, status);
         return;
     }
     pasynInterface = pasynManager->findInterface(pasynUser_ctrl, asynCommonType, 1);
     if (!pasynInterface) {
-        asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR,
+        asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
                 "%s:%s: %s interface not supported", driverName, functionName, asynCommonType);
         return;
     }
-    pasynCommon_ctrl = (asynCommon *) pasynInterface->pinterface;
-    pcommonPvt_ctrl = pasynInterface->drvPvt;
     pasynInterface = pasynManager->findInterface(pasynUser_ctrl, asynOctetType, 1);
     if (!pasynInterface) {
-        asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR,
+        asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
                 "%s:%s: %s interface not supported", driverName, functionName, asynOctetType);
         return;
     }
+    
     pasynOctet_ctrl = (asynOctet *) pasynInterface->pinterface;
     octetPvt_ctrl = pasynInterface->drvPvt;
 
@@ -123,7 +119,7 @@ Pandabox::Pandabox(const char* portName, const char* cmdSerialPortName, const ch
     if (epicsThreadCreate("PandaboxReadTask", epicsThreadPriorityMedium,
             epicsThreadGetStackSize(epicsThreadStackMedium),
             (EPICSTHREADFUNC) readTaskCtrlC, this) == NULL) {
-        asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR,
+        asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
                 "%s:%s: epicsThreadCreate failure for reading task\n", driverName, functionName);
         return;
     }
@@ -134,26 +130,26 @@ Pandabox::Pandabox(const char* portName, const char* cmdSerialPortName, const ch
     pasynUser_data = pasynManager->createAsynUser(0, 0);
     status = pasynManager->connectDevice(pasynUser_data, dataSerialPortName, 0);
     if (status != asynSuccess) {
-        asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR,
+        asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
                 "%s:%s: Connect failed, port=%s, error=%d\n", driverName, functionName, dataSerialPortName, status);
         return;
     }
-    pasynInterface_data = pasynManager->findInterface(pasynUser_data, asynCommonType, 1);
-    if (!pasynInterface_data) {
-        asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR,
+    pasynInterface = pasynManager->findInterface(pasynUser_data, asynCommonType, 1);
+    if (!pasynInterface) {
+        asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
                 "%s:%s: %s interface not supported", driverName, functionName, asynCommonType);
         return;
     }
-    pasynCommon_data = (asynCommon *) pasynInterface_data->pinterface;
-    pcommonPvt_data = pasynInterface_data->drvPvt;
-    pasynInterface_data = pasynManager->findInterface(pasynUser_data, asynOctetType, 1);
-    if (!pasynInterface_data) {
-        asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR,
+    pasynCommon_data = (asynCommon *) pasynInterface->pinterface;
+    pcommonPvt_data = pasynInterface->drvPvt;
+    pasynInterface = pasynManager->findInterface(pasynUser_data, asynOctetType, 1);
+    if (!pasynInterface) {
+        asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
                 "%s:%s: %s interface not supported", driverName, functionName, asynOctetType);
         return;
     }
-    pasynOctet_data = (asynOctet *) pasynInterface_data->pinterface;
-    octetPvt_data = pasynInterface_data->drvPvt;
+    pasynOctet_data = (asynOctet *) pasynInterface->pinterface;
+    octetPvt_data = pasynInterface->drvPvt;
 
     /* Set EOS and flush */
     pasynOctet_data->flush(octetPvt_data, pasynUser_data);
@@ -165,20 +161,20 @@ Pandabox::Pandabox(const char* portName, const char* cmdSerialPortName, const ch
     if (epicsThreadCreate("PandaboxReadTask2", epicsThreadPriorityMedium,
             epicsThreadGetStackSize(epicsThreadStackMedium),
             (EPICSTHREADFUNC) readTaskDataC, this) == NULL) {
-        asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR,
+        asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
                 "%s:%s: epicsThreadCreate failure for reading task\n", driverName, functionName);
         return;
     }
 
     /*set the receiving format on the data channel*/
-    setDataFormat();
-
+    sendData("XML FRAMED SCALED\n");
 };
 
 /* This is the function that will be run for the read thread */
 void Pandabox::readTaskCtrl() {
     const char *functionName = "readTaskCtrl";
-    char *rxBuffer;
+    //char *rxBuffer;
+    char rxBuffer[N_BUFF_CTRL];
     size_t nBytesIn;
     int eomReason;
     asynStatus status = asynSuccess;
@@ -186,48 +182,44 @@ void Pandabox::readTaskCtrl() {
 
     while (true) {
         pasynUserRead->timeout = LONGWAIT;
-        /* Malloc some data to put the reply from pandabox. This is freed if there is an
-         * error, otherwise it is put on a queue, and the receiving thread should free it
-         */
-        rxBuffer = (char *) malloc(NBUFF);
-        status = pasynOctet_ctrl->read(octetPvt_ctrl, pasynUserRead, rxBuffer, NBUFF - 1,
+        status = pasynOctet_ctrl->read(octetPvt_ctrl, pasynUserRead, rxBuffer, N_BUFF_CTRL - 1,
                 &nBytesIn, &eomReason);
         if (status) {
             epicsThreadSleep(TIMEOUT);
         } else if (eomReason & ASYN_EOM_EOS) {
             // Replace the terminator with a null so we can use it as a string
             rxBuffer[nBytesIn] = '\0';
-            asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW,
+            asynPrint(pasynUserSelf, ASYN_TRACE_FLOW,
                     "%s:%s: Message: '%s'\n", driverName, functionName, rxBuffer);
-            free(rxBuffer);
         } else {
-            asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR,
+            asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
                     "%s:%s: Bad message 'bt%.*s'\n", driverName, functionName, (int)nBytesIn, rxBuffer);
-            free(rxBuffer);
         }
     }
 }
-
-asynStatus Pandabox::readHeaderLine(char* rxBuffer, size_t *nBytesIn) {
+asynStatus Pandabox::readHeaderLine(char* rxBuffer, const size_t buffSize) const {
+    /*buffSize is the size fo rxBuffer*/
     const char *functionName = "readHeaderLine";
     int eomReason;
+    size_t nBytesIn;
     asynStatus status = asynTimeout;
-
+    //check to see if rxBuffer is
     while (status == asynTimeout) {
         status = pasynOctet_data->read(octetPvt_data, pasynUser_data, rxBuffer, 
-                NBUFF2, nBytesIn, &eomReason);
+                buffSize, &nBytesIn, &eomReason);
     }
-    
-    if(status)
-    {
-        asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR,"%s:%s: Error reading data: %s'\n",
+    if(status) {
+        asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,"%s:%s: Error reading data: %s'\n",
                 driverName, functionName, errorMsg[status].c_str());
     }
-    assert (eomReason == ASYN_EOM_EOS);
+    if (eomReason != ASYN_EOM_EOS) {
+         throw std::runtime_error("attribute not in map");
+    }
+    //assert (eomReason == ASYN_EOM_EOS); // BK: I would also log this before asserting, just to make debugging easier if it happens
     return status;
 }
 
-asynStatus Pandabox::readDataBytes(char* rxBuffer, int nBytes) {
+asynStatus Pandabox::readDataBytes(char* rxBuffer, const size_t nBytes) const {
     const char *functionName = "readDataBytes";
     int eomReason;
     size_t nBytesIn;
@@ -238,104 +230,117 @@ asynStatus Pandabox::readDataBytes(char* rxBuffer, int nBytes) {
                 nBytes, &nBytesIn, &eomReason);
     }
 
-    if(status)
-    {
-        asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR,"%s:%s: Error reading data: %s'\n",
+    if(status) {
+        asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,"%s:%s: Error reading data: %s'\n",
                 driverName, functionName, errorMsg[status].c_str());
     }
-    assert (nBytes == nBytesIn);
+    if(nBytes != nBytesIn) {
+         throw std::runtime_error("attribute not in map");
+    }
+   // assert (nBytes == nBytesIn); // BK: I would also log this before asserting, just to make debugging easier if it happens
     return status;
 }
 
 /*this function reads from the data port*/
 void Pandabox::readTaskData() {
-    const char *functionName = "readTaskData";
-    size_t nBytesIn;
     asynStatus status = asynSuccess;
-    std::vector<char>::iterator it;
-    std::vector<char> dataPacket(0,0);
-    char rxBuffer[NBUFF2];
-    int eomReason;
-    uint32_t dataLength = 0;
-    while (true) {
+    char rxBuffer[N_BUFF_DATA];
+    try{
+        while (true) {
+            std::cout << "STATE: " << state << std::endl;
+            switch(state) {
+                case waitHeaderStart:
+                    readHeaderLine(rxBuffer, N_BUFF_DATA);
+                    if (strcmp(rxBuffer, "<header>\0") == 0) {
+                        //we have a header so we have started acquiring
+                        setIntegerParam(ADAcquire, 1);
+                        header.append(rxBuffer);
+                        header.append("\n");
+                        state = waitHeaderEnd;
+                        callParamCallbacks();
+                    }
+                    break;
 
-        switch(state) {
-            case waitHeaderStart:
-                readHeaderLine(rxBuffer, &nBytesIn);
-                if (strcmp(rxBuffer, "<header>\0") == 0) {
-                    //we have a header so we have started acquiring
-                    this->setIntegerParam(ADAcquire, 1);
+                case waitHeaderEnd:
+                    readHeaderLine(rxBuffer, N_BUFF_DATA);
+                    /*accumulate the header until we reach the end, then process*/
                     header.append(rxBuffer);
                     header.append("\n");
-                    state = waitHeaderEnd;
+                    if (strcmp(rxBuffer, "</header>\0") == 0) {
+                        headerValues = parseHeader(header);
+                        //change the input eos as the data isn't terminated with a newline
+                        pasynOctet_data->setInputEos(octetPvt_data, pasynUser_data, "", 0);
+
+                        //read the extra newline at the end of the header
+                        size_t nBytesIn; // ignored, needed for read
+                        int eomReason; // ignored, needed for read
+                        status = pasynOctet_data->read(octetPvt_data, pasynUser_data, rxBuffer, 1,
+                                &nBytesIn, &eomReason);
+
+                        state = waitDataStart;
+                    }
+                    break;
+
+                case waitDataStart:
+                    // read "BIN " or "END "
+                    readDataBytes(rxBuffer, 4);
+                    if (strncmp(rxBuffer, "BIN ", 4) == 0) {
+                        state = receivingData;
+                    }
+                    else if (strncmp(rxBuffer, "END ", 4) == 0) {
+                        state = dataEnd;
+                    }
+                    break;
+
+                case receivingData:
+                    // read next four bytes to get the packet size
+                    {
+                        uint32_t message_length;
+                        readDataBytes(reinterpret_cast<char *>(&message_length),
+                                4);
+                        uint32_t dataLength = message_length - 8; // size of the packet prefix information is 8
+                        // read the rest of the packet
+                        readDataBytes(rxBuffer, dataLength);
+                        std::vector<char> dataPacket;
+                        dataPacket.insert(dataPacket.begin(), rxBuffer, rxBuffer + dataLength);
+                        parseData(dataPacket, dataLength);
+                        state = waitDataStart;
+                    }
+                    break;
+
+                case dataEnd:
+                    endCapture();
+                    state = waitHeaderStart;
+                    readHeaderLine(rxBuffer, N_BUFF_DATA);
+                    setStringParam(pandaboxDataEnd, rxBuffer);
                     callParamCallbacks();
-                }
-                break;
-
-            case waitHeaderEnd:
-                readHeaderLine(rxBuffer, &nBytesIn);
-                /*accumulate the header until we reach the end, then process*/
-                header.append(rxBuffer);
-                header.append("\n");
-                if (strcmp(rxBuffer, "</header>\0") == 0) {
-                    headerValues = parseHeader(&header);
-                    //change the input eos as the data isn't terminated with a newline
-                    pasynOctet_data->setInputEos(octetPvt_data, pasynUser_data, "", 0);
-
-                    //read the extra newline at the end of the header
-                    status = pasynOctet_data->read(octetPvt_data, pasynUser_data, rxBuffer, 1,
-                            &nBytesIn, &eomReason);
-
-                    state = waitDataStart;
-                }
-                break;
-
-            case waitDataStart:
-                // read "BIN " or "END "
-                readDataBytes(rxBuffer, 4);
-                if (strncmp(rxBuffer, "BIN ", 4) == 0) {
-                    state = receivingData;
-                }
-                else if (strncmp(rxBuffer, "END ", 4) == 0) {
-                    state = dataEnd;
-                }
-                break;
-
-            case receivingData:
-                // read next four bytes to get the packet size
-                readDataBytes(rxBuffer, 4);
-                dataLength = ((uint32_t*) rxBuffer)[0] - 8;
-                // read the rest of the packet
-                readDataBytes(rxBuffer, dataLength);
-                dataPacket.clear();
-                dataPacket.insert(dataPacket.begin(), rxBuffer, rxBuffer + dataLength);
-                parseData(dataPacket, dataLength);
-                state = waitDataStart;
-                break;
-
-            case dataEnd:
-                endCapture();
-                state = waitHeaderStart;
-                break;
+                    break;
+            }
         }
+    }
+    catch(const std::runtime_error& e){
+    //return to beginning state if there is an exception
+        state = waitHeaderStart;
+        status = asynError;
     }
     callParamCallbacks();
 }
 
-void  Pandabox::endCapture()
+void Pandabox::endCapture()
 {
-    this->state = waitHeaderStart;
     //check the next 4 bytes to see if it matches the total arrays read.
     //reset the header string
-    this->header = "";
+    header = "";
     //change the input eos back to newline for the header
-    this->pasynOctet_data->setInputEos(octetPvt_data, pasynUser_data, "\n", 1);
-    this->readBytes = NBUFF2-1; //reset the amount of bytes to read
+    pasynOctet_data->setInputEos(octetPvt_data, pasynUser_data, "\n", 1);
+    //read the rest of the end of data string and update the param
+    readBytes = N_BUFF_DATA-1; //reset the amount of bytes to read
     //set the acquire light to 0
-    this->setIntegerParam(ADAcquire, 0);
+    setIntegerParam(ADAcquire, 0);
     callParamCallbacks();
 }
-Pandabox::headerMap Pandabox::parseHeader(std::string* headerString)
+
+Pandabox::headerMap Pandabox::parseHeader(const std::string& headerString)
 {
 /**return a map containing the header data corresponding to each xml node
  * the first map will always be the 'data' node,
@@ -345,46 +350,43 @@ Pandabox::headerMap Pandabox::parseHeader(std::string* headerString)
     headerMap tmpHeaderValues;
 
     //set the header parameter
-    setStringParam(pandaboxHeader, headerString->c_str());
+    setStringParam(pandaboxHeader, headerString.c_str());
 
     asynStatus status = asynSuccess;
-    int ret = 0;
-    xmlTextReaderPtr xmlreader = NULL;
-
-    xmlreader = xmlReaderForMemory(headerString->c_str(), (int)headerString->length(), NULL, NULL, 0);
+    xmlTextReaderPtr xmlreader = xmlReaderForMemory(headerString.c_str(), (int)headerString.length(), NULL, NULL, 0);
 
     if (xmlreader == NULL){
         //do some error handling
-        asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR,
+        asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
                 "ERROR PARSING HEADER\n");
         status = asynError;
     }
     if(status == asynSuccess)
     {
         /*walk the xml nodes*/
-        while ((ret = xmlTextReaderRead(xmlreader)) == 1)
+        while ((xmlTextReaderRead(xmlreader)) == 1)
         {
-            const xmlChar* xmlNodeName = NULL;
             /*get the node names*/
-            xmlNodeName = xmlTextReaderConstName(xmlreader);
+            const xmlChar* xmlNodeName = xmlTextReaderConstName(xmlreader);
             if (xmlNodeName != NULL)
             {
                 std::string name((const char*)xmlNodeName);
                 /*get the attributes for the data and field nodes and put on vector*/
                 if( name == "data" || name == "field")
                 {
-                    extractHeaderData(xmlreader, &tmpValues);
+                    extractHeaderData(xmlreader, tmpValues);
                     tmpHeaderValues.push_back(tmpValues);
                 }
             }
         }
     }
+    xmlFreeTextReader(xmlreader);
 
     callParamCallbacks();
     return tmpHeaderValues;
 }
 
-asynStatus Pandabox::extractHeaderData(xmlTextReaderPtr xmlreader, std::map<std::string, std::string>* values)
+asynStatus Pandabox::extractHeaderData(const xmlTextReaderPtr xmlreader, std::map<std::string, std::string>& values)const
 {
     /*Get the attribute values for a node and place in the map values*/
     xmlNodePtr node= xmlTextReaderCurrentNode(xmlreader);
@@ -395,9 +397,9 @@ asynStatus Pandabox::extractHeaderData(xmlTextReaderPtr xmlreader, std::map<std:
           xmlChar* xvalue = xmlNodeListGetString(node->doc, attribute->children, 1);
 
           /*Insert the values into the data_value map*/
-          string value((const char*)xvalue);
-          string name((const char*)attribute->name);
-          (*values)[name] = value;
+          std::string value((const char*)xvalue);
+          std::string name((const char*)attribute->name);
+          values[name] = value;
 
           xmlFree(xvalue);
           attribute = attribute->next;
@@ -406,13 +408,21 @@ asynStatus Pandabox::extractHeaderData(xmlTextReaderPtr xmlreader, std::map<std:
     return asynSuccess;
 }
 
-std::string Pandabox::getHeaderValue(int index, std::string attribute)
+std::string Pandabox::getHeaderValue(const int index, const std::string attribute)const
 {
     /*return the value of an attribute of a given element*/
-    return headerValues[index].find(attribute)->second;
+    //first check index (do find on headerValues
+    if (headerValues[index].find(attribute) != headerValues[index].end())
+    {
+        return headerValues[index].find(attribute)->second;
+    }
+    else
+    {
+         throw std::out_of_range("attribute not in map");
+    }
 }
 
-void Pandabox::getAllData(std::vector<char>* inBuffer, int dataLen, int buffLen)
+void Pandabox::getAllData(std::vector<char>& inBuffer, const int dataLen, const int buffLen)const
 {
     const char *functionName = "getAllData";
     size_t nBytesIn;
@@ -424,114 +434,107 @@ void Pandabox::getAllData(std::vector<char>* inBuffer, int dataLen, int buffLen)
     status = pasynOctet_data->read(octetPvt_data, pasynUserRead, rxBuffer, readBytes,
             &nBytesIn, &eomReason);
 
-    inBuffer->insert(inBuffer->end(), rxBuffer, rxBuffer+nBytesIn);
+    inBuffer.insert(inBuffer.end(), rxBuffer, rxBuffer+nBytesIn);
     if(status)
     {
-        asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR,"%s:%s: Error reading data: %d'\n",
+        asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,"%s:%s: Error reading data: %d'\n",
                 driverName, functionName, status);
     }
 }
 
-void Pandabox::parseData(std::vector<char> dataBuffer, int dataLen){
-/*Return True if the end is found, else return false*/
-    const char *functionName = "parseData";
+void Pandabox::parseData(std::vector<char> dataBuffer, const int dataLen){
     int buffLen = dataBuffer.size(); //actual length of received input data stream (could be multiple lines)
     int dataNo = headerValues.size() - 1; //number of received data points (total header fields - 'data' = number of captured fields)
     //check to see if we have read all the data in, and do another read if we haven't
     if(dataLen > buffLen)
     {
-        getAllData(&dataBuffer, dataLen, buffLen);
+        getAllData(dataBuffer, dataLen, buffLen);
     }
     outputData(dataLen, dataNo, dataBuffer);
 }
 
-//void Pandabox::outputData(int dataLen, int dataNo, double* floatData)
-void Pandabox::outputData(int dataLen, int dataNo, vector<char> data)
+void Pandabox::outputData(const int dataLen, const int dataNo, const std::vector<char> data)
 {
-    int linecount = 0; //number of lines of data received and parsed
-    //get the length of an individual dataSet
-    int setLen = 0;
-    for(int i = 0; i < headerValues.size()-1; i++)
-    {
-        if(getHeaderValue(i+1, "type") == "double")
+    try{
+        int linecount = 0; //number of lines of data received and parsed
+        //get the length of an individual dataSet
+        int setLen = 0;
+        for(size_t i = 0; i < headerValues.size()-1; ++i)
         {
-            setLen += sizeof(double);
-        }
-        else if (getHeaderValue(i+1, "type") == "uint32")
-        {
-            setLen += sizeof(uint32_t);
-        }
-    }
-    int idx = 0;
-    int ptridx = 0; //skip the first 8 bytes
-    int noDataSets = data.size() / setLen; //noPoints/ dataNo; //number of data sets in the received binary data
-    double* doubleData = (double*) &data[ptridx];
-    uint32_t* uint32Data = (uint32_t*) &data[ptridx];
-    string dataType;
-    //find other possible data types..
-
-    //loop over the data sets in the received data
-    for(int j = 0; j < noDataSets; j++)
-    {
-        //allocate a frame for each data set
-        allocateFrame();
-        if(this->pArray != NULL) {
-            //loop over each data point in the data set
-            for(int i = 0; i < dataNo; i++)
+            if(getHeaderValue(i+1, "type") == "double")
             {
-                idx = (j*dataNo + i);//current data point index in the float array
-                    // NDAttributes are used to store the actual captured data
-                    std::string desc("sample value");
-                    NDAttrSource_t sourceType = NDAttrSourceUndefined;
-                    const char *pSource = "source string";
-                    //find out what type the individual point is
-                    //from the header and assign the approperiate pointer.
-                    dataType = getHeaderValue(i+1, "type");
-                    if(dataType == "double")
-                    {
-                    // Create the NDAttributes and initialise them with data value (headerValue[0] is the data info)
-                        NDAttribute *pAttribute = new NDAttribute(
-                            getHeaderValue(i+1, "name").c_str(),
-                            desc.c_str(), sourceType,
-                            pSource, NDAttrFloat64,
-                            &doubleData[0]);
-                        this->pArray->pAttributeList->add(pAttribute);
-                        ((double *)this->pArray->pData)[i] = doubleData[0];
-                        ptridx += sizeof(double);
-                    }
-                    else if(dataType == "uint32")
-                    {
-                                        // Create the NDAttributes and initialise them with data value (headerValue[0] is the data info)
-                        NDAttribute *pAttribute = new NDAttribute(
-                            getHeaderValue(i+1, "name").c_str(),
-                            desc.c_str(), sourceType,
-                            pSource, NDAttrUInt32,
-                            &uint32Data[0]);
-                        this->pArray->pAttributeList->add(pAttribute);
-                        ((uint32_t *)this->pArray->pData)[i] = uint32Data[0];
-                        ptridx += sizeof(uint32_t);
-                    };
-                    doubleData = (double*) &data[ptridx];
-                    uint32Data = (uint32_t*) &data[ptridx];
+                setLen += sizeof(double);
+            }
+            else if (getHeaderValue(i+1, "type") == "uint32")
+            {
+                setLen += sizeof(uint32_t);
             }
         }
-        //copy the data in as uint8
-        //(uint8_t*)this->pArray->pData = &data[0];
-        //copy((uint8_t*)this->pArray->pData, (uint8_t*)this->pArray->pData + data.size(), data.begin());
-        /* Ship off the NDArray*/
-        wrapFrame();
+        int idx = 0;
+        const char* ptridx = &data.front();
+        int noDataSets = data.size() / setLen; //number of data sets in the received binary data
+        std::string dataType;
+        //find other possible data types..
 
-        /* Increment number of lines processed*/
-        linecount++;
-        callParamCallbacks();
+        //loop over the data sets in the received data
+        for(int j = 0; j < noDataSets; ++j)
+        {
+            //allocate a frame for each data set
+            allocateFrame();
+            if(pArray != NULL) {
+                //loop over each data point in the data set
+                for(int i = 0; i < dataNo; ++i)
+                {
+                    idx = (j*dataNo + i);//current data point index in the float array
+                        // NDAttributes are used to store the actual captured data
+                        std::string desc("sample value");
+                        //find out what type the individual point is
+                        //from the header and assign the approperiate pointer.
+                        dataType = getHeaderValue(i+1, "type");
+                        if(dataType == "double")
+                        {
+                        // Create the NDAttributes and initialise them with data value (headerValue[0] is the data info)
+                            pArray->pAttributeList->add(
+                                    getHeaderValue(i+1, "name").c_str(),
+                                    desc.c_str(),
+                                    NDAttrFloat64,
+                                    (double*)ptridx);
+                            ((double *)pArray->pData)[i] = *(double*)ptridx;
+                            ptridx += sizeof(double);
+                        }
+                        else if(dataType == "uint32")
+                        {
+                                            // Create the NDAttributes and initialise them with data value (headerValue[0] is the data info)
+                            pArray->pAttributeList->add(
+                                    getHeaderValue(i+1, "name").c_str(),
+                                    desc.c_str(),
+                                    NDAttrUInt32,
+                                    (uint32_t*)ptridx);
+                            uint32_t value = *(uint32_t*)ptridx;
+                            std::cout << "VAL: " << value << ", " << (double)value << std::endl;
+                            ((double*)pArray->pData)[i] = (double)value;
+                            ptridx += sizeof(uint32_t);
+                        };
+                }
+            }
+            /* Ship off the NDArray*/
+            wrapFrame();
+
+            /* Increment number of lines processed*/
+            linecount++;
+            callParamCallbacks();
+        }
+    }
+    catch(const std::out_of_range& e){
+        //if attribute is not in header map, go back to beginning ?
     }
 }
 
 void Pandabox::allocateFrame() {
     // Release the old NDArray if it exists
-    if (this->pArray != NULL) {
-        this->pArray->release();
-        this->pArray = NULL;
+    if (pArray != NULL) {
+        pArray->release();
+        pArray = NULL;
     }
     // Allocate a new NDArray
     int arraysize = headerValues.size() -1;
@@ -539,49 +542,56 @@ void Pandabox::allocateFrame() {
     int nDims = 2;
     dims[0] = arraysize;
     dims[1] = FRAMEHEIGHT;
-    this->pArray = this->pNDArrayPool->alloc(nDims, dims, NDFloat64, 0, NULL);
+    pArray = pNDArrayPool->alloc(nDims, dims, NDFloat64, 0, NULL);
     //clear the attribute list to get rid of previous scans
-    this->pArray->pAttributeList->clear();
+    if (pArray != NULL) {
+        pArray->pAttributeList->clear();
+    }
 }
 
 void Pandabox::wrapFrame() {
-    if(this->capture)
+    if(capture)
     {
         this->lock();
-        getIntegerParam(NDArrayCounter, &(this->arrayCounter));
-        getIntegerParam(ADNumImagesCounter, &(this->numImagesCounter));
+        getIntegerParam(NDArrayCounter, &(arrayCounter));
+        getIntegerParam(ADNumImagesCounter, &(numImagesCounter));
         // Set the time stamp
         epicsTimeStamp arrayTime;
         epicsTimeGetCurrent(&arrayTime);
-        this->pArray->timeStamp = arrayTime.secPastEpoch;
-        // Save the NDAttributes if there are any
-        getAttributes(this->pArray->pAttributeList);
-        // Update statistics
-        this->arrayCounter++;
-        this->numImagesCounter++;
-        //send disarm signal if we are in a mode that requires it
-        if(this->imgMode == ADImageSingle &&  this->arrayCounter == 1)
-        {
-            this->capture = false;
+        if (pArray != NULL) {
+            pArray->timeStamp = arrayTime.secPastEpoch;
+            // Save the NDAttributes if there are any
+            getAttributes(pArray->pAttributeList);
         }
-        else if(this->imgMode == ADImageMultiple && this->imgNo == this->numImagesCounter)
+        // Update statistics
+        arrayCounter++;
+        numImagesCounter++;
+        //send disarm signal if we are in a mode that requires it
+        if(imgMode == ADImageSingle &&  arrayCounter == 1)
         {
-            this->capture = false;
+            capture = false;
+        }
+        else if(imgMode == ADImageMultiple && numImagesCounter == imgNo)
+        {
+            capture = false;
+        }
+        // Set the unique ID
+        if (pArray != NULL) {
+            pArray->uniqueId = arrayCounter;
         }
         // Update the counters
-        setIntegerParam(NDArrayCounter, this->arrayCounter);
-        setIntegerParam(ADNumImagesCounter, this->numImagesCounter);
-        // Set the unique ID
-        this->pArray->uniqueId = this->arrayCounter;
+        setIntegerParam(NDArrayCounter, arrayCounter);
+        setIntegerParam(ADNumImagesCounter, numImagesCounter);
         this->unlock();
-        // Ship the array off
-        doCallbacksGenericPointer(this->pArray, NDArrayData, 0);
+        if (pArray != NULL) {
+            // Ship the array off
+            doCallbacksGenericPointer(pArray, NDArrayData, 0);
+        }
     }
-    if(!this->capture)
+    if(!capture)
     {
-        string cmdString = "*PCAP.DISARM=";
-        sendCtrl(cmdString);
-        this->setIntegerParam(ADAcquire, 0);
+        sendCtrl("*PCAP.DISARM=");
+        setIntegerParam(ADAcquire, 0);
         endCapture();
 	callParamCallbacks();
     }
@@ -590,17 +600,17 @@ void Pandabox::wrapFrame() {
 /* Send helper function
  * called with lock taken
  */
-asynStatus Pandabox::sendData(std::string txBuffer) {
+asynStatus Pandabox::sendData(const std::string txBuffer){
     asynStatus status = send(txBuffer, pasynOctet_data, octetPvt_data, pasynUser_data);
     return status;
 }
 
-asynStatus Pandabox::sendCtrl(std::string txBuffer) {
+asynStatus Pandabox::sendCtrl(const std::string txBuffer){
     asynStatus status = send(txBuffer, pasynOctet_ctrl, octetPvt_ctrl, pasynUser_ctrl);
     return status;
 }
 
-asynStatus Pandabox::send(std::string txBuffer, asynOctet *pasynOctet, void* octetPvt, asynUser* pasynUser) {
+asynStatus Pandabox::send(const std::string txBuffer, asynOctet *pasynOctet, void* octetPvt, asynUser* pasynUser) {
     const char *functionName = "send";
     asynStatus status = asynSuccess;
     int connected;
@@ -608,25 +618,18 @@ asynStatus Pandabox::send(std::string txBuffer, asynOctet *pasynOctet, void* oct
     pasynUser->timeout = TIMEOUT;
     status = pasynOctet->write(octetPvt, pasynUser, txBuffer.c_str(), txBuffer.length(),
             &nBytesOut);
-    asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW,
+    asynPrint(pasynUserSelf, ASYN_TRACE_FLOW,
             "%s:%s: Send: '%.*s'\n", driverName, functionName, (int)txBuffer.length(), txBuffer.c_str());
     if (status != asynSuccess) {
         // Can't write, port probably not connected
         getIntegerParam(pandaboxIsConnected, &connected);
         if (connected) {
             setIntegerParam(pandaboxIsConnected, 0);
-            asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW,
+            asynPrint(pasynUserSelf, ASYN_TRACE_FLOW,
                     "%s:%s: Can't write to pandabox: '%.*s'\n", driverName, functionName, (int)txBuffer.length(), txBuffer.c_str());
         }
     }
     return status;
-}
-
-
-void Pandabox::setDataFormat() {
-    /* set the data header to be in XML, BINARY, SCALED format*/
-    string formatString = "XML FRAMED SCALED\n";
-    sendData(formatString);
 }
 
 /** Called when asyn clients call pasynInt32->write().
@@ -641,16 +644,16 @@ asynStatus Pandabox::writeInt32(asynUser *pasynUser, epicsInt32 value) {
     /* Any work we need to do */
     int param = pasynUser->reason;
 
-    status = this->setIntegerParam(param, value);
+    status = setIntegerParam(param, value);
     //change writing depending on imagemode
     if(param == ADImageMode)
     {
-        this->imgMode = value;
+        imgMode = value;
     }
 
     if(param == ADNumImages)
     {
-        this->imgNo = value;
+        imgNo = value;
     }
 
     if(param == ADAcquire)
@@ -658,69 +661,31 @@ asynStatus Pandabox::writeInt32(asynUser *pasynUser, epicsInt32 value) {
         if(value)
         {
             //set the current array number
-            this->capture = true;
-            asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR,
+            capture = true;
+            asynPrint(pasynUserSelf, ASYN_TRACEIO_DRIVER,
                     "SEND ARM CMD:\n");
-            string cmdString = "*PCAP.ARM=";
-            sendCtrl(cmdString);
+            sendCtrl("*PCAP.ARM=");
             setIntegerParam(ADNumImagesCounter, 0);
         }
         else
         {
-            this->capture = false;
-            asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR,
+            asynPrint(pasynUserSelf, ASYN_TRACEIO_DRIVER,
                     "SEND DISARM CMD:\n");
-            string cmdString = "*PCAP.DISARM=";
-            sendCtrl(cmdString);
+            sendCtrl("*PCAP.DISARM=");
             endCapture();
+            capture = false;
         }
-    }
-    else if (param == testparam)
-    {
-            setParams();
     }
 
     if(status)
     {
-        asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR,"%s:%s: Error setting values'\n",
+        asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,"%s:%s: Error setting values'\n",
                 driverName, functionName);
     }
 
     callParamCallbacks();
     return status;
 }
-
-//----------------------------------
-void Pandabox::setParams(){
-/* Temporary function in absence of web interface for setup for testing*/
-        std::string cmds[21]= {
-                "*PCAP.DISARM=",
-                "*CAPTURE=",
-                "COUNTER1.STEP=50",
-                "COUNTER1.START=100",
-                "COUNTER1.ENABLE=SEQ1.ACTIVE",
-                "COUNTER1.TRIG=SEQ1.OUTA",
-                "COUNTER1.OUT.CAPTURE=Triggered",
-                "SEQ1.PRESCALE=0.05",
-                "SEQ1.TABLE_CYCLE=1",
-                "SEQ1.TABLE<",
-                "500",
-                "520109824",
-                "1",
-                "1",
-                "",
-                "SEQ1.ENABLE=PCAP.ACTIVE",
-                "SEQ1.INPA=BITS.ONE",
-                "PCAP.ENABLE=SEQ1.ACTIVE",
-                "PCAP.FRAME=BITS.ZERO",
-                "PCAP.CAPTURE=SEQ1.OUTA",
-                "PCAP.CAPTURE_TS.CAPTURE=Trigger"};
-        for(int i = 0; i < 21; i ++)
-        {
-            sendCtrl(cmds[i]);
-        }
-}
-//--------------------------------------
 
 
 extern "C" int pandaboxConfig(const char *portName, const char* cmdSerialPortName,

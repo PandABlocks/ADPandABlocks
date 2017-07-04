@@ -1,7 +1,6 @@
 #ifndef PANDABOX_H
-#define PANDABOX2_H
+#define PANDABOX_H
 
-#include <string.h>
 #include <cstring>
 #include <string>
 #include <map>
@@ -15,15 +14,13 @@
 #include "drvAsynIPPort.h"
 #include "asynShellCommands.h"
 
-
-
 /* This is the number of messages on our queue */
 #define NQUEUE 10000
 
 /* The size of our transmit and receive buffers,
  * max filename length and string param buffers */
-#define NBUFF 255
-#define NBUFF2 65536
+#define N_BUFF_CTRL 255
+#define N_BUFF_DATA 65536
 
 /* This is the number of waveforms to store */
 #define NARRAYS 10
@@ -44,23 +41,24 @@
  */
 #define LONGWAIT 1000.0
 
-static const char *driverName = "pandabox";
-
 class Pandabox: public ADDriver {
 private:
     /**Typedefs**/
-    typedef std::vector<std::map<std::string, std::string> > headerMap; //vector of maps to store header data. Each map is for an individual xml node
+    //vector of maps to store header data. Each map is for an individual xml node
+    typedef std::vector<std::map<std::string, std::string> > headerMap;
 
 public:
-    Pandabox(const char *portName, const char* cmdSerialPortName, const char* dataSerialPortName, int maxPts, int maxBuffers, int maxMemory);
+    Pandabox(const char *portName, const char* cmdSerialPortName,
+            const char* dataSerialPortName, int maxPts, int maxBuffers, int maxMemory);
 
     /** These should be private, but get called from C, so must be public */
     void readTaskCtrl();
     void readTaskData();
 
-    asynStatus sendCtrl(std::string txBuffer);
-    asynStatus sendData(std::string txBuffer);
-    asynStatus send(std::string txBuffer, asynOctet *pasynOctet, void* octetPvt, asynUser* pasynUser);
+    /** These functions are used in the tests, so they are public */
+    asynStatus sendCtrl(const std::string txBuffer);
+    asynStatus sendData(const std::string txBuffer);
+    asynStatus send(const std::string txBuffer, asynOctet *pasynOctet, void* octetPvt, asynUser* pasynUser);
 
     /* These are the methods that we override from asynPortDriver */
     virtual asynStatus writeInt32(asynUser *pasynUser, epicsInt32 value);
@@ -70,66 +68,45 @@ protected:
 #define FIRST_PARAM pandaboxIsConnected
     int pandaboxIsConnected;        // int32 read  - is pandabox connected?
     int pandaboxHeader;             // string read - data header
-    int testparam;                 // int32 write - initiates test setup
+    int pandaboxDataEnd;            // string read - end of data string
     int pandaboxPCTime;             // float64array read - position compare timestamps
 #define LAST_PARAM pandaboxPCTime
 #define NUM_PARAMS (&LAST_PARAM - &FIRST_PARAM + 1)
 
 private:
-    void setDataFormat();
-    headerMap parseHeader(std::string* headerString);
-    void parseData(std::vector<char> dataBuffer, int dataLen);
+    headerMap parseHeader(const std::string& headerString);
+    void parseData(std::vector<char> dataBuffer, const int dataLen);
     void allocateFrame();
     void wrapFrame();
-    asynStatus extractHeaderData(xmlTextReaderPtr xmlreader, std::map<std::string, std::string>* values);
-    std::string getHeaderValue(int index, std::string attribute);
-    void setParams();
-    void getAllData(std::vector<char>* inBuffer, int dataLen, int buffLen);
-    //void outputData(int dataLen, int dataNo, double* floatData);
-    void outputData(int dataLen, int dataNo, std::vector<char> data);
-    asynStatus readHeaderLine(char* rxBuffer, size_t* nBytesIn);
-    asynStatus readDataBytes(char* rxBuffer, int nBytes);
+    asynStatus extractHeaderData(const xmlTextReaderPtr xmlreader, std::map<std::string, std::string>& values)const;
+    std::string getHeaderValue(const int index, const std::string attribute)const;
+    void getAllData(std::vector<char>& inBuffer, const int dataLen,const  int buffLen)const;
+    void outputData(const int dataLen, const int dataNo, const std::vector<char> data);
+    asynStatus readHeaderLine(char* rxBuffer, const size_t buffSize)const;
+    asynStatus readDataBytes(char* rxBuffer, const size_t nBytes)const;
     void endCapture();
 
-public:
-    NDArray *pArray;
-
 private:
+    NDArray *pArray;
     asynUser *pasynUser_ctrl;
-    asynCommon *pasynCommon_ctrl;
-    void *pcommonPvt_ctrl;
     asynOctet *pasynOctet_ctrl;
-    void *octetPvt_ctrl;
+    void *octetPvt_ctrl; // BK: is there a good reason for this to be part of the global state?
     asynUser *pasynUser_data;
     asynCommon *pasynCommon_data;
     void *pcommonPvt_data;
     asynOctet *pasynOctet_data;
     void *octetPvt_data;
-    epicsMessageQueueId msgQId, intQId;
-    int arrayCounter, numImagesCounter, imgMode, imgNo, arrayNumberStart;
+    int arrayCounter, numImagesCounter, imgMode, imgNo;
     bool capture;
     std::string header;
-    size_t readBytes;
+    size_t readBytes; // BK: should be local, never really used as a class field, CT: this depends if getAllData is necessesary or if it is redundant because of the Asyn.read()
 
     //vector of maps for the header values
     headerMap headerValues;
 
     //states for readDataTask state machine
-    enum readStates{waitHeaderStart=0, waitHeaderEnd, waitDataStart, receivingData, dataEnd,};
-    readStates state; //init state for the data read
+    enum readState{waitHeaderStart, waitHeaderEnd, waitDataStart, receivingData, dataEnd,};
+    readState state; //init state for the data read
 
-    std::map<asynStatus, std::string> errorMsg;
 };
-
-
-/* C function to call new message from  task from epicsThreadCreate */
-static void readTaskCtrlC(void *userPvt) {
-    Pandabox *pPvt = (Pandabox *) userPvt;
-    pPvt->readTaskCtrl();
-}
-
-static void readTaskDataC(void *userPvt) {
-    Pandabox *pPvt = (Pandabox *) userPvt;
-    pPvt->readTaskData();
-}
 #endif

@@ -3,8 +3,8 @@ beginScreenProperties
 major 4
 minor 0
 release 1
-x 2223
-y 368
+x 943
+y 223
 w 390
 h 820
 font "arial-bold-r-12.0"
@@ -63,29 +63,6 @@ displayFileName {
 noScroll
 endObjectProperties
 
-# (Message Button)
-object activeMessageButtonClass
-beginObjectProperties
-major 4
-minor 1
-release 0
-x 10
-y 485
-w 135
-h 25
-fgColor index 14
-onColor index 3
-offColor index 3
-topShadowColor index 1
-botShadowColor index 11
-controlPv "$(DEVICE)TESTPARAM"
-pressValue "1"
-onLabel "set up test"
-offLabel "set up test"
-3d
-font "arial-bold-r-12.0"
-endObjectProperties
-
 # (Static Text)
 object activeXTextClass
 beginObjectProperties
@@ -117,6 +94,24 @@ y 550
 w 365
 h 255
 controlPv "$(DEVICE)HEADER"
+fgColour index 25
+fgAlarm
+bgColour index 3
+fill
+font "arial-bold-r-12.0"
+endObjectProperties
+
+# (multiLineTextUpdate)
+object multiLineTextUpdateClass
+beginObjectProperties
+major 10
+minor 0
+release 0
+x 10
+y 500
+w 365
+h 30
+controlPv "$(DEVICE)DATAEND"
 fgColour index 25
 fgAlarm
 bgColour index 3

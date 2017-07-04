@@ -17,17 +17,17 @@ class Pandabox(AsynPort):
 
     # Make sure our DBD file gets used or created
     DbdFileList = ['pandabox']
-    
+
     # Make sure our library gets included by dependent IOCs
     LibFileList = ['pandabox']
 
     UniqueName = "PORT"
-    
-    def __init__(self, PORT, CMDPORT, DATAPORT, MAXBUF=5, MAXMEM=0, **args):
-    
+
+    def __init__(self, PORT, CMDPORT, DATAPORT, MAXBUF=1000, MAXMEM=0, **args):
+
         # Call init on Device superclass
         self.__super.__init__(PORT)
-        
+
         # Store arguments away to use later
         self.PORT = PORT
         self.CMDPORT = CMDPORT
@@ -35,16 +35,16 @@ class Pandabox(AsynPort):
         self.MAXBUF = MAXBUF
         self.MAXMEM = MAXMEM
         self.NELM = 100000
-        
+
         # Perform template subsitutions to create our DB file
         makeTemplateInstance(_MainDbFile, locals(), args)
-    
+
     def Initialise(self):
         # Print the command to create the device in the startup script
         print "# Create driver"
         print 'pandaboxConfig("%(PORT)s", "%(CMDPORT)s", "%(DATAPORT)s", ' \
             '%(NELM)d, %(MAXBUF)d, %(MAXMEM)d, 0)' % self.__dict__
-    
+
     # tell xmlbuilder what args to supply
     ArgInfo = _MainDbFile.ArgInfo + makeArgInfo(__init__,
         PORT     = Simple("Asyn port name for the created driver", str),
