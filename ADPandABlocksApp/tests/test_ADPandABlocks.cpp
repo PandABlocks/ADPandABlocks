@@ -14,15 +14,15 @@
 
 //#include <libxml/xmlreader.h>
 
-#include "pandabox.h"
+#include "ADPandABlocks.h"
 
-//path to the pandabox sim server
+//path to the ADPandABlocks sim server
 //#define Z2SIMSERVER "/home/fwf58757/git/zebra2/zebra2-server/simserver -Pserver.pid 2>&1"
 #define Z2SIMSERVER "/dls_sw/work/targetOS/zebra2-server/simserver -- -Pserver.pid "
 
 /*---------------
  *COMS CONSTANTS*/
-#define PORTNAME "pandabox"
+#define PORTNAME "ADPandABlocks"
 #define CMDIP "127.0.0.1:8888"
 #define DATAIP "127.0.0.1:8889"
 #define MAXPTS 10000
@@ -32,7 +32,7 @@
 /*--------------*/
 
 /*GLOBAL VARIABLES*/
-Pandabox *z2;
+ADPandABlocks *z2;
 /*----------------*/
 
 using namespace std;
@@ -45,7 +45,7 @@ FILE* startSim(){
         return NULL;
     }
     else{
-        cout<<"started pandabox simulation"<<endl;
+        cout<<"started ADPandABlocks simulation"<<endl;
     }
 
     return z2SimProcess;
@@ -66,17 +66,17 @@ void closeSim(FILE* simProcess){
 }
 
 
-void connectToPandabox(){
+void connectToADPandABlocks(){
     unsigned int microseconds = 3e6;
-    drvAsynIPPortConfigure("pandabox_cmd_ip", CMDIP, 100, 0, 0);
-    drvAsynIPPortConfigure("pandabox_data_ip", DATAIP, 100, 0, 0);
-//    asynSetTraceMask("pandabox_cmd_ip", 0, 20);
-//    asynSetTraceIOMask("pandabox_cmd_ip",0,2);
-//    asynSetTraceMask("pandabox_data_ip", 0, 20);
-//    asynSetTraceIOMask("pandabox_data_ip",0,2);
+    drvAsynIPPortConfigure("ADPandABlocks_cmd_ip", CMDIP, 100, 0, 0);
+    drvAsynIPPortConfigure("ADPandABlocks_data_ip", DATAIP, 100, 0, 0);
+//    asynSetTraceMask("ADPandABlocks_cmd_ip", 0, 20);
+//    asynSetTraceIOMask("ADPandABlocks_cmd_ip",0,2);
+//    asynSetTraceMask("ADPandABlocks_data_ip", 0, 20);
+//    asynSetTraceIOMask("ADPandABlocks_data_ip",0,2);
     //need a better way to do this wait - if it isn't here we don't connect
     usleep(microseconds);
-    z2 = new Pandabox("pandabox", "pandabox_cmd_ip", "pandabox_data_ip", MAXPTS, MAXBUFFERS, MAXMEMORY);
+    z2 = new ADPandABlocks("ADPandABlocks", "ADPandABlocks_cmd_ip", "ADPandABlocks_data_ip", MAXPTS, MAXBUFFERS, MAXMEMORY);
     cout << "NEW PANDABOX" << endl;
 }
 
@@ -131,21 +131,21 @@ void setSequenceParams(double countStep, double countStart, double prescale, int
         }
 }
 
-struct PandaboxGlobalFixture
+struct ADPandABlocksGlobalFixture
 {
     FILE* simProcess;
 
-    PandaboxGlobalFixture()
+    ADPandABlocksGlobalFixture()
     {
         simProcess = startSim();
         //instead of waiting here, we should somehow read 'Server started' from the output
         unsigned int microseconds = 3e6;
         usleep(microseconds);
-        connectToPandabox(); // BK: flatten this function here so it is clearly
+        connectToADPandABlocks(); // BK: flatten this function here so it is clearly
                              // visible that z2 is created here with new
 
     }
-    ~PandaboxGlobalFixture()
+    ~ADPandABlocksGlobalFixture()
     {
         delete z2;
         closeSim(simProcess);
@@ -153,13 +153,13 @@ struct PandaboxGlobalFixture
     }
 };
 
-struct PandaboxFixture
+struct ADPandABlocksFixture
 {
     NDArrayPool *arrayPool;
     asynPortDriver *dummy_driver;
     TestingPlugin *ds;
 
-    PandaboxFixture()
+    ADPandABlocksFixture()
     {
         arrayPool = new NDArrayPool(100, 0);
 
@@ -176,10 +176,10 @@ struct PandaboxFixture
         dummy_driver = new asynPortDriver(dummy_port.c_str(), 0, 1, asynGenericPointerMask, asynGenericPointerMask, 0, 0, 0, 2000000);
 
         // This is the mock downstream plugin
-        ds = new TestingPlugin("pandabox", 0);
+        ds = new TestingPlugin("ADPandABlocks", 0);
 
     }
-    ~PandaboxFixture()
+    ~ADPandABlocksFixture()
     {
         delete dummy_driver;
         delete arrayPool;
@@ -187,11 +187,11 @@ struct PandaboxFixture
     }
 };
 
-BOOST_GLOBAL_FIXTURE(PandaboxGlobalFixture);
+BOOST_GLOBAL_FIXTURE(ADPandABlocksGlobalFixture);
 
-BOOST_AUTO_TEST_SUITE(PandaboxTests)
+BOOST_AUTO_TEST_SUITE(ADPandABlocksTests)
 
-BOOST_FIXTURE_TEST_SUITE(ReframeBufferingTests, PandaboxFixture)
+BOOST_FIXTURE_TEST_SUITE(ReframeBufferingTests, ADPandABlocksFixture)
 
 BOOST_AUTO_TEST_CASE(sequence_test_short_slow)
 {

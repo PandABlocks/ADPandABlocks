@@ -1,14 +1,14 @@
-# % macro, PORT, Asyn Port name for pandabox coms
+# % macro, PORT, Asyn Port name for ADPandABlocks coms
 # % macro, P, Device prefix
 # % macro, R, Device suffix
 # % macro, ADDR, address for areaDetector port
 # % macro, TIMEOUT, timeout for areaDetector
-# % gui, $(PORT), edmtab, pandaboxDetector.edl, P=$(P), R=$(R), DEVICE=$(P)$(R)
+# % gui, $(PORT), edmtab, ADPandABlocksDetector.edl, P=$(P), R=$(R), DEVICE=$(P)$(R)
 
 include "ADBase.template"
 
 record(bi, "$(P)$(R)CONNECTED") {
-  field(DESC, "Is pandabox connected")
+  field(DESC, "Is ADPandABlocks connected")
   field(DTYP, "asynInt32")
   field(INP, "@asyn($(PORT),0) ISCONNECTED")
   field(ZNAM, "Not Connected")
@@ -18,7 +18,7 @@ record(bi, "$(P)$(R)CONNECTED") {
 }
 
 record(waveform, "$(P)$(R)HEADER") {
-  field(DESC, "Pandabox data header")
+  field(DESC, "ADPandABlocks data header")
   field(SCAN, "I/O Intr")
   field(DTYP, "asynOctetRead")
   field(INP, "@asyn($(PORT),0) HEADER")

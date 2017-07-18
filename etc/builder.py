@@ -7,19 +7,19 @@ from iocbuilder.arginfo import *
 # Peform template subsitution
 @includesTemplates(ADBaseTemplate)
 class _MainDbFile (AutoSubstitution):
-    TemplateFile = 'pandabox.template'
+    TemplateFile = 'ADPandABlocks.template'
 
-# Main class for the pandabox device
-class Pandabox(AsynPort):
+# Main class for the ADPandABlocks device
+class ADPandABlocks(AsynPort):
 
     # We depend upon Asyn
     Dependencies = (ADCore,)
 
     # Make sure our DBD file gets used or created
-    DbdFileList = ['pandabox']
+    DbdFileList = ['ADPandABlocks']
 
     # Make sure our library gets included by dependent IOCs
-    LibFileList = ['pandabox']
+    LibFileList = ['ADPandABlocks']
 
     UniqueName = "PORT"
 
@@ -42,7 +42,7 @@ class Pandabox(AsynPort):
     def Initialise(self):
         # Print the command to create the device in the startup script
         print "# Create driver"
-        print 'pandaboxConfig("%(PORT)s", "%(CMDPORT)s", "%(DATAPORT)s", ' \
+        print 'ADPandABlocksConfig("%(PORT)s", "%(CMDPORT)s", "%(DATAPORT)s", ' \
             '%(NELM)d, %(MAXBUF)d, %(MAXMEM)d, 0)' % self.__dict__
 
     # tell xmlbuilder what args to supply

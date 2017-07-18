@@ -10,13 +10,13 @@ USR_CXXFLAGS += -Wno-unused-parameter
 
 PROD_IOC += tests
 tests_SRCS += tests.cpp
-tests_SRCS += test_pandabox.cpp
+tests_SRCS += test_ADPandABlocks.cpp
 tests_SRCS += testingutilities.cpp
 
 tests_LIBS += boost_unit_test_framework
 boost_unit_test_framework_DIR=$(BOOST_LIB)
 
-PROD_LIBS += NDPlugin asyn pandabox
+PROD_LIBS += NDPlugin asyn ADPandABlocks
 
 CXXFLAGS += -std=c++0x -pthread
 

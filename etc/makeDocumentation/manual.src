@@ -1,5 +1,5 @@
 /**
-\mainpage pandabox EPICS Support Module
+\mainpage ADPandABlocks EPICS Support Module
 \section intro_sec Introduction
 I'm going to describe the module here, possibly with a <a href="http://www.google.co.uk">web link to the manufacturers webpage</a>. \n
 You can also link to \ref thing.vdb "internally generated documentation" with alternate text, or by just by mentioning its name, e.g. thing.vdb

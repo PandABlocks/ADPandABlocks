@@ -4,7 +4,7 @@
 //     is not changed in method (the reference cannot be null), pointers are 
 //     usually reserved for output parameters
 
-#include "pandabox.h"
+#include "ADPandABlocks.h"
 
 #include <stdint.h>
 #include <epicsExport.h>
@@ -20,21 +20,21 @@
 
 /* C function to call new message from  task from epicsThreadCreate */
 static void readTaskCtrlC(void *userPvt) {
-    Pandabox *pPvt = (Pandabox *) userPvt;
+    ADPandABlocks *pPvt = (ADPandABlocks *) userPvt;
     pPvt->readTaskCtrl();
 }
 
 static void readTaskDataC(void *userPvt) {
-    Pandabox *pPvt = (Pandabox *) userPvt;
+    ADPandABlocks *pPvt = (ADPandABlocks *) userPvt;
     pPvt->readTaskData();
 }
 
 typedef int static_assert_endianness[EPICS_BYTE_ORDER != EPICS_ENDIAN_BIG ? 1 : -1];
 
-static const char *driverName = "pandabox";
+static const char *driverName = "ADPandABlocks";
 static std::map<asynStatus, std::string> errorMsg;
 
-Pandabox::Pandabox(const char* portName, const char* cmdSerialPortName, const char* dataSerialPortName, int maxPts, int maxBuffers, int maxMemory) :
+ADPandABlocks::ADPandABlocks(const char* portName, const char* cmdSerialPortName, const char* dataSerialPortName, int maxPts, int maxBuffers, int maxMemory) :
         ADDriver(portName, 1 /*maxAddr*/, NUM_PARAMS, maxBuffers, maxMemory,
                 asynInt8ArrayMask | asynFloat64ArrayMask | asynInt32Mask | asynFloat64Mask | asynOctetMask | asynDrvUserMask,
                 asynInt8ArrayMask | asynFloat64ArrayMask | asynInt32Mask | asynFloat64Mask | asynOctetMask,
@@ -51,7 +51,7 @@ Pandabox::Pandabox(const char* portName, const char* cmdSerialPortName, const ch
     errorMsg[asynDisconnected] = "asynDisconnected";
     errorMsg[asynDisabled] = "asynDisabled";
 
-    const char *functionName = "Pandabox";
+    const char *functionName = "ADPandABlocks";
     asynStatus status = asynSuccess;
     asynInterface *pasynInterface;
 
@@ -65,19 +65,19 @@ Pandabox::Pandabox(const char* portName, const char* cmdSerialPortName, const ch
     readBytes = N_BUFF_DATA-1;
 
     /* Connection status */
-    createParam("ISCONNECTED", asynParamInt32, &pandaboxIsConnected);
-    setIntegerParam(pandaboxIsConnected, 0);
+    createParam("ISCONNECTED", asynParamInt32, &ADPandABlocksIsConnected);
+    setIntegerParam(ADPandABlocksIsConnected, 0);
 
     /*Create a parameter to store the header value */
-    createParam("HEADER", asynParamOctet, &pandaboxHeader);
+    createParam("HEADER", asynParamOctet, &ADPandABlocksHeader);
     
     /*Create a parameter to store the end of data string */
-    createParam("DATAEND", asynParamOctet, &pandaboxDataEnd);
-    setStringParam(pandaboxDataEnd, "");
+    createParam("DATAEND", asynParamOctet, &ADPandABlocksDataEnd);
+    setStringParam(ADPandABlocksDataEnd, "");
     
     /* initialise areaDetector parameters */
     setStringParam(ADManufacturer, "Diamond Light Source Ltd.");
-    setStringParam(ADModel, "Pandabox");
+    setStringParam(ADModel, "ADPandABlocks");
     setIntegerParam(ADMaxSizeX, NARRAYS + 1);
     setIntegerParam(ADMaxSizeY, FRAMEHEIGHT);
 //    setIntegerParam(NDDataType, 7);
@@ -116,7 +116,7 @@ Pandabox::Pandabox(const char* portName, const char* cmdSerialPortName, const ch
     pasynOctet_ctrl->setOutputEos(octetPvt_ctrl, pasynUser_ctrl, "\n", 1);
 
     /* Create the thread that reads from the device  */
-    if (epicsThreadCreate("PandaboxReadTask", epicsThreadPriorityMedium,
+    if (epicsThreadCreate("ADPandABlocksReadTask", epicsThreadPriorityMedium,
             epicsThreadGetStackSize(epicsThreadStackMedium),
             (EPICSTHREADFUNC) readTaskCtrlC, this) == NULL) {
         asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
@@ -158,7 +158,7 @@ Pandabox::Pandabox(const char* portName, const char* cmdSerialPortName, const ch
     pasynUser_data->timeout = LONGWAIT;
 
     /* Create the thread that reads from the device  */
-    if (epicsThreadCreate("PandaboxReadTask2", epicsThreadPriorityMedium,
+    if (epicsThreadCreate("ADPandABlocksReadTask2", epicsThreadPriorityMedium,
             epicsThreadGetStackSize(epicsThreadStackMedium),
             (EPICSTHREADFUNC) readTaskDataC, this) == NULL) {
         asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
@@ -171,7 +171,7 @@ Pandabox::Pandabox(const char* portName, const char* cmdSerialPortName, const ch
 };
 
 /* This is the function that will be run for the read thread */
-void Pandabox::readTaskCtrl() {
+void ADPandABlocks::readTaskCtrl() {
     const char *functionName = "readTaskCtrl";
     //char *rxBuffer;
     char rxBuffer[N_BUFF_CTRL];
@@ -197,7 +197,7 @@ void Pandabox::readTaskCtrl() {
         }
     }
 }
-asynStatus Pandabox::readHeaderLine(char* rxBuffer, const size_t buffSize) const {
+asynStatus ADPandABlocks::readHeaderLine(char* rxBuffer, const size_t buffSize) const {
     /*buffSize is the size fo rxBuffer*/
     const char *functionName = "readHeaderLine";
     int eomReason;
@@ -219,7 +219,7 @@ asynStatus Pandabox::readHeaderLine(char* rxBuffer, const size_t buffSize) const
     return status;
 }
 
-asynStatus Pandabox::readDataBytes(char* rxBuffer, const size_t nBytes) const {
+asynStatus ADPandABlocks::readDataBytes(char* rxBuffer, const size_t nBytes) const {
     const char *functionName = "readDataBytes";
     int eomReason;
     size_t nBytesIn;
@@ -242,7 +242,7 @@ asynStatus Pandabox::readDataBytes(char* rxBuffer, const size_t nBytes) const {
 }
 
 /*this function reads from the data port*/
-void Pandabox::readTaskData() {
+void ADPandABlocks::readTaskData() {
     asynStatus status = asynSuccess;
     char rxBuffer[N_BUFF_DATA];
     try{
@@ -312,7 +312,7 @@ void Pandabox::readTaskData() {
                     endCapture();
                     state = waitHeaderStart;
                     readHeaderLine(rxBuffer, N_BUFF_DATA);
-                    setStringParam(pandaboxDataEnd, rxBuffer);
+                    setStringParam(ADPandABlocksDataEnd, rxBuffer);
                     callParamCallbacks();
                     break;
             }
@@ -326,7 +326,7 @@ void Pandabox::readTaskData() {
     callParamCallbacks();
 }
 
-void Pandabox::endCapture()
+void ADPandABlocks::endCapture()
 {
     //check the next 4 bytes to see if it matches the total arrays read.
     //reset the header string
@@ -340,7 +340,7 @@ void Pandabox::endCapture()
     callParamCallbacks();
 }
 
-Pandabox::headerMap Pandabox::parseHeader(const std::string& headerString)
+ADPandABlocks::headerMap ADPandABlocks::parseHeader(const std::string& headerString)
 {
 /**return a map containing the header data corresponding to each xml node
  * the first map will always be the 'data' node,
@@ -350,7 +350,7 @@ Pandabox::headerMap Pandabox::parseHeader(const std::string& headerString)
     headerMap tmpHeaderValues;
 
     //set the header parameter
-    setStringParam(pandaboxHeader, headerString.c_str());
+    setStringParam(ADPandABlocksHeader, headerString.c_str());
 
     asynStatus status = asynSuccess;
     xmlTextReaderPtr xmlreader = xmlReaderForMemory(headerString.c_str(), (int)headerString.length(), NULL, NULL, 0);
@@ -386,7 +386,7 @@ Pandabox::headerMap Pandabox::parseHeader(const std::string& headerString)
     return tmpHeaderValues;
 }
 
-asynStatus Pandabox::extractHeaderData(const xmlTextReaderPtr xmlreader, std::map<std::string, std::string>& values)const
+asynStatus ADPandABlocks::extractHeaderData(const xmlTextReaderPtr xmlreader, std::map<std::string, std::string>& values)const
 {
     /*Get the attribute values for a node and place in the map values*/
     xmlNodePtr node= xmlTextReaderCurrentNode(xmlreader);
@@ -408,7 +408,7 @@ asynStatus Pandabox::extractHeaderData(const xmlTextReaderPtr xmlreader, std::ma
     return asynSuccess;
 }
 
-std::string Pandabox::getHeaderValue(const int index, const std::string attribute)const
+std::string ADPandABlocks::getHeaderValue(const int index, const std::string attribute)const
 {
     /*return the value of an attribute of a given element*/
     //first check index (do find on headerValues
@@ -422,7 +422,7 @@ std::string Pandabox::getHeaderValue(const int index, const std::string attribut
     }
 }
 
-void Pandabox::getAllData(std::vector<char>& inBuffer, const int dataLen, const int buffLen)const
+void ADPandABlocks::getAllData(std::vector<char>& inBuffer, const int dataLen, const int buffLen)const
 {
     const char *functionName = "getAllData";
     size_t nBytesIn;
@@ -442,7 +442,7 @@ void Pandabox::getAllData(std::vector<char>& inBuffer, const int dataLen, const 
     }
 }
 
-void Pandabox::parseData(std::vector<char> dataBuffer, const int dataLen){
+void ADPandABlocks::parseData(std::vector<char> dataBuffer, const int dataLen){
     int buffLen = dataBuffer.size(); //actual length of received input data stream (could be multiple lines)
     int dataNo = headerValues.size() - 1; //number of received data points (total header fields - 'data' = number of captured fields)
     //check to see if we have read all the data in, and do another read if we haven't
@@ -453,7 +453,7 @@ void Pandabox::parseData(std::vector<char> dataBuffer, const int dataLen){
     outputData(dataLen, dataNo, dataBuffer);
 }
 
-void Pandabox::outputData(const int dataLen, const int dataNo, const std::vector<char> data)
+void ADPandABlocks::outputData(const int dataLen, const int dataNo, const std::vector<char> data)
 {
     try{
         int linecount = 0; //number of lines of data received and parsed
@@ -530,7 +530,7 @@ void Pandabox::outputData(const int dataLen, const int dataNo, const std::vector
     }
 }
 
-void Pandabox::allocateFrame() {
+void ADPandABlocks::allocateFrame() {
     // Release the old NDArray if it exists
     if (pArray != NULL) {
         pArray->release();
@@ -549,7 +549,7 @@ void Pandabox::allocateFrame() {
     }
 }
 
-void Pandabox::wrapFrame() {
+void ADPandABlocks::wrapFrame() {
     if(capture)
     {
         this->lock();
@@ -600,17 +600,17 @@ void Pandabox::wrapFrame() {
 /* Send helper function
  * called with lock taken
  */
-asynStatus Pandabox::sendData(const std::string txBuffer){
+asynStatus ADPandABlocks::sendData(const std::string txBuffer){
     asynStatus status = send(txBuffer, pasynOctet_data, octetPvt_data, pasynUser_data);
     return status;
 }
 
-asynStatus Pandabox::sendCtrl(const std::string txBuffer){
+asynStatus ADPandABlocks::sendCtrl(const std::string txBuffer){
     asynStatus status = send(txBuffer, pasynOctet_ctrl, octetPvt_ctrl, pasynUser_ctrl);
     return status;
 }
 
-asynStatus Pandabox::send(const std::string txBuffer, asynOctet *pasynOctet, void* octetPvt, asynUser* pasynUser) {
+asynStatus ADPandABlocks::send(const std::string txBuffer, asynOctet *pasynOctet, void* octetPvt, asynUser* pasynUser) {
     const char *functionName = "send";
     asynStatus status = asynSuccess;
     int connected;
@@ -622,11 +622,11 @@ asynStatus Pandabox::send(const std::string txBuffer, asynOctet *pasynOctet, voi
             "%s:%s: Send: '%.*s'\n", driverName, functionName, (int)txBuffer.length(), txBuffer.c_str());
     if (status != asynSuccess) {
         // Can't write, port probably not connected
-        getIntegerParam(pandaboxIsConnected, &connected);
+        getIntegerParam(ADPandABlocksIsConnected, &connected);
         if (connected) {
-            setIntegerParam(pandaboxIsConnected, 0);
+            setIntegerParam(ADPandABlocksIsConnected, 0);
             asynPrint(pasynUserSelf, ASYN_TRACE_FLOW,
-                    "%s:%s: Can't write to pandabox: '%.*s'\n", driverName, functionName, (int)txBuffer.length(), txBuffer.c_str());
+                    "%s:%s: Can't write to ADPandABlocks: '%.*s'\n", driverName, functionName, (int)txBuffer.length(), txBuffer.c_str());
         }
     }
     return status;
@@ -637,7 +637,7 @@ asynStatus Pandabox::send(const std::string txBuffer, asynOctet *pasynOctet, voi
  * For all parameters it sets the value in the parameter library and calls any registered callbacks..
  * \param[in] pasynUser pasynUser structure that encodes the reason and address.
  * \param[in] value Value to write. */
-asynStatus Pandabox::writeInt32(asynUser *pasynUser, epicsInt32 value) {
+asynStatus ADPandABlocks::writeInt32(asynUser *pasynUser, epicsInt32 value) {
     const char *functionName = "writeInt32";
     asynStatus status = asynError;
 
@@ -688,30 +688,30 @@ asynStatus Pandabox::writeInt32(asynUser *pasynUser, epicsInt32 value) {
 }
 
 
-extern "C" int pandaboxConfig(const char *portName, const char* cmdSerialPortName,
+extern "C" int ADPandABlocksConfig(const char *portName, const char* cmdSerialPortName,
         const char* dataSerialPortName, int maxPts, int maxBuffers, int maxMemory) {
-    new Pandabox(portName, cmdSerialPortName, dataSerialPortName, maxPts, maxBuffers, maxMemory);
+    new ADPandABlocks(portName, cmdSerialPortName, dataSerialPortName, maxPts, maxBuffers, maxMemory);
     return (asynSuccess);
 }
 
 /** Code for iocsh registration */
-static const iocshArg pandaboxConfigArg0 = { "Port name", iocshArgString };
-static const iocshArg pandaboxConfigArg1 = { "Cmd Serial port name", iocshArgString };
-static const iocshArg pandaboxConfigArg2 = { "Data Serial port name", iocshArgString };
-static const iocshArg pandaboxConfigArg3 = { "Max number of points to capture in position compare", iocshArgInt };
-static const iocshArg pandaboxConfigArg4 = { "maxBuffers for areaDetector", iocshArgInt };
-static const iocshArg pandaboxConfigArg5 = { "maxMemory for areaDetector", iocshArgInt };
-static const iocshArg* const pandaboxConfigArgs[] = { &pandaboxConfigArg0,
-        &pandaboxConfigArg1, &pandaboxConfigArg2, &pandaboxConfigArg3, &pandaboxConfigArg4, &pandaboxConfigArg5  };
-static const iocshFuncDef configpandabox = { "pandaboxConfig", 6, pandaboxConfigArgs };
-static void configpandaboxCallFunc(const iocshArgBuf *args) {
-    pandaboxConfig(args[0].sval, args[1].sval, args[2].sval, args[3].ival, args[4].ival, args[5].ival);
+static const iocshArg ADPandABlocksConfigArg0 = { "Port name", iocshArgString };
+static const iocshArg ADPandABlocksConfigArg1 = { "Cmd Serial port name", iocshArgString };
+static const iocshArg ADPandABlocksConfigArg2 = { "Data Serial port name", iocshArgString };
+static const iocshArg ADPandABlocksConfigArg3 = { "Max number of points to capture in position compare", iocshArgInt };
+static const iocshArg ADPandABlocksConfigArg4 = { "maxBuffers for areaDetector", iocshArgInt };
+static const iocshArg ADPandABlocksConfigArg5 = { "maxMemory for areaDetector", iocshArgInt };
+static const iocshArg* const ADPandABlocksConfigArgs[] = { &ADPandABlocksConfigArg0,
+        &ADPandABlocksConfigArg1, &ADPandABlocksConfigArg2, &ADPandABlocksConfigArg3, &ADPandABlocksConfigArg4, &ADPandABlocksConfigArg5  };
+static const iocshFuncDef configADPandABlocks = { "ADPandABlocksConfig", 6, ADPandABlocksConfigArgs };
+static void configADPandABlocksCallFunc(const iocshArgBuf *args) {
+    ADPandABlocksConfig(args[0].sval, args[1].sval, args[2].sval, args[3].ival, args[4].ival, args[5].ival);
 }
 
-static void pandaboxRegister(void) {
-    iocshRegister(&configpandabox, configpandaboxCallFunc);
+static void ADPandABlocksRegister(void) {
+    iocshRegister(&configADPandABlocks, configADPandABlocksCallFunc);
 }
 
 extern "C" {
-epicsExportRegistrar(pandaboxRegister);
+epicsExportRegistrar(ADPandABlocksRegister);
 }

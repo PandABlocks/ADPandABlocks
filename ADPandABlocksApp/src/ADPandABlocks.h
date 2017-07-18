@@ -1,5 +1,5 @@
-#ifndef PANDABOX_H
-#define PANDABOX_H
+#ifndef ADPandABlocks_H
+#define ADPandABlocks_H
 
 #include <cstring>
 #include <string>
@@ -28,7 +28,7 @@
 /* This is the number of filtered waveforms to allow */
 #define NFILT 4
 
-/* The timeout waiting for a response from pandabox */
+/* The timeout waiting for a response from ADPandABlocks */
 #define TIMEOUT 1.0
 
 /* This is the frame height for the NDArrays */
@@ -41,14 +41,14 @@
  */
 #define LONGWAIT 1000.0
 
-class Pandabox: public ADDriver {
+class ADPandABlocks: public ADDriver {
 private:
     /**Typedefs**/
     //vector of maps to store header data. Each map is for an individual xml node
     typedef std::vector<std::map<std::string, std::string> > headerMap;
 
 public:
-    Pandabox(const char *portName, const char* cmdSerialPortName,
+    ADPandABlocks(const char *portName, const char* cmdSerialPortName,
             const char* dataSerialPortName, int maxPts, int maxBuffers, int maxMemory);
 
     /** These should be private, but get called from C, so must be public */
@@ -65,12 +65,12 @@ public:
 
 protected:
 
-#define FIRST_PARAM pandaboxIsConnected
-    int pandaboxIsConnected;        // int32 read  - is pandabox connected?
-    int pandaboxHeader;             // string read - data header
-    int pandaboxDataEnd;            // string read - end of data string
-    int pandaboxPCTime;             // float64array read - position compare timestamps
-#define LAST_PARAM pandaboxPCTime
+#define FIRST_PARAM ADPandABlocksIsConnected
+    int ADPandABlocksIsConnected;        // int32 read  - is ADPandABlocks connected?
+    int ADPandABlocksHeader;             // string read - data header
+    int ADPandABlocksDataEnd;            // string read - end of data string
+    int ADPandABlocksPCTime;             // float64array read - position compare timestamps
+#define LAST_PARAM ADPandABlocksPCTime
 #define NUM_PARAMS (&LAST_PARAM - &FIRST_PARAM + 1)
 
 private:
