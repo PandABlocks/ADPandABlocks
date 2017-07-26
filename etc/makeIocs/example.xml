@@ -8,7 +8,7 @@
 	<EPICS_BASE.StartupCommand at_end="False" command="asynSetTraceIOMask(&quot;pandabox_cmd&quot;,0,2)"/>
 	<EPICS_BASE.StartupCommand at_end="False" command="asynSetTraceMask(&quot;pandabox_data&quot;, 0, 20)"/>
 	<EPICS_BASE.StartupCommand at_end="False" command="asynSetTraceIOMask(&quot;pandabox_data&quot;,0,2)"/>
-	<pandabox.Pandabox ADDR="0" CMDPORT="pandabox_cmd" DATAPORT="pandabox_data" MAXBUF="1000" P="PANDA:PANDABOX-01" PORT="pandabox" R=":CAM:" TIMEOUT="1"/>
+	<ADPandABlocks.ADPandABlocks ADDR="0" CMDPORT="pandabox_cmd" DATAPORT="pandabox_data" MAXBUF="1000" P="PANDA:PANDABOX-01" PORT="pandabox" R=":CAM:" TIMEOUT="1"/>
 	<adUtil.gdaPlugins CAM="pandabox" P="PANDA:PANDABOX-01" PLUGINQUEUE="1000" PORTPREFIX="CAM" name="pandabox-plugins"/>
 	<EPICS_BASE.dbpf pv="PANDA:PANDABOX-01:HDF5:FileWriteMode" value="2"/>
 	<EPICS_BASE.dbpf pv="PANDA:PANDABOX-01:HDF5:LazyOpen" value="1"/>
