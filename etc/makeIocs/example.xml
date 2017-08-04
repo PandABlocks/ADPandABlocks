@@ -1,9 +1,9 @@
 <?xml version="1.0" ?>
 <components arch="linux-x86">
-	<asyn.AsynIP name="pandabox_cmd" port="127.0.0.1:8888"/>
-	<asyn.AsynIP name="pandabox_data" port="127.0.0.1:8889"/>
-	<!--<asyn.AsynIP name="pandabox_cmd" port="172.23.252.201:8888"/>-->
-	<!--<asyn.AsynIP name="pandabox_data" port="172.23.252.201:8889"/>-->
+	<!--<asyn.AsynIP name="pandabox_cmd" port="127.0.0.1:8888"/>-->
+	<!--<asyn.AsynIP name="pandabox_data" port="127.0.0.1:8889"/>-->
+	<asyn.AsynIP name="pandabox_cmd" port="172.23.252.201:8888"/>
+	<asyn.AsynIP name="pandabox_data" port="172.23.252.201:8889"/>
 	<EPICS_BASE.StartupCommand at_end="False" command="asynSetTraceMask(&quot;pandabox_cmd&quot;, 0, 20)"/>
 	<EPICS_BASE.StartupCommand at_end="False" command="asynSetTraceIOMask(&quot;pandabox_cmd&quot;,0,2)"/>
 	<EPICS_BASE.StartupCommand at_end="False" command="asynSetTraceMask(&quot;pandabox_data&quot;, 0, 20)"/>
