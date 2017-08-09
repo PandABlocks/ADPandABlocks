@@ -61,8 +61,6 @@ ADPandABlocks::ADPandABlocks(const char* portName, const char* cmdSerialPortName
     numImagesCounter = 0;
     imgMode = ADImageContinuous;
     imgNo = 0;
-    capture = true;
-    readBytes = N_BUFF_DATA-1;
 
     /* Connection status */
     createParam("ISCONNECTED", asynParamInt32, &ADPandABlocksIsConnected);
@@ -213,16 +211,17 @@ asynStatus ADPandABlocks::readHeaderLine(char* rxBuffer, const size_t buffSize) 
                 driverName, functionName, errorMsg[status].c_str());
     }
     if (eomReason != ASYN_EOM_EOS) {
-         throw std::runtime_error("attribute not in map");
+        asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
+                "%s:%s: failed on 'bt%.*s'\n", driverName, functionName, (int)nBytesIn, rxBuffer);
     }
-    //assert (eomReason == ASYN_EOM_EOS); // BK: I would also log this before asserting, just to make debugging easier if it happens
+    assert (eomReason == ASYN_EOM_EOS);
     return status;
 }
 
 asynStatus ADPandABlocks::readDataBytes(char* rxBuffer, const size_t nBytes) const {
     const char *functionName = "readDataBytes";
     int eomReason;
-    size_t nBytesIn;
+    size_t nBytesIn = 0;
     asynStatus status = asynTimeout;
 
     while (status == asynTimeout) {
@@ -235,9 +234,11 @@ asynStatus ADPandABlocks::readDataBytes(char* rxBuffer, const size_t nBytes) con
                 driverName, functionName, errorMsg[status].c_str());
     }
     if(nBytes != nBytesIn) {
-         throw std::runtime_error("attribute not in map");
+        asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
+                "%s:%s: Only got %d bytes, not %d bytes with EOM reason %d\n",
+				driverName, functionName, (int)nBytesIn, nBytes, eomReason);
     }
-   // assert (nBytes == nBytesIn); // BK: I would also log this before asserting, just to make debugging easier if it happens
+    assert (nBytes == nBytesIn);
     return status;
 }
 
@@ -245,9 +246,9 @@ asynStatus ADPandABlocks::readDataBytes(char* rxBuffer, const size_t nBytes) con
 void ADPandABlocks::readTaskData() {
     asynStatus status = asynSuccess;
     char rxBuffer[N_BUFF_DATA];
+    std::string header;
     try{
         while (true) {
-            std::cout << "STATE: " << state << std::endl;
             switch(state) {
                 case waitHeaderStart:
                     readHeaderLine(rxBuffer, N_BUFF_DATA);
@@ -256,8 +257,8 @@ void ADPandABlocks::readTaskData() {
                         setIntegerParam(ADAcquire, 1);
                         header.append(rxBuffer);
                         header.append("\n");
-                        state = waitHeaderEnd;
                         callParamCallbacks();
+                        state = waitHeaderEnd;
                     }
                     break;
 
@@ -268,15 +269,11 @@ void ADPandABlocks::readTaskData() {
                     header.append("\n");
                     if (strcmp(rxBuffer, "</header>\0") == 0) {
                         headerValues = parseHeader(header);
+                        // Read the last line of the header
+                        readHeaderLine(rxBuffer, N_BUFF_DATA);
+
                         //change the input eos as the data isn't terminated with a newline
                         pasynOctet_data->setInputEos(octetPvt_data, pasynUser_data, "", 0);
-
-                        //read the extra newline at the end of the header
-                        size_t nBytesIn; // ignored, needed for read
-                        int eomReason; // ignored, needed for read
-                        status = pasynOctet_data->read(octetPvt_data, pasynUser_data, rxBuffer, 1,
-                                &nBytesIn, &eomReason);
-
                         state = waitDataStart;
                     }
                     break;
@@ -296,8 +293,7 @@ void ADPandABlocks::readTaskData() {
                     // read next four bytes to get the packet size
                     {
                         uint32_t message_length;
-                        readDataBytes(reinterpret_cast<char *>(&message_length),
-                                4);
+                        readDataBytes(reinterpret_cast<char *>(&message_length), 4);
                         uint32_t dataLength = message_length - 8; // size of the packet prefix information is 8
                         // read the rest of the packet
                         readDataBytes(rxBuffer, dataLength);
@@ -309,11 +305,16 @@ void ADPandABlocks::readTaskData() {
                     break;
 
                 case dataEnd:
-                    endCapture();
-                    state = waitHeaderStart;
+                    //reset the header string
+                    header = "";
+                    //change the input eos back to newline for the header
+                    pasynOctet_data->setInputEos(octetPvt_data, pasynUser_data, "\n", 1);
+                    //set the acquire light to 0
+                    setIntegerParam(ADAcquire, 0);
                     readHeaderLine(rxBuffer, N_BUFF_DATA);
                     setStringParam(ADPandABlocksDataEnd, rxBuffer);
                     callParamCallbacks();
+                    state = waitHeaderStart;
                     break;
             }
         }
@@ -326,19 +327,6 @@ void ADPandABlocks::readTaskData() {
     callParamCallbacks();
 }
 
-void ADPandABlocks::endCapture()
-{
-    //check the next 4 bytes to see if it matches the total arrays read.
-    //reset the header string
-    header = "";
-    //change the input eos back to newline for the header
-    pasynOctet_data->setInputEos(octetPvt_data, pasynUser_data, "\n", 1);
-    //read the rest of the end of data string and update the param
-    readBytes = N_BUFF_DATA-1; //reset the amount of bytes to read
-    //set the acquire light to 0
-    setIntegerParam(ADAcquire, 0);
-    callParamCallbacks();
-}
 
 ADPandABlocks::headerMap ADPandABlocks::parseHeader(const std::string& headerString)
 {
@@ -479,7 +467,14 @@ void ADPandABlocks::outputData(const int dataLen, const int dataNo, const std::v
         //loop over the data sets in the received data
         for(int j = 0; j < noDataSets; ++j)
         {
-            //allocate a frame for each data set
+        	// are we still acquiring?
+        	int acquiring;
+        	getIntegerParam(ADAcquire, &acquiring);
+        	if (!acquiring) {
+        		return;
+        	}
+
+            // allocate a frame for each data set
             allocateFrame();
             if(pArray != NULL) {
                 //loop over each data point in the data set
@@ -511,7 +506,6 @@ void ADPandABlocks::outputData(const int dataLen, const int dataNo, const std::v
                                     NDAttrUInt32,
                                     (uint32_t*)ptridx);
                             uint32_t value = *(uint32_t*)ptridx;
-                            std::cout << "VAL: " << value << ", " << (double)value << std::endl;
                             ((double*)pArray->pData)[i] = (double)value;
                             ptridx += sizeof(uint32_t);
                         };
@@ -550,51 +544,39 @@ void ADPandABlocks::allocateFrame() {
 }
 
 void ADPandABlocks::wrapFrame() {
-    if(capture)
-    {
-        this->lock();
-        getIntegerParam(NDArrayCounter, &(arrayCounter));
-        getIntegerParam(ADNumImagesCounter, &(numImagesCounter));
-        // Set the time stamp
-        epicsTimeStamp arrayTime;
-        epicsTimeGetCurrent(&arrayTime);
-        if (pArray != NULL) {
-            pArray->timeStamp = arrayTime.secPastEpoch;
-            // Save the NDAttributes if there are any
-            getAttributes(pArray->pAttributeList);
-        }
-        // Update statistics
-        arrayCounter++;
-        numImagesCounter++;
-        //send disarm signal if we are in a mode that requires it
-        if(imgMode == ADImageSingle &&  arrayCounter == 1)
-        {
-            capture = false;
-        }
-        else if(imgMode == ADImageMultiple && numImagesCounter == imgNo)
-        {
-            capture = false;
-        }
-        // Set the unique ID
-        if (pArray != NULL) {
-            pArray->uniqueId = arrayCounter;
-        }
-        // Update the counters
-        setIntegerParam(NDArrayCounter, arrayCounter);
-        setIntegerParam(ADNumImagesCounter, numImagesCounter);
-        this->unlock();
-        if (pArray != NULL) {
-            // Ship the array off
-            doCallbacksGenericPointer(pArray, NDArrayData, 0);
-        }
-    }
-    if(!capture)
-    {
-        sendCtrl("*PCAP.DISARM=");
-        setIntegerParam(ADAcquire, 0);
-        endCapture();
+	this->lock();
+	getIntegerParam(NDArrayCounter, &(arrayCounter));
+	getIntegerParam(ADNumImagesCounter, &(numImagesCounter));
+	// Set the time stamp
+	epicsTimeStamp arrayTime;
+	epicsTimeGetCurrent(&arrayTime);
+	if (pArray != NULL) {
+		pArray->timeStamp = arrayTime.secPastEpoch;
+		// Save the NDAttributes if there are any
+		getAttributes(pArray->pAttributeList);
+	}
+	// Update statistics
+	arrayCounter++;
+	numImagesCounter++;
+	//send disarm signal if we are in a mode that requires it
+	if ((imgMode == ADImageSingle && arrayCounter == 1) ||
+		(imgMode == ADImageMultiple && numImagesCounter == imgNo)) {
+		sendCtrl("*PCAP.DISARM=");
+		setIntegerParam(ADAcquire, 0);
+	}
+	// Set the unique ID
+	if (pArray != NULL) {
+		pArray->uniqueId = arrayCounter;
+	}
+	// Update the counters
+	setIntegerParam(NDArrayCounter, arrayCounter);
+	setIntegerParam(ADNumImagesCounter, numImagesCounter);
 	callParamCallbacks();
-    }
+	this->unlock();
+	if (pArray != NULL) {
+		// Ship the array off
+		doCallbacksGenericPointer(pArray, NDArrayData, 0);
+	}
 }
 
 /* Send helper function
@@ -661,7 +643,6 @@ asynStatus ADPandABlocks::writeInt32(asynUser *pasynUser, epicsInt32 value) {
         if(value)
         {
             //set the current array number
-            capture = true;
             asynPrint(pasynUserSelf, ASYN_TRACEIO_DRIVER,
                     "SEND ARM CMD:\n");
             sendCtrl("*PCAP.ARM=");
@@ -672,8 +653,6 @@ asynStatus ADPandABlocks::writeInt32(asynUser *pasynUser, epicsInt32 value) {
             asynPrint(pasynUserSelf, ASYN_TRACEIO_DRIVER,
                     "SEND DISARM CMD:\n");
             sendCtrl("*PCAP.DISARM=");
-            endCapture();
-            capture = false;
         }
     }
 

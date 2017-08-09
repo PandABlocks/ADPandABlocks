@@ -84,7 +84,6 @@ private:
     void outputData(const int dataLen, const int dataNo, const std::vector<char> data);
     asynStatus readHeaderLine(char* rxBuffer, const size_t buffSize)const;
     asynStatus readDataBytes(char* rxBuffer, const size_t nBytes)const;
-    void endCapture();
 
 private:
     NDArray *pArray;
@@ -97,9 +96,6 @@ private:
     asynOctet *pasynOctet_data;
     void *octetPvt_data;
     int arrayCounter, numImagesCounter, imgMode, imgNo;
-    bool capture;
-    std::string header;
-    size_t readBytes; // BK: should be local, never really used as a class field, CT: this depends if getAllData is necessesary or if it is redundant because of the Asyn.read()
 
     //vector of maps for the header values
     headerMap headerValues;
