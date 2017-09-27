@@ -24,10 +24,10 @@ TEMPLATE_TOP=$(EPICS_BASE)/templates/makeBaseApp/top
 SUPPORT=/dls_sw/prod/R3.14.12.3/support
 
 # ASYN - for device/driver support
-ASYN=$(SUPPORT)/asyn/4-26
+ASYN=$(SUPPORT)/asyn/4-31
 
 # areaDetector for plugins like NDPluginStats
-ADCORE=$(SUPPORT)/ADCore/2-4dls6
+ADCORE=$(SUPPORT)/ADCore/2-6dls2
 
 # If using the sequencer, point SNCSEQ at its top directory:
 #SNCSEQ=$(EPICS_BASE)/../modules/soft/seq

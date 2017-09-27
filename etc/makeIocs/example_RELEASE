@@ -1,2 +1,2 @@
 # Place any example specific dependencies here
-ADUTIL=$(SUPPORT)/adUtil/2-10
+#ADUTIL=$(SUPPORT)/adUtil/2-10
