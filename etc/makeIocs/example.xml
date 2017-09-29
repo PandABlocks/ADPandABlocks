@@ -1,20 +1,19 @@
 <?xml version="1.0" ?>
-<components arch="linux-x86">
+<components arch="linux-x86_64">
 	<!--<asyn.AsynIP name="pandabox_cmd" port="127.0.0.1:8888"/>-->
 	<!--<asyn.AsynIP name="pandabox_data" port="127.0.0.1:8889"/>-->
-	<asyn.AsynIP name="pandabox_cmd" port="172.23.252.202:8888"/>
-	<asyn.AsynIP name="pandabox_data" port="172.23.252.202:8889"/>
-	<EPICS_BASE.StartupCommand at_end="False" command="asynSetTraceMask(&quot;pandabox_cmd&quot;, 0, 20)"/>
-	<EPICS_BASE.StartupCommand at_end="False" command="asynSetTraceIOMask(&quot;pandabox_cmd&quot;,0,2)"/>
-	<EPICS_BASE.StartupCommand at_end="False" command="asynSetTraceMask(&quot;pandabox_data&quot;, 0, 20)"/>
-	<EPICS_BASE.StartupCommand at_end="False" command="asynSetTraceIOMask(&quot;pandabox_data&quot;,0,2)"/>
-	<ADPandABlocks.ADPandABlocks ADDR="0" CMDPORT="pandabox_cmd" DATAPORT="pandabox_data" MAXBUF="1000" P="PANDA:PANDABOX-01" PORT="ADPandABlocks" R=":CAM:" TIMEOUT="1"/>
-	<!--<adUtil.gdaPlugins CAM="ADPandABlocks" P="PANDA:PANDABOX-01" PLUGINQUEUE="1000" PORTPREFIX="CAM" name="ADPandABlocks-plugins"/>-->
-	<ADCore.NDAttrPlotPlugin NDARRAY_ADDR="1" NDARRAY_PORT="ADPandABlocks" N_CACHE="1000" P="PANDA:PANDABOX-01" PORT="ADPandABlocksPlot" R=":PLOT:"/>
-	<EPICS_BASE.dbpf pv="PANDA:PANDABOX-01:HDF5:FileWriteMode" value="2"/>
-	<EPICS_BASE.dbpf pv="PANDA:PANDABOX-01:HDF5:LazyOpen" value="1"/>
-	<EPICS_BASE.dbpf pv="PANDA:PANDABOX-01:HDF5:NumCapture" value="10"/>
-	<EPICS_BASE.dbpf pv="PANDA:PANDABOX-01:HDF5:FileName" value="test"/>
-	<EPICS_BASE.dbpf pv="PANDA:PANDABOX-01:HDF5:FilePath" value="/tmp"/>
-	<EPICS_BASE.dbpf pv="PANDA:PANDABOX-01:HDF5:EnableCallbacks" value="Enable"/>
+	<asyn.AsynIP name="pandabox_cmd" port="192.168.0.100:8888"/>
+	<asyn.AsynIP name="pandabox_data" port="192.168.0.100:8889"/>
+	<!--<EPICS_BASE.StartupCommand at_end="False" command="asynSetTraceMask(&quot;pandabox_cmd&quot;, 0, 20)"/>-->
+	<!--<EPICS_BASE.StartupCommand at_end="False" command="asynSetTraceIOMask(&quot;pandabox_cmd&quot;,0,2)"/>-->
+	<!--<EPICS_BASE.StartupCommand at_end="False" command="asynSetTraceMask(&quot;pandabox_data&quot;, 0, 20)"/>-->
+	<!--<EPICS_BASE.StartupCommand at_end="False" command="asynSetTraceIOMask(&quot;pandabox_data&quot;,0,2)"/>-->
+	<ADPandABlocks.ADPandABlocks ADDR="0" CMDPORT="pandabox_cmd" DATAPORT="pandabox_data" MAXBUF="1000" P="TS-MO-PANDA-01" PORT="PANDA.DRV" R=":DRV:" TIMEOUT="1"/>
+	<ADCore.NDAttrPlot ADDR="0" ENABLED="1" NDARRAY_PORT="PANDA.DRV" N_CACHE="50000" P="TS-MO-PANDA-01" PORT="PANDA.PLOT" R=":PLOT:" TIMEOUT="1"/>
+	<!--<EPICS_BASE.dbpf pv="PANDA:PANDABOX-01:HDF5:FileWriteMode" value="2"/>-->
+	<!--<EPICS_BASE.dbpf pv="PANDA:PANDABOX-01:HDF5:LazyOpen" value="1"/>-->
+	<!--<EPICS_BASE.dbpf pv="PANDA:PANDABOX-01:HDF5:NumCapture" value="10"/>-->
+	<!--<EPICS_BASE.dbpf pv="PANDA:PANDABOX-01:HDF5:FileName" value="test"/>-->
+	<!--<EPICS_BASE.dbpf pv="PANDA:PANDABOX-01:HDF5:FilePath" value="/tmp"/>-->
+	<!--<EPICS_BASE.dbpf pv="PANDA:PANDABOX-01:HDF5:EnableCallbacks" value="Enable"/>-->
 </components>
