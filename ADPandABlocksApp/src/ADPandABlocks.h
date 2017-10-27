@@ -78,6 +78,7 @@ private:
     void parseData(std::vector<char> dataBuffer, const int dataLen);
     void allocateFrame();
     void wrapFrame();
+    std::vector<std::string> readBitMask();
     asynStatus extractHeaderData(const xmlTextReaderPtr xmlreader, std::map<std::string, std::string>& values)const;
     std::string getHeaderValue(const int index, const std::string attribute)const;
     void getAllData(std::vector<char>& inBuffer, const int dataLen,const  int buffLen)const;
@@ -99,6 +100,9 @@ private:
 
     //vector of maps for the header values
     headerMap headerValues;
+
+    //Vector containing vector of strings for bit mask values
+    std::vector<std::vector<std::string> > bitMasks;
 
     //states for readDataTask state machine
     enum readState{waitHeaderStart, waitHeaderEnd, waitDataStart, receivingData, dataEnd,};
