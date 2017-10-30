@@ -159,15 +159,6 @@ ADPandABlocks::ADPandABlocks(const char* portName, const char* cmdSerialPortName
     pasynOctet_data->setOutputEos(octetPvt_data, pasynUser_data, "\n", 1);
     pasynUser_data->timeout = LONGWAIT;
 
-    /* Create the thread that reads from the device  */
-    if (epicsThreadCreate("ADPandABlocksReadTask2", epicsThreadPriorityMedium,
-            epicsThreadGetStackSize(epicsThreadStackMedium),
-            (EPICSTHREADFUNC) readTaskDataC, this) == NULL) {
-        asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
-                "%s:%s: epicsThreadCreate failure for reading task\n", driverName, functionName);
-        return;
-    }
-
     /*set the receiving format on the data channel*/
     sendData("XML FRAMED SCALED\n");
     /*Get the labels for the bitmask*/
@@ -181,6 +172,14 @@ ADPandABlocks::ADPandABlocks(const char* portName, const char* cmdSerialPortName
        // usleep(1000000);
     }
 
+    /* Create the thread that reads from the device  */
+    if (epicsThreadCreate("ADPandABlocksReadTask2", epicsThreadPriorityMedium,
+            epicsThreadGetStackSize(epicsThreadStackMedium),
+            (EPICSTHREADFUNC) readTaskDataC, this) == NULL) {
+        asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
+                "%s:%s: epicsThreadCreate failure for reading task\n", driverName, functionName);
+        return;
+    }
 };
 
 /* This is the function that will be run for the read thread */
@@ -595,7 +594,8 @@ void ADPandABlocks::outputData(const int dataLen, const int dataNo, const std::v
                             size_t bitsFound = headerLabel.find("BITS");
                             if(bitsFound != std::string::npos)
                             {
-                                int blockNum = atoi(headerLabel.substr(bitsFound, 1).c_str());
+                                int blockNum = atoi(headerLabel.substr(bitsFound + 4, 1).c_str());
+                                std::cout << "ATOI STRING: " << headerLabel.substr(bitsFound + 4, 1).c_str() << std::endl;
                                 uint8_t maskPtr;
                               //  uint32_t maskVal = *(uint32_t*)ptridx;
                                 std::cout<< "name is: " <<getHeaderValue(i+1, "name").c_str()<< "MASK VAL: " << value << ", size: " << bitMasks.size() << std::endl;
