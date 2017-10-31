@@ -220,7 +220,8 @@ std::vector<std::string> ADPandABlocks::readBitMask() {
             asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
                     "%s:%s: Bad message 'bt%.*s'\n", driverName, functionName, (int)nBytesIn, rxBuffer);
         }
-        if(rxBuffer[0] != 'O' and rxBuffer[1] != 'K')
+        //if(rxBuffer[0] != 'O' and rxBuffer[1] != 'K')
+        if(rxBuffer[0] == '!')
         {
             std::cout << "*******: " << i << ", " <<  rxBuffer << std::endl;
             bitMaskStrings.push_back(rxBuffer);
