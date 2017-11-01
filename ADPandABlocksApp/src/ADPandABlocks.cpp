@@ -149,7 +149,7 @@ ADPandABlocks::ADPandABlocks(const char* portName, const char* cmdSerialPortName
     for(int n=0; n<4; n++)
     {
         std::stringstream bitmaskCmd;
-        bitmaskCmd << "PCAP.BITS"<< n << ".BITS?\n";
+        bitmaskCmd << "PCAP.BITS"<< n << ".BITS?";
         sendCtrl(bitmaskCmd.str());
         bitMasks.push_back(readBitMask());
     }
@@ -190,7 +190,8 @@ std::vector<std::string> ADPandABlocks::readBitMask() {
         }
         if(rxBuffer[0] == '!')
         {
-            bitMaskStrings.push_back(rxBuffer);
+            char* strippedLabel = rxBuffer + 1;
+            bitMaskStrings.push_back(strippedLabel);
         }
         // Push the whole bitmask for 'n' to the vector of vectors
         status = pasynOctet_ctrl->read(octetPvt_ctrl, pasynUserRead, rxBuffer, N_BUFF_CTRL - 1,
