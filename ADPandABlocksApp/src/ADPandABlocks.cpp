@@ -22,12 +22,6 @@
 #include <cstdlib>
 
 
-/* C function to call new message from  task from epicsThreadCreate */
-//  static void readTaskCtrlC(void *userPvt) {
-//      ADPandABlocks *pPvt = (ADPandABlocks *) userPvt;
-//      pPvt->readTaskCtrl();
-//  }
-
 static void readTaskDataC(void *userPvt) {
     ADPandABlocks *pPvt = (ADPandABlocks *) userPvt;
     pPvt->readTaskData();
@@ -72,11 +66,11 @@ ADPandABlocks::ADPandABlocks(const char* portName, const char* cmdSerialPortName
 
     /*Create a parameter to store the header value */
     createParam("HEADER", asynParamOctet, &ADPandABlocksHeader);
-    
+
     /*Create a parameter to store the end of data string */
     createParam("DATAEND", asynParamOctet, &ADPandABlocksDataEnd);
     setStringParam(ADPandABlocksDataEnd, "");
-    
+
     /* initialise areaDetector parameters */
     setStringParam(ADManufacturer, "Diamond Light Source Ltd.");
     setStringParam(ADModel, "ADPandABlocks");
@@ -117,16 +111,6 @@ ADPandABlocks::ADPandABlocks(const char* portName, const char* cmdSerialPortName
     pasynOctet_ctrl->setInputEos(octetPvt_ctrl, pasynUser_ctrl, "\n", 1);
     pasynOctet_ctrl->setOutputEos(octetPvt_ctrl, pasynUser_ctrl, "\n", 1);
 
-    /* Create the thread that reads from the device  */
-    //  if (epicsThreadCreate("ADPandABlocksReadTask", epicsThreadPriorityMedium,
-    //          epicsThreadGetStackSize(epicsThreadStackMedium),
-    //          (EPICSTHREADFUNC) readTaskCtrlC, this) == NULL) {
-    //      asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
-    //              "%s:%s: epicsThreadCreate failure for reading task\n", driverName, functionName);
-    //      return;
-    //  }
-
-
     /* Connect to the data port */
     /* Copied from asynOctecSyncIO->connect */
     pasynUser_data = pasynManager->createAsynUser(0, 0);
@@ -164,12 +148,10 @@ ADPandABlocks::ADPandABlocks(const char* portName, const char* cmdSerialPortName
     /*Get the labels for the bitmask*/
     for(int n=0; n<4; n++)
     {
-        std::cout << "--------SENDING: " << "PCAP.BITS"<< n << ".BITS?\n";
         std::stringstream bitmaskCmd;
         bitmaskCmd << "PCAP.BITS"<< n << ".BITS?\n";
         sendCtrl(bitmaskCmd.str());
         bitMasks.push_back(readBitMask());
-       // usleep(1000000);
     }
 
     /* Create the thread that reads from the device  */
@@ -184,33 +166,19 @@ ADPandABlocks::ADPandABlocks(const char* portName, const char* cmdSerialPortName
 
 /* This is the function that will be run for the read thread */
 std::vector<std::string> ADPandABlocks::readBitMask() {
-    const char *functionName = "readTaskCtrl";
-    //char *rxBuffer;
+    const char *functionName = "readBitMask";
     char rxBuffer[N_BUFF_CTRL];
     size_t nBytesIn;
     int eomReason;
     asynStatus status = asynSuccess;
     asynUser *pasynUserRead = pasynManager->duplicateAsynUser(pasynUser_ctrl, 0, 0);
     std::vector<std::string> bitMaskStrings;
-    
-    std::cout << "READBITMASK()" << std::endl;
-
     pasynUserRead->timeout = 3.0;
     status = pasynOctet_ctrl->read(octetPvt_ctrl, pasynUserRead, rxBuffer, N_BUFF_CTRL - 1,
             &nBytesIn, &eomReason);
     int i = 0;
-   while(rxBuffer[0] != '.')
-   // while(i < 33)
-   //for(int i = 0; i < 33; i++)
-   // while(!(eomReason & ASYN_EOM_END))
+    while(rxBuffer[0] != '.')
     {
-        std::cout << "STATUS: " << status << std::endl;
-        //if(status){
-        //    break;
-        //}
-        //  pasynUserRead->timeout = LONGWAIT;
-        //  status = pasynOctet_ctrl->read(octetPvt_ctrl, pasynUserRead, rxBuffer, N_BUFF_CTRL - 1,
-        //          &nBytesIn, &eomReason);
         if (eomReason & ASYN_EOM_EOS) {
             // Replace the terminator with a null so we can use it as a string
             rxBuffer[nBytesIn] = '\0';
@@ -220,64 +188,16 @@ std::vector<std::string> ADPandABlocks::readBitMask() {
             asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
                     "%s:%s: Bad message 'bt%.*s'\n", driverName, functionName, (int)nBytesIn, rxBuffer);
         }
-        //if(rxBuffer[0] != 'O' and rxBuffer[1] != 'K')
         if(rxBuffer[0] == '!')
         {
-            std::cout << "*******: " << i << ", " <<  rxBuffer << std::endl;
             bitMaskStrings.push_back(rxBuffer);
         }
         // Push the whole bitmask for 'n' to the vector of vectors
         status = pasynOctet_ctrl->read(octetPvt_ctrl, pasynUserRead, rxBuffer, N_BUFF_CTRL - 1,
                 &nBytesIn, &eomReason);
-   //     i++;
     }
    return bitMaskStrings;
 }
-
-///* This is the function that will be run for the read thread */
-//void ADPandABlocks::readTaskCtrl() {
-//    const char *functionName = "readTaskCtrl";
-//    //char *rxBuffer;
-//    char rxBuffer[N_BUFF_CTRL];
-//    size_t nBytesIn;
-//    int eomReason;
-//    asynStatus status = asynSuccess;
-//    asynUser *pasynUserRead = pasynManager->duplicateAsynUser(pasynUser_ctrl, 0, 0);
-//   // std::vector<std::string> bitmask;
-//
-//    while (true) {
-//        pasynUserRead->timeout = LONGWAIT;
-//        status = pasynOctet_ctrl->read(octetPvt_ctrl, pasynUserRead, rxBuffer, N_BUFF_CTRL - 1,
-//                &nBytesIn, &eomReason);
-//        if (status) {
-//            epicsThreadSleep(TIMEOUT);
-//        } else if (eomReason & ASYN_EOM_EOS) {
-//            // Replace the terminator with a null so we can use it as a string
-//            rxBuffer[nBytesIn] = '\0';
-//            asynPrint(pasynUserSelf, ASYN_TRACE_FLOW,
-//                    "%s:%s: Message: '%s'\n", driverName, functionName, rxBuffer);
-//        } else {
-//            asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
-//                    "%s:%s: Bad message 'bt%.*s'\n", driverName, functionName, (int)nBytesIn, rxBuffer);
-//        }
-//        
-//        
-//        
-//        
-////        if(rxBuffer[0] != 'O' and rxBuffer[1] != 'K')
-////        {
-////            bitmask.push_back(rxBuffer);
-////        }
-////        // Push the whole bitmask for 'n' to the vector of vectors
-////        if(rxBuffer[0] == '.')
-////        {
-////            bitMasks.push_back(bitmask);
-////            bitmask.clear();
-////        }
-////        std::cout << "^^^^^^^^" << rxBuffer << std::endl;
-//    }
-//}
-
 
 asynStatus ADPandABlocks::readHeaderLine(char* rxBuffer, const size_t buffSize) const {
     /*buffSize is the size fo rxBuffer*/
@@ -565,66 +485,56 @@ void ADPandABlocks::outputData(const int dataLen, const int dataNo, const std::v
                 for(int i = 0; i < dataNo; ++i)
                 {
                     idx = (j*dataNo + i);//current data point index in the float array
-                        // NDAttributes are used to store the actual captured data
-                        std::string desc("sample value");
-                        //find out what type the individual point is
-                        //from the header and assign the approperiate pointer.
-                        dataType = getHeaderValue(i+1, "type");
-                        if(dataType == "double")
-                        {
+                    // NDAttributes are used to store the actual captured data
+                    std::string desc("sample value");
+                    //find out what type the individual point is
+                    //from the header and assign the approperiate pointer.
+                    dataType = getHeaderValue(i+1, "type");
+                    if(dataType == "double")
+                    {
+                    // Create the NDAttributes and initialise them with data value (headerValue[0] is the data info)
+                        pArray->pAttributeList->add(
+                                getHeaderValue(i+1, "name").c_str(),
+                                desc.c_str(),
+                                NDAttrFloat64,
+                                (double*)ptridx);
+                        ((double *)pArray->pData)[i] = *(double*)ptridx;
+                        ptridx += sizeof(double);
+                    }
+                    else if(dataType == "uint32")
+                    {
                         // Create the NDAttributes and initialise them with data value (headerValue[0] is the data info)
-                            pArray->pAttributeList->add(
-                                    getHeaderValue(i+1, "name").c_str(),
-                                    desc.c_str(),
-                                    NDAttrFloat64,
-                                    (double*)ptridx);
-                            ((double *)pArray->pData)[i] = *(double*)ptridx;
-                            ptridx += sizeof(double);
-                        }
-                        else if(dataType == "uint32")
+                        pArray->pAttributeList->add(
+                                getHeaderValue(i+1, "name").c_str(),
+                                desc.c_str(),
+                                NDAttrUInt32,
+                                (uint32_t*)ptridx);
+                        uint32_t value = *(uint32_t*)ptridx;
+                        ((double*)pArray->pData)[i] = (double)value;
+
+                        //Determine if we need to populate the Bit Mask values
+                        std::string headerLabel = getHeaderValue(i+1, "name");
+                        size_t bitsFound = headerLabel.find("BITS");
+                        if(bitsFound != std::string::npos)
                         {
-                                            // Create the NDAttributes and initialise them with data value (headerValue[0] is the data info)
-                            pArray->pAttributeList->add(
-                                    getHeaderValue(i+1, "name").c_str(),
-                                    desc.c_str(),
-                                    NDAttrUInt32,
-                                    (uint32_t*)ptridx);
-                            uint32_t value = *(uint32_t*)ptridx;
-                            ((double*)pArray->pData)[i] = (double)value;
-                            std::string headerLabel = getHeaderValue(i+1, "name");
-                            size_t bitsFound = headerLabel.find("BITS");
-                            if(bitsFound != std::string::npos)
-                            {
-                                int blockNum = atoi(headerLabel.substr(bitsFound + 4, 1).c_str());
-                                std::cout << "HEADER LABEL: " << headerLabel << ", ATOI STRING: " << headerLabel.substr(bitsFound + 4, 1).c_str() << std::endl;
-                                uint8_t maskPtr;
-                              //  uint32_t maskVal = *(uint32_t*)ptridx;
-                                std::cout<< "name is: " <<getHeaderValue(i+1, "name").c_str()<< "MASK VAL: " << value << ", size: " << bitMasks.size() << std::endl;
-                                std::string desc("bit mask");
-                                if(pArray != NULL) {
-                                   // for(int blockNum = 0; blockNum < bitMasks.size(); blockNum++)
-                                   // {
-                                        for(int maski = 0; maski <32; maski++)
-                                        {
-                                            maskPtr = (value >> maski) & 0x01;
-                                            uint32_t test = 1073741574;
-                                            uint32_t testShift = (value >> maski);
-                                            uint8_t testShiftMask = testShift & 0x01;
-                                            std::cout << "MASKI: " << maski << ", TESTSHIFTMASK: " << (unsigned)testShiftMask << ", SHIFTED: " << testShift << std::endl;
-                                            //std::cout << blockNum << ", "<< maski << "*****BM: " << bitMasks[blockNum][maski] << std::endl;
-                                            //std::cout <<"VALUE: " << value <<  ", MASK POINTER: " << maskPtr << std::endl;
-                                            pArray->pAttributeList->add(
-                                                    bitMasks[blockNum][maski].c_str(),
-                                                    desc.c_str(),
-                                                    NDAttrUInt8,
-                                                    &maskPtr);
-                                        }
-                                 // }
+                            int blockNum = atoi(headerLabel.substr(bitsFound + 4, 1).c_str());
+                            uint8_t maskPtr;
+                            std::string desc("bit mask");
+                            if(pArray != NULL) {
+                                for(int maski = 0; maski <32; maski++)
+                                {
+                                    //shift and mask the value and push into individual NDAttrs
+                                    maskPtr = (value >> maski) & 0x01;
+                                    pArray->pAttributeList->add(
+                                            bitMasks[blockNum][maski].c_str(),
+                                            desc.c_str(),
+                                            NDAttrUInt8,
+                                            &maskPtr);
                                 }
                             }
-                            ptridx += sizeof(uint32_t);
-                            //}
-                        };
+                        }
+                        ptridx += sizeof(uint32_t);
+                    };
                 }
             }
             /* Ship off the NDArray*/

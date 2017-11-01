@@ -52,7 +52,6 @@ public:
             const char* dataSerialPortName, int maxPts, int maxBuffers, int maxMemory);
 
     /** These should be private, but get called from C, so must be public */
-    void readTaskCtrl();
     void readTaskData();
 
     /** These functions are used in the tests, so they are public */
