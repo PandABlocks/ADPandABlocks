@@ -596,7 +596,7 @@ void ADPandABlocks::outputData(const int dataLen, const int dataNo, const std::v
                             if(bitsFound != std::string::npos)
                             {
                                 int blockNum = atoi(headerLabel.substr(bitsFound + 4, 1).c_str());
-                                std::cout << "ATOI STRING: " << headerLabel.substr(bitsFound + 4, 1).c_str() << std::endl;
+                                std::cout << "HEADER LABEL: " << headerLabel << ", ATOI STRING: " << headerLabel.substr(bitsFound + 4, 1).c_str() << std::endl;
                                 uint8_t maskPtr;
                               //  uint32_t maskVal = *(uint32_t*)ptridx;
                                 std::cout<< "name is: " <<getHeaderValue(i+1, "name").c_str()<< "MASK VAL: " << value << ", size: " << bitMasks.size() << std::endl;
@@ -607,8 +607,12 @@ void ADPandABlocks::outputData(const int dataLen, const int dataNo, const std::v
                                         for(int maski = 0; maski <32; maski++)
                                         {
                                             maskPtr = (value >> maski) & 0x01;
-                                            std::cout << blockNum << ", "<< maski << "*****BM: " << bitMasks[blockNum][maski] << std::endl;
-                                           // std::cout << "MASK POINTER: " << maskPtr << std::endl;
+                                            uint32_t test = 1073741574;
+                                            uint32_t testShift = (value >> maski);
+                                            uint8_t testShiftMask = testShift & 0x01;
+                                            std::cout << "MASKI: " << maski << ", TESTSHIFTMASK: " << (unsigned)testShiftMask << ", SHIFTED: " << testShift << std::endl;
+                                            //std::cout << blockNum << ", "<< maski << "*****BM: " << bitMasks[blockNum][maski] << std::endl;
+                                            //std::cout <<"VALUE: " << value <<  ", MASK POINTER: " << maskPtr << std::endl;
                                             pArray->pAttributeList->add(
                                                     bitMasks[blockNum][maski].c_str(),
                                                     desc.c_str(),
@@ -617,8 +621,9 @@ void ADPandABlocks::outputData(const int dataLen, const int dataNo, const std::v
                                         }
                                  // }
                                 }
-                            ptridx += sizeof(uint32_t);
                             }
+                            ptridx += sizeof(uint32_t);
+                            //}
                         };
                 }
             }
