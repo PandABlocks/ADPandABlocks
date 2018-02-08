@@ -26,6 +26,9 @@
 /* This is the number of waveforms to store */
 #define NARRAYS 10
 
+/* This is the number of positions on the posbus*/
+#define NPOSBUS 32
+
 /* This is the number of filtered waveforms to allow */
 #define NFILT 4
 
@@ -70,7 +73,7 @@ protected:
     int ADPandABlocksHeader;             // string read - data header
     int ADPandABlocksDataEnd;            // string read - end of data string
     int ADPandABlocksPCTime;             // float64array read - position compare timestamps
-    int ADPandABlocksScale;              // string read - motor scale
+    int ADPandABlocksScale[NPOSBUS];              // string read - motor scale
     //int ADPandABlocksOff;                // string read - motor offset
     //int ADPandABlocksUnits;              // string read - motor units
     //int ADPandABlocksCaptureType;        // string read - pcap capture type
@@ -82,7 +85,7 @@ private:
     void parseData(std::vector<char> dataBuffer, const int dataLen);
     void allocateFrame();
     void wrapFrame();
-    std::vector<std::string> readFieldNames();
+    std::vector<std::string> readFieldNames(int* numFields);
     asynStatus extractHeaderData(const xmlTextReaderPtr xmlreader, std::map<std::string, std::string>& values)const;
     std::string getHeaderValue(const int index, const std::string attribute)const;
     void getAllData(std::vector<char>& inBuffer, const int dataLen,const  int buffLen)const;

@@ -71,16 +71,6 @@ ADPandABlocks::ADPandABlocks(const char* portName, const char* cmdSerialPortName
     createParam("DATAEND", asynParamOctet, &ADPandABlocksDataEnd);
     setStringParam(ADPandABlocksDataEnd, "");
 
-    char str[NBUFF];
-    /*Create the Scale parameters*/ 
-    //THIS SHOULD TAKE INTO ACCOUNT EACH POS PARAM...
-   // for(int a = 0; a <4; a++)
-   // {
-   //     epicsSnprintf(str, NBUFF, "M%d_SCALE", a + 1);
-   //     createParam("M1_SCALE", asynParamFloat64, &ADPandABlocksScale[a]);
-   //     setDoubleParam(ADPandABlocksScale[a], 1.0);
-   // }
-
     /* initialise areaDetector parameters */
     setStringParam(ADManufacturer, "Diamond Light Source Ltd.");
     setStringParam(ADModel, "ADPandABlocks");
@@ -156,20 +146,30 @@ ADPandABlocks::ADPandABlocks(const char* portName, const char* cmdSerialPortName
     /*set the receiving format on the data channel*/
     sendData("XML FRAMED SCALED\n");
     /*Get the labels for the bitmask*/
+    int numBitMasks = 0;
     for(int n=0; n<4; n++)
     {
         std::stringstream bitmaskCmd;
         bitmaskCmd << "PCAP.BITS"<< n << ".BITS?";
         sendCtrl(bitmaskCmd.str());
-        bitMasks.push_back(readFieldNames());
+        bitMasks.push_back(readFieldNames(&numBitMasks));
     }
 
     /*Get the POSITION fields*/
     std::stringstream posfieldCmd;
     posfieldCmd << "*POSITIONS?";
     sendCtrl(posfieldCmd.str());
-    posFields.push_back(readFieldNames());
+    int numPosFields = 0;
+    posFields.push_back(readFieldNames(&numPosFields));
 
+    /*Make params for each of the POSITION fields*/
+    char str[NBUFF];
+    for(int a = 0; a <numPosFields; a++)
+    {
+        std::cout << " POSNAME: " << posFields[0][a] << std::endl;
+        //createParam("M1_SCALE", asynParamFloat64, &ADPandABlocksScale[a]);
+        //setDoubleParam(ADPandABlocksScale[a], 1.0);
+    }
 
     /* Create the thread that reads from the device  */
     if (epicsThreadCreate("ADPandABlocksReadTask2", epicsThreadPriorityMedium,
@@ -183,7 +183,7 @@ ADPandABlocks::ADPandABlocks(const char* portName, const char* cmdSerialPortName
 
 
 /* This is the function that will be run for the read thread */
-std::vector<std::string> ADPandABlocks::readFieldNames() {
+std::vector<std::string> ADPandABlocks::readFieldNames(int* numFields) {
     const char *functionName = "readFieldNames";
     char rxBuffer[N_BUFF_CTRL];
     size_t nBytesIn;
@@ -197,6 +197,7 @@ std::vector<std::string> ADPandABlocks::readFieldNames() {
     int i = 0;
     while(rxBuffer[0] != '.')
     {
+        i++;
         if (eomReason & ASYN_EOM_EOS) {
             // Replace the terminator with a null so we can use it as a string
             rxBuffer[nBytesIn] = '\0';
@@ -209,12 +210,14 @@ std::vector<std::string> ADPandABlocks::readFieldNames() {
         if(rxBuffer[0] == '!')
         {
             char* strippedLabel = rxBuffer + 1;
+            std::cout << "stripped label: " << strippedLabel << std::endl;
             fieldNameStrings.push_back(strippedLabel);
         }
         // Push the whole bitmask for 'n' to the vector of vectors
         status = pasynOctet_ctrl->read(octetPvt_ctrl, pasynUserRead, rxBuffer, N_BUFF_CTRL - 1,
                 &nBytesIn, &eomReason);
     }
+   *numFields = i;
    return fieldNameStrings;
 }
 
