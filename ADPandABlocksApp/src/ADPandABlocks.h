@@ -19,6 +19,7 @@
 
 /* The size of our transmit and receive buffers,
  * max filename length and string param buffers */
+#define NBUFF 255
 #define N_BUFF_CTRL 255
 #define N_BUFF_DATA 65536
 
@@ -69,6 +70,10 @@ protected:
     int ADPandABlocksHeader;             // string read - data header
     int ADPandABlocksDataEnd;            // string read - end of data string
     int ADPandABlocksPCTime;             // float64array read - position compare timestamps
+    int ADPandABlocksScale;              // string read - motor scale
+    //int ADPandABlocksOff;                // string read - motor offset
+    //int ADPandABlocksUnits;              // string read - motor units
+    //int ADPandABlocksCaptureType;        // string read - pcap capture type
 #define LAST_PARAM ADPandABlocksPCTime
 #define NUM_PARAMS (&LAST_PARAM - &FIRST_PARAM + 1)
 
@@ -77,7 +82,7 @@ private:
     void parseData(std::vector<char> dataBuffer, const int dataLen);
     void allocateFrame();
     void wrapFrame();
-    std::vector<std::string> readBitMask();
+    std::vector<std::string> readFieldNames();
     asynStatus extractHeaderData(const xmlTextReaderPtr xmlreader, std::map<std::string, std::string>& values)const;
     std::string getHeaderValue(const int index, const std::string attribute)const;
     void getAllData(std::vector<char>& inBuffer, const int dataLen,const  int buffLen)const;
@@ -102,6 +107,9 @@ private:
 
     //Vector containing vector of strings for bit mask values
     std::vector<std::vector<std::string> > bitMasks;
+
+    //Vector containing vector of strings for position fields
+    std::vector<std::vector<std::string> > posFields;
 
     //states for readDataTask state machine
     enum readState{waitHeaderStart, waitHeaderEnd, waitDataStart, receivingData, dataEnd,};

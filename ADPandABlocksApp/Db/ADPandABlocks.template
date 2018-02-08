@@ -37,6 +37,26 @@ record(waveform, "$(P)$(R)DATAEND") {
  # field(SCAN, "I/O Intr")
 }
 
+record(ai, "$(P)$(R)NOMOTOR:SCALE") {
+  field(VAL, "1")
+}
+
+record(calcout, "$(P)$(R)M1:ERES") {
+  field(CALC, "(B=0?A:-A)*(C>0?C:1)*D")
+  field(INPA, "$(M1=$(P)$(R)NOMOTOR).ERES CP")
+  field(INPB, "$(M1=$(P)$(R)NOMOTOR).DIR CP")
+  field(INPC, "$(M1=$(P)$(R)NOMOTOR):SCALE CP")
+  field(INPD, "$(M1DIR=+)$(M1MULT=1)")
+  field(PREC, "4")
+}
+
+record(ao, "$(P)$(R)M1:ERES:OUT") {
+  field(DTYP, "asynFloat64")
+  field(OUT, "@asyn($(PORT),0) M1_SCALE")
+  field(DOL, "$(P)$(R)M1:ERES CP")
+  field(OMSL, "closed_loop")
+}
+
 #test param for testing
 record(longout, "$(P)$(R)TESTPARAM"){
 	field(DESC, "$(PORT), $(ADDR), $(TIMEOUT)")

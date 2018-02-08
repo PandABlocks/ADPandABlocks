@@ -64,12 +64,22 @@ ADPandABlocks::ADPandABlocks(const char* portName, const char* cmdSerialPortName
     createParam("ISCONNECTED", asynParamInt32, &ADPandABlocksIsConnected);
     setIntegerParam(ADPandABlocksIsConnected, 0);
 
-    /*Create a parameter to store the header value */
+    /*Create a parameter to store the header value /*/
     createParam("HEADER", asynParamOctet, &ADPandABlocksHeader);
 
     /*Create a parameter to store the end of data string */
     createParam("DATAEND", asynParamOctet, &ADPandABlocksDataEnd);
     setStringParam(ADPandABlocksDataEnd, "");
+
+    char str[NBUFF];
+    /*Create the Scale parameters*/ 
+    //THIS SHOULD TAKE INTO ACCOUNT EACH POS PARAM...
+   // for(int a = 0; a <4; a++)
+   // {
+   //     epicsSnprintf(str, NBUFF, "M%d_SCALE", a + 1);
+   //     createParam("M1_SCALE", asynParamFloat64, &ADPandABlocksScale[a]);
+   //     setDoubleParam(ADPandABlocksScale[a], 1.0);
+   // }
 
     /* initialise areaDetector parameters */
     setStringParam(ADManufacturer, "Diamond Light Source Ltd.");
@@ -151,8 +161,15 @@ ADPandABlocks::ADPandABlocks(const char* portName, const char* cmdSerialPortName
         std::stringstream bitmaskCmd;
         bitmaskCmd << "PCAP.BITS"<< n << ".BITS?";
         sendCtrl(bitmaskCmd.str());
-        bitMasks.push_back(readBitMask());
+        bitMasks.push_back(readFieldNames());
     }
+
+    /*Get the POSITION fields*/
+    std::stringstream posfieldCmd;
+    posfieldCmd << "*POSITIONS?";
+    sendCtrl(posfieldCmd.str());
+    posFields.push_back(readFieldNames());
+
 
     /* Create the thread that reads from the device  */
     if (epicsThreadCreate("ADPandABlocksReadTask2", epicsThreadPriorityMedium,
@@ -164,15 +181,16 @@ ADPandABlocks::ADPandABlocks(const char* portName, const char* cmdSerialPortName
     }
 };
 
+
 /* This is the function that will be run for the read thread */
-std::vector<std::string> ADPandABlocks::readBitMask() {
-    const char *functionName = "readBitMask";
+std::vector<std::string> ADPandABlocks::readFieldNames() {
+    const char *functionName = "readFieldNames";
     char rxBuffer[N_BUFF_CTRL];
     size_t nBytesIn;
     int eomReason;
     asynStatus status = asynSuccess;
     asynUser *pasynUserRead = pasynManager->duplicateAsynUser(pasynUser_ctrl, 0, 0);
-    std::vector<std::string> bitMaskStrings;
+    std::vector<std::string> fieldNameStrings;
     pasynUserRead->timeout = 3.0;
     status = pasynOctet_ctrl->read(octetPvt_ctrl, pasynUserRead, rxBuffer, N_BUFF_CTRL - 1,
             &nBytesIn, &eomReason);
@@ -191,13 +209,13 @@ std::vector<std::string> ADPandABlocks::readBitMask() {
         if(rxBuffer[0] == '!')
         {
             char* strippedLabel = rxBuffer + 1;
-            bitMaskStrings.push_back(strippedLabel);
+            fieldNameStrings.push_back(strippedLabel);
         }
         // Push the whole bitmask for 'n' to the vector of vectors
         status = pasynOctet_ctrl->read(octetPvt_ctrl, pasynUserRead, rxBuffer, N_BUFF_CTRL - 1,
                 &nBytesIn, &eomReason);
     }
-   return bitMaskStrings;
+   return fieldNameStrings;
 }
 
 asynStatus ADPandABlocks::readHeaderLine(char* rxBuffer, const size_t buffSize) const {
