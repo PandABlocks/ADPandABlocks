@@ -9,6 +9,11 @@ from iocbuilder.arginfo import *
 class _MainDbFile (AutoSubstitution):
     TemplateFile = 'ADPandABlocks.template'
 
+# Peform template subsitution
+@includesTemplates(ADBaseTemplate)
+class _PosBusTemplate (AutoSubstitution):
+    TemplateFile = 'ADPandABlocksPosBus.template'
+
 # Main class for the ADPandABlocks device
 class ADPandABlocks(AsynPort):
 
@@ -22,6 +27,7 @@ class ADPandABlocks(AsynPort):
     LibFileList = ['ADPandABlocks']
 
     UniqueName = "PORT"
+    N_POSBUS = 32
 
     def __init__(self, PORT, CMDPORT, DATAPORT, MAXBUF=1000, MAXMEM=0, **args):
 
@@ -38,6 +44,11 @@ class ADPandABlocks(AsynPort):
 
         # Perform template subsitutions to create our DB file
         makeTemplateInstance(_MainDbFile, locals(), args)
+        locals().update(args)
+
+        # Create the templates for the position bus entries
+        for i in range(self.N_POSBUS):
+            makeTemplateInstance(_PosBusTemplate, locals(), {'POSBUS_IND' : ("%d" % i)})
 
     def Initialise(self):
         # Print the command to create the device in the startup script

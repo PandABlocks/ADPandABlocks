@@ -73,11 +73,12 @@ protected:
     int ADPandABlocksHeader;             // string read - data header
     int ADPandABlocksDataEnd;            // string read - end of data string
     int ADPandABlocksPCTime;             // float64array read - position compare timestamps
+#define LAST_PARAM ADPandABlocksPCTime
     int ADPandABlocksScale[NPOSBUS];              // string read - motor scale
+    int ADPandABlocksPosFields[NPOSBUS];   // string read - position field names
     //int ADPandABlocksOff;                // string read - motor offset
     //int ADPandABlocksUnits;              // string read - motor units
     //int ADPandABlocksCaptureType;        // string read - pcap capture type
-#define LAST_PARAM ADPandABlocksPCTime
 #define NUM_PARAMS (&LAST_PARAM - &FIRST_PARAM + 1)
 
 private:

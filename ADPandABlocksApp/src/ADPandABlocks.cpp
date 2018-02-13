@@ -166,9 +166,10 @@ ADPandABlocks::ADPandABlocks(const char* portName, const char* cmdSerialPortName
     char str[NBUFF];
     for(int a = 0; a <numPosFields; a++)
     {
-        std::cout << " POSNAME: " << posFields[0][a] << std::endl;
-        //createParam("M1_SCALE", asynParamFloat64, &ADPandABlocksScale[a]);
-        //setDoubleParam(ADPandABlocksScale[a], 1.0);
+        epicsSnprintf(str, NBUFF, "POSBUS%d", a);
+        createParam(str, asynParamOctet, &ADPandABlocksPosFields[a]);
+        std::cout << "Setting Param: " << posFields[0][a].c_str() << std::endl;
+        setStringParam(ADPandABlocksPosFields[a], posFields[0][a].c_str());
     }
 
     /* Create the thread that reads from the device  */
