@@ -29,6 +29,9 @@
 /* This is the number of positions on the posbus*/
 #define NPOSBUS 32
 
+/* This is the number of encoders (motors) */
+#define NENC 4
+
 /* This is the number of filtered waveforms to allow */
 #define NFILT 4
 
@@ -74,11 +77,11 @@ protected:
     int ADPandABlocksDataEnd;            // string read - end of data string
     int ADPandABlocksPCTime;             // float64array read - position compare timestamps
 #define LAST_PARAM ADPandABlocksPCTime
-    int ADPandABlocksScale[NPOSBUS];              // string read - motor scale
     int ADPandABlocksPosFields[NPOSBUS];   // string read - position field names
-    //int ADPandABlocksOff;                // string read - motor offset
-    //int ADPandABlocksUnits;              // string read - motor units
-    //int ADPandABlocksCaptureType;        // string read - pcap capture type
+    int ADPandABlocksScale[NENC];              // string read - motor scale
+    int ADPandABlocksOff[NENC];                // string read - motor offset
+    int ADPandABlocksUnits[NENC];              // string read - motor units
+    int ADPandABlocksCaptureType[NPOSBUS];        // string read - pcap capture type
 #define NUM_PARAMS (&LAST_PARAM - &FIRST_PARAM + 1)
 
 private:
@@ -87,6 +90,7 @@ private:
     void allocateFrame();
     void wrapFrame();
     std::vector<std::string> readFieldNames(int* numFields);
+    std::string readPosBusValues();
     asynStatus extractHeaderData(const xmlTextReaderPtr xmlreader, std::map<std::string, std::string>& values)const;
     std::string getHeaderValue(const int index, const std::string attribute)const;
     void getAllData(std::vector<char>& inBuffer, const int dataLen,const  int buffLen)const;
@@ -114,6 +118,9 @@ private:
 
     //Vector containing vector of strings for position fields
     std::vector<std::vector<std::string> > posFields;
+    std::vector<std::string> scaleFields;
+    std::vector<std::vector<std::string> > unitsFields;
+    std::vector<std::vector<std::string> > captureFields;
 
     //states for readDataTask state machine
     enum readState{waitHeaderStart, waitHeaderEnd, waitDataStart, receivingData, dataEnd,};

@@ -1,0 +1,20 @@
+#====================================================================#
+# Template file: ADPandABlocksPosBus.template
+# Macros:
+# % macro, PORT, Asyn Port name for ADPandABlocks coms
+# % macro, P, Device prefix
+# % macro, R, Device suffix
+# % macro, ADDR, address for areaDetector port
+# % macro, TIMEOUT, timeout for areaDetector
+# % macro, POSBUS_IND, Position Bus index
+# % macro, CAPTURE_IND, index for capture param on posbus
+
+record(waveform, "$(P)$(R)POSBUS$(POSBUS_IND)") {
+  field(DESC, "Data end string")
+  field(SCAN, "I/O Intr")
+  field(DTYP, "asynOctetRead")
+  field(INP, "@asyn($(PORT),$(POSBUS_IND))POSBUS$(POSBUS_IND)")
+  field(FTVL, "CHAR")
+  field(NELM, "1024")
+}
+

@@ -14,6 +14,11 @@ class _MainDbFile (AutoSubstitution):
 class _PosBusTemplate (AutoSubstitution):
     TemplateFile = 'ADPandABlocksPosBus.template'
 
+# Peform template subsitution
+@includesTemplates(ADBaseTemplate)
+class _EncTemplate (AutoSubstitution):
+    TemplateFile = 'ADPandABlocksEnc.template'
+
 # Main class for the ADPandABlocks device
 class ADPandABlocks(AsynPort):
 
@@ -28,6 +33,7 @@ class ADPandABlocks(AsynPort):
 
     UniqueName = "PORT"
     N_POSBUS = 32
+    N_ENC = 4
 
     def __init__(self, PORT, CMDPORT, DATAPORT, MAXBUF=1000, MAXMEM=0, **args):
 
@@ -49,6 +55,9 @@ class ADPandABlocks(AsynPort):
         # Create the templates for the position bus entries
         for i in range(self.N_POSBUS):
             makeTemplateInstance(_PosBusTemplate, locals(), {'POSBUS_IND' : ("%d" % i)})
+
+        for i in range(1, self.N_ENC+1):
+            makeTemplateInstance(_EncTemplate, locals(),{'ENC_IND' : ("%d" %i)})
 
     def Initialise(self):
         # Print the command to create the device in the startup script

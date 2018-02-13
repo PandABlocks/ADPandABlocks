@@ -156,20 +156,42 @@ ADPandABlocks::ADPandABlocks(const char* portName, const char* cmdSerialPortName
     }
 
     /*Get the POSITION fields*/
-    std::stringstream posfieldCmd;
-    posfieldCmd << "*POSITIONS?";
-    sendCtrl(posfieldCmd.str());
+    std::stringstream fieldCmd;
+    fieldCmd << "*POSITIONS?";
+    sendCtrl(fieldCmd.str());
     int numPosFields = 0;
     posFields.push_back(readFieldNames(&numPosFields));
 
     /*Make params for each of the POSITION fields*/
     char str[NBUFF];
-    for(int a = 0; a <numPosFields; a++)
+    for(int a = 1; a <numPosFields; a++) //IGNORE THE FIRST VALUE AS IT IS POSITIONS.ZERO
     {
         epicsSnprintf(str, NBUFF, "POSBUS%d", a);
         createParam(str, asynParamOctet, &ADPandABlocksPosFields[a]);
-        std::cout << "Setting Param: " << posFields[0][a].c_str() << std::endl;
         setStringParam(ADPandABlocksPosFields[a], posFields[0][a].c_str());
+    }
+
+
+    /*Make params for SCALE for the first four entries on the posbus
+     * (INENC<a>.VAL.SCALE)*/
+    int numScaleFields = 0;
+    for(int a = 1; a <=4; a++)
+    {
+        //fieldCmd.str("");//cear the string
+        //fieldCmd.clear();
+        std::stringstream scaleValCmd;
+        scaleValCmd << "INENC" << a << ".VAL.SCALE?";
+        std::cout << "SENDING: " << scaleValCmd.str() << std::endl;
+        sendCtrl(scaleValCmd.str());
+        scaleFields.push_back(readPosBusValues());
+        epicsSnprintf(str, NBUFF, "INENC%d:SCALE", a);
+        createParam(str, asynParamOctet, &ADPandABlocksScale[a-1]);
+    }
+    //initialise the parameters with the values from the device
+    for(int a = 0; a < 4; a++)
+    {
+        std::cout << "SETTINGx: " << scaleFields[a].c_str() << std::endl;
+        setStringParam(ADPandABlocksScale[a], scaleFields[a].c_str());
     }
 
     /* Create the thread that reads from the device  */
@@ -222,6 +244,41 @@ std::vector<std::string> ADPandABlocks::readFieldNames(int* numFields) {
    return fieldNameStrings;
 }
 
+/* This is the function that will be run for the read thread */
+std::string ADPandABlocks::readPosBusValues() {
+    const char *functionName = "readPosBusValues";
+    char rxBuffer[N_BUFF_CTRL];
+    size_t nBytesIn;
+    int eomReason;
+    asynStatus status = asynSuccess;
+    asynUser *pasynUserRead = pasynManager->duplicateAsynUser(pasynUser_ctrl, 0, 0);
+    std::string posBusValue;
+    pasynUserRead->timeout = 3.0;
+    status = pasynOctet_ctrl->read(octetPvt_ctrl, pasynUserRead, rxBuffer, N_BUFF_CTRL - 1,
+            &nBytesIn, &eomReason);
+    std::cout << "RECEIVED: " << rxBuffer << std::endl;
+    if (eomReason & ASYN_EOM_EOS) {
+        // Replace the terminator with a null so we can use it as a string
+        rxBuffer[nBytesIn] = '\0';
+        asynPrint(pasynUserSelf, ASYN_TRACE_FLOW,
+                "%s:%s: Message: '%s'\n", driverName, functionName, rxBuffer);
+    } else {
+        asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
+                "%s:%s: Bad message 'bt%.*s'\n", driverName, functionName, (int)nBytesIn, rxBuffer);
+    }
+
+    if(rxBuffer[0] == 'O' && rxBuffer[1] == 'K')
+    {
+        char* readValue = rxBuffer + 4;
+        std::cout << "read Value: " << readValue << std::endl;
+        posBusValue.assign(readValue);
+    } else {
+        //we didn't recieve OK so something went wrong
+    }
+    // Push the whole bitmask for 'n' to the vector of vectors
+    std::cout << "POSBUSVALUES: " << posBusValue << std::endl;
+    return posBusValue;
+}
 asynStatus ADPandABlocks::readHeaderLine(char* rxBuffer, const size_t buffSize) const {
     /*buffSize is the size fo rxBuffer*/
     const char *functionName = "readHeaderLine";
