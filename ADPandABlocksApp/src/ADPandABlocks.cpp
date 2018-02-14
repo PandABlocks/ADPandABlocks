@@ -172,22 +172,8 @@ ADPandABlocks::ADPandABlocks(const char* portName, const char* cmdSerialPortName
     }
 
 
-    /*Make params for SCALE for the first four entries on the posbus
-     * (INENC<a>.VAL.SCALE)*/
-    int numScaleFields = 0;
-    for(int a = 1; a <=4; a++)
-    {
-        //fieldCmd.str("");//cear the string
-        //fieldCmd.clear();
-        std::stringstream scaleValCmd;
-        scaleValCmd << "INENC" << a << ".VAL.SCALE?";
-        std::cout << "SENDING: " << scaleValCmd.str() << std::endl;
-        sendCtrl(scaleValCmd.str());
-        scaleFields.push_back(readPosBusValues());
-        epicsSnprintf(str, NBUFF, "INENC%d:SCALE", a);
-        createParam(str, asynParamOctet, &ADPandABlocksScale[a-1]);
-    }
-    //initialise the parameters with the values from the device
+    std::string paramName("SCALE");
+    std::vector<std::string> scaleFields(createEncParams(paramName, asynParamOctet, &ADPandABlocksScale[0]));
     for(int a = 0; a < 4; a++)
     {
         std::cout << "SETTINGx: " << scaleFields[a].c_str() << std::endl;
@@ -203,6 +189,23 @@ ADPandABlocks::ADPandABlocks(const char* portName, const char* cmdSerialPortName
         return;
     }
 };
+
+std::vector<std::string> ADPandABlocks::createEncParams(std::string paramName, asynParamType paramType, int* paramIndex){
+    std::vector<std::string> fields;
+    for(int a = 1; a <=4; a++)
+    {
+        char str[NBUFF];
+        std::stringstream encFieldCmd;
+        encFieldCmd << "INENC" << a << ".VAL." << paramName <<"?";
+        std::cout << "SENDING: " << encFieldCmd.str() << std::endl;
+        sendCtrl(encFieldCmd.str());
+        fields.push_back(readPosBusValues());
+        epicsSnprintf(str, NBUFF, "INENC%d:%s", a, paramName.c_str());
+        std::cout << "PARAM NAME: " << str << std::endl;
+        createParam(str, paramType, paramIndex++);
+    }
+    return fields;
+}
 
 
 /* This is the function that will be run for the read thread */

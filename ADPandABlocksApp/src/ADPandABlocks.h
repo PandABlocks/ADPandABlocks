@@ -97,7 +97,7 @@ private:
     void outputData(const int dataLen, const int dataNo, const std::vector<char> data);
     asynStatus readHeaderLine(char* rxBuffer, const size_t buffSize)const;
     asynStatus readDataBytes(char* rxBuffer, const size_t nBytes)const;
-
+    std::vector<std::string> createEncParams(std::string paramName, asynParamType paramType, int* paramIndex);
 private:
     NDArray *pArray;
     asynUser *pasynUser_ctrl;
@@ -118,7 +118,7 @@ private:
 
     //Vector containing vector of strings for position fields
     std::vector<std::vector<std::string> > posFields;
-    std::vector<std::string> scaleFields;
+    //std::vector<std::string> scaleFields;
     std::vector<std::vector<std::string> > unitsFields;
     std::vector<std::vector<std::string> > captureFields;
 
