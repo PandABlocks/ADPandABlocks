@@ -171,13 +171,18 @@ ADPandABlocks::ADPandABlocks(const char* portName, const char* cmdSerialPortName
         setStringParam(ADPandABlocksPosFields[a], posFields[0][a].c_str());
     }
 
-
     std::string paramName("SCALE");
     std::vector<std::string> scaleFields(createEncParams(paramName, asynParamOctet, &ADPandABlocksScale[0]));
+    paramName.assign("OFFSET");
+    std::vector<std::string> offsetFields(createEncParams(paramName, asynParamOctet, &ADPandABlocksOffset[0]));
+    paramName.assign("UNITS");
+    std::vector<std::string> unitsFields(createEncParams(paramName, asynParamOctet, &ADPandABlocksUnits[0]));
+    /* Initialise the encoder params */
     for(int a = 0; a < 4; a++)
     {
-        std::cout << "SETTINGx: " << scaleFields[a].c_str() << std::endl;
         setStringParam(ADPandABlocksScale[a], scaleFields[a].c_str());
+        setStringParam(ADPandABlocksOffset[a], offsetFields[a].c_str());
+        setStringParam(ADPandABlocksUnits[a], unitsFields[a].c_str());
     }
 
     /* Create the thread that reads from the device  */
@@ -197,11 +202,9 @@ std::vector<std::string> ADPandABlocks::createEncParams(std::string paramName, a
         char str[NBUFF];
         std::stringstream encFieldCmd;
         encFieldCmd << "INENC" << a << ".VAL." << paramName <<"?";
-        std::cout << "SENDING: " << encFieldCmd.str() << std::endl;
         sendCtrl(encFieldCmd.str());
         fields.push_back(readPosBusValues());
         epicsSnprintf(str, NBUFF, "INENC%d:%s", a, paramName.c_str());
-        std::cout << "PARAM NAME: " << str << std::endl;
         createParam(str, paramType, paramIndex++);
     }
     return fields;
@@ -236,7 +239,6 @@ std::vector<std::string> ADPandABlocks::readFieldNames(int* numFields) {
         if(rxBuffer[0] == '!')
         {
             char* strippedLabel = rxBuffer + 1;
-            std::cout << "stripped label: " << strippedLabel << std::endl;
             fieldNameStrings.push_back(strippedLabel);
         }
         // Push the whole bitmask for 'n' to the vector of vectors
@@ -259,7 +261,6 @@ std::string ADPandABlocks::readPosBusValues() {
     pasynUserRead->timeout = 3.0;
     status = pasynOctet_ctrl->read(octetPvt_ctrl, pasynUserRead, rxBuffer, N_BUFF_CTRL - 1,
             &nBytesIn, &eomReason);
-    std::cout << "RECEIVED: " << rxBuffer << std::endl;
     if (eomReason & ASYN_EOM_EOS) {
         // Replace the terminator with a null so we can use it as a string
         rxBuffer[nBytesIn] = '\0';
@@ -273,13 +274,10 @@ std::string ADPandABlocks::readPosBusValues() {
     if(rxBuffer[0] == 'O' && rxBuffer[1] == 'K')
     {
         char* readValue = rxBuffer + 4;
-        std::cout << "read Value: " << readValue << std::endl;
         posBusValue.assign(readValue);
     } else {
         //we didn't recieve OK so something went wrong
     }
-    // Push the whole bitmask for 'n' to the vector of vectors
-    std::cout << "POSBUSVALUES: " << posBusValue << std::endl;
     return posBusValue;
 }
 asynStatus ADPandABlocks::readHeaderLine(char* rxBuffer, const size_t buffSize) const {

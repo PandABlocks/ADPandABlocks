@@ -79,7 +79,7 @@ protected:
 #define LAST_PARAM ADPandABlocksPCTime
     int ADPandABlocksPosFields[NPOSBUS];   // string read - position field names
     int ADPandABlocksScale[NENC];              // string read - motor scale
-    int ADPandABlocksOff[NENC];                // string read - motor offset
+    int ADPandABlocksOffset[NENC];                // string read - motor offset
     int ADPandABlocksUnits[NENC];              // string read - motor units
     int ADPandABlocksCaptureType[NPOSBUS];        // string read - pcap capture type
 #define NUM_PARAMS (&LAST_PARAM - &FIRST_PARAM + 1)
@@ -118,8 +118,6 @@ private:
 
     //Vector containing vector of strings for position fields
     std::vector<std::vector<std::string> > posFields;
-    //std::vector<std::string> scaleFields;
-    std::vector<std::vector<std::string> > unitsFields;
     std::vector<std::vector<std::string> > captureFields;
 
     //states for readDataTask state machine
