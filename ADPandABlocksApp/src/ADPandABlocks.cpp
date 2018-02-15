@@ -161,10 +161,6 @@ ADPandABlocks::ADPandABlocks(const char* portName, const char* cmdSerialPortName
     sendCtrl(fieldCmd.str());
     int numPosFields = 0;
     posFields.push_back(readFieldNames(&numPosFields));
-    for(int a = 0; a < numPosFields; a++)
-    {
-        std::cout << "POSFIELDS: " << posFields[0][a] << std::endl;
-    }
 
     /*Make params for each of the POSITION fields*/
     char str[NBUFF];
@@ -175,28 +171,32 @@ ADPandABlocks::ADPandABlocks(const char* portName, const char* cmdSerialPortName
         setStringParam(ADPandABlocksPosFields[a], posFields[0][a].c_str());
     }
 
+    /* Create and Initialise the posbus params */
     std::map<char*, std::vector<std::string> > posBusFields;
-    posBusFields.insert(std::pair<char*, std::vector<std::string> >
-            ("SCALE", createPosParams("SCALE", asynParamOctet, &ADPandABlocksScale[0], 4, posFields[0])));
-    posBusFields.insert(std::pair<char*, std::vector<std::string> >
-            ("OFFSET", createPosParams("OFFSET", asynParamOctet, &ADPandABlocksOffset[0], 4, posFields[0])));
-    posBusFields.insert(std::pair<char*, std::vector<std::string> >
-            ("UNITS", createPosParams("UNITS", asynParamOctet, &ADPandABlocksUnits[0], 4, posFields[0])));
-    posBusFields.insert(std::pair<char*, std::vector<std::string> >
-            ("CAPTURE", createPosParams("CAPTURE", asynParamOctet, &ADPandABlocksCapture[0], numPosFields-1, posFields[0])));
-
-    /* Initialise the posbus params */
+    std::vector<std::string> scaleVals;
+    std::vector<std::string> offsetVals;
+    std::vector<std::string> unitVals;
+    std::vector<std::string> captureVals;
+    posBusFields.insert(std::pair<char*, std::vector<std::string> >("SCALE", scaleVals));
+    posBusFields.insert(std::pair<char*, std::vector<std::string> >("OFFSET", offsetVals));
+    posBusFields.insert(std::pair<char*, std::vector<std::string> >("UNITS",  unitVals));
+    posBusFields.insert(std::pair<char*, std::vector<std::string> >("CAPTURE", captureVals));
     for(int a = 0; a < 4; a++)
     {
-        std::cout << "INITING: "<< posBusFields["SCALE"][a].c_str() << std::endl;
+        getPosBusField(posFields[0][a], "SCALE");
+        posBusFields["SCALE"].push_back(createPosBusParam("SCALE", asynParamOctet, &ADPandABlocksScale[a], a));
+        getPosBusField(posFields[0][a], "OFFSET");
+        posBusFields["OFFSET"].push_back(createPosBusParam("OFFSET", asynParamOctet, &ADPandABlocksOffset[a], a));
+        getPosBusField(posFields[0][a], "UNITS");
+        posBusFields["UNITS"].push_back(createPosBusParam("UNITS", asynParamOctet, &ADPandABlocksUnits[a], a));
         setStringParam(ADPandABlocksScale[a], posBusFields["SCALE"][a].c_str());
         setStringParam(ADPandABlocksOffset[a], posBusFields["OFFSET"][a].c_str());
         setStringParam(ADPandABlocksUnits[a], posBusFields["UNITS"][a].c_str());
     }
-
-    for(int a = 0; a < numPosFields-1; a++)
+    for(int a = 0; a < numPosFields; a++)
     {
-        std::cout << "INITING: "<< posBusFields["CAPTURE"][a].c_str() << std::endl;
+        getPosBusField(posFields[0][a], "CAPTURE");
+        posBusFields["CAPTURE"].push_back((createPosBusParam("CAPTURE", asynParamOctet, &ADPandABlocksCapture[a], a)));
         setStringParam(ADPandABlocksCapture[a], posBusFields["CAPTURE"][a].c_str());
     }
 
@@ -210,26 +210,19 @@ ADPandABlocks::ADPandABlocks(const char* portName, const char* cmdSerialPortName
     }
 };
 
-std::vector<std::string> ADPandABlocks::createPosParams(
-        char* paramName, asynParamType paramType, int* paramIndex, int noParams, std::vector<std::string> posbus){
-    std::vector<std::string> fields;
-    //SPLIT THIS INTO GET FIELDS FROM DEVICE, AND CREATE PARAMS
-    for(int a = 1; a <=noParams; a++)
-    {
-        char str[NBUFF];
-        std::stringstream cmdStr;
-        cmdStr << posbus[a] << "." << paramName <<"?";
-        std::cout << "SETTING: " << cmdStr.str() << std::endl;
-        sendCtrl(cmdStr.str());
-        fields.push_back(readPosBusValues());
-        epicsSnprintf(str, NBUFF, "POSBUS%d:%s", a, paramName);
-        createParam(str, paramType, paramIndex++);
-    }
-    for(int a=0;a<noParams;a++)
-    {
-        std::cout << "FIELDS: " << fields[a].c_str() << std::endl;
-    }
-    return fields;
+void ADPandABlocks::getPosBusField(std::string posbus, char* paramName){
+    std::stringstream cmdStr;
+    cmdStr << posbus << "." << paramName <<"?";
+    sendCtrl(cmdStr.str());
+}
+
+std::string ADPandABlocks::createPosBusParam(char* paramName, asynParamType paramType, int* paramIndex, int paramNo){
+    std::string field;
+    char str[NBUFF];
+    field.assign(readPosBusValues());
+    epicsSnprintf(str, NBUFF, "POSBUS%d:%s", paramNo, paramName);
+    createParam(str, paramType, paramIndex);
+    return field;
 }
 
 /* This is the function that will be run for the read thread */

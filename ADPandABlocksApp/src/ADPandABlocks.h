@@ -97,8 +97,8 @@ private:
     void outputData(const int dataLen, const int dataNo, const std::vector<char> data);
     asynStatus readHeaderLine(char* rxBuffer, const size_t buffSize)const;
     asynStatus readDataBytes(char* rxBuffer, const size_t nBytes)const;
-    std::vector<std::string> createPosParams(
-            char* paramName, asynParamType paramType, int* paramIndex, int noParams, std::vector<std::string> posbus);
+    std::string createPosBusParam(char* paramName, asynParamType paramType, int* paramIndex, int paramNo);
+    void getPosBusField(std::string posbus, char* paramName);
 private:
     NDArray *pArray;
     asynUser *pasynUser_ctrl;
