@@ -81,7 +81,7 @@ protected:
     int ADPandABlocksScale[NENC];              // string read - motor scale
     int ADPandABlocksOffset[NENC];                // string read - motor offset
     int ADPandABlocksUnits[NENC];              // string read - motor units
-    int ADPandABlocksCaptureType[NPOSBUS];        // string read - pcap capture type
+    int ADPandABlocksCapture[NPOSBUS];        // string read - pcap capture type
 #define NUM_PARAMS (&LAST_PARAM - &FIRST_PARAM + 1)
 
 private:
@@ -97,7 +97,8 @@ private:
     void outputData(const int dataLen, const int dataNo, const std::vector<char> data);
     asynStatus readHeaderLine(char* rxBuffer, const size_t buffSize)const;
     asynStatus readDataBytes(char* rxBuffer, const size_t nBytes)const;
-    std::vector<std::string> createEncParams(std::string paramName, asynParamType paramType, int* paramIndex);
+    std::vector<std::string> createPosParams(
+            std::string paramName, asynParamType paramType, int* paramIndex, int noParams, std::vector<std::string> posbus);
 private:
     NDArray *pArray;
     asynUser *pasynUser_ctrl;
@@ -118,7 +119,6 @@ private:
 
     //Vector containing vector of strings for position fields
     std::vector<std::vector<std::string> > posFields;
-    std::vector<std::vector<std::string> > captureFields;
 
     //states for readDataTask state machine
     enum readState{waitHeaderStart, waitHeaderEnd, waitDataStart, receivingData, dataEnd,};

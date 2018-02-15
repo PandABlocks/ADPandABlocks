@@ -8,29 +8,29 @@
 # % macro, TIMEOUT, timeout for areaDetector
 # % macro, ENC_IND, index for scale param on posbus
 
-record(waveform, "$(P)$(R)INENC$(ENC_IND):SCALE") {
+record(waveform, "$(P)$(R)POSBUS$(ENC_IND):SCALE") {
   field(DESC, "INENC scale value")
   field(SCAN, "I/O Intr")
   field(DTYP, "asynOctetRead")
-  field(INP, "@asyn($(PORT),$(ENC_IND))INENC$(ENC_IND):SCALE")
+  field(INP, "@asyn($(PORT),$(ENC_IND))POSBUS$(ENC_IND):SCALE")
   field(FTVL, "CHAR")
   field(NELM, "1024")
 }
 
-record(waveform, "$(P)$(R)INENC$(ENC_IND):OFFSET") {
+record(waveform, "$(P)$(R)POSBUS$(ENC_IND):OFFSET") {
   field(DESC, "INENC offset value")
   field(SCAN, "I/O Intr")
   field(DTYP, "asynOctetRead")
-  field(INP, "@asyn($(PORT),$(ENC_IND))INENC$(ENC_IND):OFFSET")
+  field(INP, "@asyn($(PORT),$(ENC_IND))POSBUS$(ENC_IND):OFFSET")
   field(FTVL, "CHAR")
   field(NELM, "1024")
 }
 
-record(waveform, "$(P)$(R)INENC$(ENC_IND):UNITS") {
+record(waveform, "$(P)$(R)POSBUS$(ENC_IND):UNITS") {
   field(DESC, "INENC units value")
   field(SCAN, "I/O Intr")
   field(DTYP, "asynOctetRead")
-  field(INP, "@asyn($(PORT),$(ENC_IND))INENC$(ENC_IND):UNITS")
+  field(INP, "@asyn($(PORT),$(ENC_IND))POSBUS$(ENC_IND):UNITS")
   field(FTVL, "CHAR")
   field(NELM, "1024")
 }
