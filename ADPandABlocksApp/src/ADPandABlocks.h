@@ -98,7 +98,7 @@ private:
     asynStatus readHeaderLine(char* rxBuffer, const size_t buffSize)const;
     asynStatus readDataBytes(char* rxBuffer, const size_t nBytes)const;
     std::vector<std::string> createPosParams(
-            std::string paramName, asynParamType paramType, int* paramIndex, int noParams, std::vector<std::string> posbus);
+            char* paramName, asynParamType paramType, int* paramIndex, int noParams, std::vector<std::string> posbus);
 private:
     NDArray *pArray;
     asynUser *pasynUser_ctrl;
