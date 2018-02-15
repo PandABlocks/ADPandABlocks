@@ -27,6 +27,11 @@ static void readTaskDataC(void *userPvt) {
     pPvt->readTaskData();
 }
 
+static void checkPosBusChangesC(void *userPvt) {
+    ADPandABlocks *pPvt = (ADPandABlocks *) userPvt;
+    pPvt->checkPosBusChanges();
+}
+
 typedef int static_assert_endianness[EPICS_BYTE_ORDER != EPICS_ENDIAN_BIG ? 1 : -1];
 
 static const char *driverName = "ADPandABlocks";
@@ -200,6 +205,16 @@ ADPandABlocks::ADPandABlocks(const char* portName, const char* cmdSerialPortName
         setStringParam(ADPandABlocksCapture[a], posBusFields["CAPTURE"][a].c_str());
     }
 
+    /* Create the thread to monitor posbus changes */
+
+    if (epicsThreadCreate("ADPandABlockscheckPosBusChanges", epicsThreadPriorityMedium,
+            epicsThreadGetStackSize(epicsThreadStackMedium),
+            (EPICSTHREADFUNC) checkPosBusChangesC, this) == NULL) {
+        asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
+                "%s:%s: epicsThreadCreate failure for reading task\n", driverName, functionName);
+        return;
+    }
+
     /* Create the thread that reads from the device  */
     if (epicsThreadCreate("ADPandABlocksReadTask2", epicsThreadPriorityMedium,
             epicsThreadGetStackSize(epicsThreadStackMedium),
@@ -210,18 +225,20 @@ ADPandABlocks::ADPandABlocks(const char* portName, const char* cmdSerialPortName
     }
 };
 
-void ADPandABlocks::getPosBusField(std::string posbus, char* paramName){
+void ADPandABlocks::getPosBusField(std::string posbus, const char* paramName){
     std::stringstream cmdStr;
     cmdStr << posbus << "." << paramName <<"?";
     sendCtrl(cmdStr.str());
 }
 
-std::string ADPandABlocks::createPosBusParam(char* paramName, asynParamType paramType, int* paramIndex, int paramNo){
+std::string ADPandABlocks::createPosBusParam(const char* paramName, asynParamType paramType, int* paramIndex, int paramNo){
+    this->lock();
     std::string field;
     char str[NBUFF];
     field.assign(readPosBusValues());
     epicsSnprintf(str, NBUFF, "POSBUS%d:%s", paramNo, paramName);
     createParam(str, paramType, paramIndex);
+    this->unlock();
     return field;
 }
 
@@ -258,6 +275,10 @@ std::vector<std::string> ADPandABlocks::readFieldNames(int* numFields) {
         // Push the whole bitmask for 'n' to the vector of vectors
         status = pasynOctet_ctrl->read(octetPvt_ctrl, pasynUserRead, rxBuffer, N_BUFF_CTRL - 1,
                 &nBytesIn, &eomReason);
+    }
+    for(int a = 0; a< i; a++)
+    {
+        std::cout << "RECEICVED: " << fieldNameStrings[a] << std::endl;
     }
    *numFields = i;
    return fieldNameStrings;
@@ -296,6 +317,28 @@ std::string ADPandABlocks::readPosBusValues() {
     }
     return posBusValue;
 }
+
+void ADPandABlocks::checkPosBusChanges(){
+    while(true)
+    {
+        std::vector<std::vector<std::string> > changedFields;
+        //query the pandabox to see if any changes have occured
+        std::stringstream cmd;
+        cmd << "*CHANGES.ATTR?";
+        sendCtrl(cmd.str());
+        int numChanges = 0;
+        changedFields.push_back(readFieldNames(&numChanges));
+        //for every change, update our parameters (GET THE LOCK FIRST)
+        this->lock();
+        for(int a = 0; a < numChanges; a++)
+        {
+            std::cout << "CHANGED: " << changedFields[0][a] << std::endl;
+        }
+        this->unlock();
+        epicsThreadSleep(1);
+    }
+}
+
 asynStatus ADPandABlocks::readHeaderLine(char* rxBuffer, const size_t buffSize) const {
     /*buffSize is the size fo rxBuffer*/
     const char *functionName = "readHeaderLine";
@@ -711,6 +754,7 @@ asynStatus ADPandABlocks::sendData(const std::string txBuffer){
 }
 
 asynStatus ADPandABlocks::sendCtrl(const std::string txBuffer){
+    std::cout << "SENDING CMD: " << txBuffer << std::endl;
     asynStatus status = send(txBuffer, pasynOctet_ctrl, octetPvt_ctrl, pasynUser_ctrl);
     return status;
 }

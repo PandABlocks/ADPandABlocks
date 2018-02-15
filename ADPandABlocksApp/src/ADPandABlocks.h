@@ -60,6 +60,7 @@ public:
 
     /** These should be private, but get called from C, so must be public */
     void readTaskData();
+    void checkPosBusChanges();
 
     /** These functions are used in the tests, so they are public */
     asynStatus sendCtrl(const std::string txBuffer);
@@ -97,8 +98,8 @@ private:
     void outputData(const int dataLen, const int dataNo, const std::vector<char> data);
     asynStatus readHeaderLine(char* rxBuffer, const size_t buffSize)const;
     asynStatus readDataBytes(char* rxBuffer, const size_t nBytes)const;
-    std::string createPosBusParam(char* paramName, asynParamType paramType, int* paramIndex, int paramNo);
-    void getPosBusField(std::string posbus, char* paramName);
+    std::string createPosBusParam(const char* paramName, asynParamType paramType, int* paramIndex, int paramNo);
+    void getPosBusField(std::string posbus, const char* paramName);
 private:
     NDArray *pArray;
     asynUser *pasynUser_ctrl;
