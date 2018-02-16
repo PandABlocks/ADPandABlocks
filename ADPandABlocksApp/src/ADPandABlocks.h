@@ -98,8 +98,9 @@ private:
     void outputData(const int dataLen, const int dataNo, const std::vector<char> data);
     asynStatus readHeaderLine(char* rxBuffer, const size_t buffSize)const;
     asynStatus readDataBytes(char* rxBuffer, const size_t nBytes)const;
-    std::string createPosBusParam(const char* paramName, asynParamType paramType, int* paramIndex, int paramNo);
-    void getPosBusField(std::string posbus, const char* paramName);
+    void createPosBusParam(const char* paramName, asynParamType paramType, int* paramIndex, int paramNo);
+    std::string getPosBusField(std::string posbus, const char* paramName);
+    void initLookup(std::string paramName, std::string paramNameEnd, int paramInd);
 private:
     NDArray *pArray;
     asynUser *pasynUser_ctrl;
@@ -120,6 +121,10 @@ private:
 
     //Vector containing vector of strings for position fields
     std::vector<std::vector<std::string> > posFields;
+
+    //Lookup table for posbus params
+    //std::map<std::string, std::map<char*, std::string> > posBusValLookup;
+    std::map<std::string, std::map<std::string, int*> > posBusValLookup;
 
     //states for readDataTask state machine
     enum readState{waitHeaderStart, waitHeaderEnd, waitDataStart, receivingData, dataEnd,};

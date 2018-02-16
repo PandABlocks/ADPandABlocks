@@ -176,33 +176,19 @@ ADPandABlocks::ADPandABlocks(const char* portName, const char* cmdSerialPortName
         setStringParam(ADPandABlocksPosFields[a], posFields[0][a].c_str());
     }
 
-    /* Create and Initialise the posbus params */
-    std::map<char*, std::vector<std::string> > posBusFields;
-    std::vector<std::string> scaleVals;
-    std::vector<std::string> offsetVals;
-    std::vector<std::string> unitVals;
-    std::vector<std::string> captureVals;
-    posBusFields.insert(std::pair<char*, std::vector<std::string> >("SCALE", scaleVals));
-    posBusFields.insert(std::pair<char*, std::vector<std::string> >("OFFSET", offsetVals));
-    posBusFields.insert(std::pair<char*, std::vector<std::string> >("UNITS",  unitVals));
-    posBusFields.insert(std::pair<char*, std::vector<std::string> >("CAPTURE", captureVals));
-    for(int a = 0; a < 4; a++)
+    //Initialise the lookup table for posbus values
+    int paramInd = 0;
+    for(std::vector<std::string>::iterator it = posFields[0].begin(); it != posFields[0].end(); ++it)
     {
-        getPosBusField(posFields[0][a], "SCALE");
-        posBusFields["SCALE"].push_back(createPosBusParam("SCALE", asynParamOctet, &ADPandABlocksScale[a], a));
-        getPosBusField(posFields[0][a], "OFFSET");
-        posBusFields["OFFSET"].push_back(createPosBusParam("OFFSET", asynParamOctet, &ADPandABlocksOffset[a], a));
-        getPosBusField(posFields[0][a], "UNITS");
-        posBusFields["UNITS"].push_back(createPosBusParam("UNITS", asynParamOctet, &ADPandABlocksUnits[a], a));
-        setStringParam(ADPandABlocksScale[a], posBusFields["SCALE"][a].c_str());
-        setStringParam(ADPandABlocksOffset[a], posBusFields["OFFSET"][a].c_str());
-        setStringParam(ADPandABlocksUnits[a], posBusFields["UNITS"][a].c_str());
-    }
-    for(int a = 0; a < numPosFields; a++)
-    {
-        getPosBusField(posFields[0][a], "CAPTURE");
-        posBusFields["CAPTURE"].push_back((createPosBusParam("CAPTURE", asynParamOctet, &ADPandABlocksCapture[a], a)));
-        setStringParam(ADPandABlocksCapture[a], posBusFields["CAPTURE"][a].c_str());
+        if(paramInd > 0 && paramInd <= 4) //IGNORE POSITIONS.ZERO
+        {
+            std::cout << "INTINT: " << it->c_str() << std::endl;
+            initLookup(*it, "SCALE", paramInd);
+            initLookup(*it, "OFFSET", paramInd);
+            initLookup(*it, "UNITS", paramInd);
+        }
+        initLookup(*it, "CAPTURE", paramInd);
+        paramInd++;
     }
 
     /* Create the thread to monitor posbus changes */
@@ -225,21 +211,31 @@ ADPandABlocks::ADPandABlocks(const char* portName, const char* cmdSerialPortName
     }
 };
 
-void ADPandABlocks::getPosBusField(std::string posbus, const char* paramName){
+std::string ADPandABlocks::getPosBusField(std::string posbus, const char* paramName){
+    std::string field;
     std::stringstream cmdStr;
     cmdStr << posbus << "." << paramName <<"?";
     sendCtrl(cmdStr.str());
+    field.assign(readPosBusValues());
+    return field;
 }
 
-std::string ADPandABlocks::createPosBusParam(const char* paramName, asynParamType paramType, int* paramIndex, int paramNo){
+void ADPandABlocks::createPosBusParam(const char* paramName, asynParamType paramType, int* paramIndex, int paramNo){
     this->lock();
-    std::string field;
     char str[NBUFF];
-    field.assign(readPosBusValues());
     epicsSnprintf(str, NBUFF, "POSBUS%d:%s", paramNo, paramName);
     createParam(str, paramType, paramIndex);
     this->unlock();
-    return field;
+}
+
+void ADPandABlocks::initLookup(std::string paramName, std::string paramNameEnd, int paramInd)
+{
+    std::map<std::string, int*> lpMap2;
+    createPosBusParam(paramNameEnd.c_str(), asynParamOctet, &ADPandABlocksScale[paramInd], paramInd);
+    posBusValLookup.insert(std::pair<std::string, std::map<std::string, int*> >(paramName, lpMap2));
+    posBusValLookup[paramName].insert(std::pair<std::string, int*>(paramNameEnd, &ADPandABlocksScale[paramInd]));
+    std::string paramVal = getPosBusField(paramName, paramNameEnd.c_str());
+    setStringParam(*posBusValLookup[paramName][paramNameEnd], paramVal.c_str());
 }
 
 /* This is the function that will be run for the read thread */
@@ -278,7 +274,7 @@ std::vector<std::string> ADPandABlocks::readFieldNames(int* numFields) {
     }
     for(int a = 0; a< i; a++)
     {
-        std::cout << "RECEICVED: " << fieldNameStrings[a] << std::endl;
+    //    std::cout << "RECEICVED: " << fieldNameStrings[a] << std::endl;
     }
    *numFields = i;
    return fieldNameStrings;
@@ -332,8 +328,9 @@ void ADPandABlocks::checkPosBusChanges(){
         this->lock();
         for(int a = 0; a < numChanges; a++)
         {
-            std::cout << "CHANGED: " << changedFields[0][a] << std::endl;
+        //    std::cout << "CHANGED: " << changedFields[0][a] << std::endl;
         }
+        //setStringParam(ADPandABlocksScale[a], posBusFields["SCALE"][a].c_str());
         this->unlock();
         epicsThreadSleep(1);
     }
