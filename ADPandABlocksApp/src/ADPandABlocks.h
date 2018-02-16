@@ -100,7 +100,8 @@ private:
     asynStatus readDataBytes(char* rxBuffer, const size_t nBytes)const;
     void createPosBusParam(const char* paramName, asynParamType paramType, int* paramIndex, int paramNo);
     std::string getPosBusField(std::string posbus, const char* paramName);
-    void initLookup(std::string paramName, std::string paramNameEnd, int paramInd);
+    void initLookup(std::string paramName, std::string paramNameEnd, int* paramInd, int posBusInd);
+    std::vector<std::string> stringSplit(const std::string& s, char delimiter);
 private:
     NDArray *pArray;
     asynUser *pasynUser_ctrl;

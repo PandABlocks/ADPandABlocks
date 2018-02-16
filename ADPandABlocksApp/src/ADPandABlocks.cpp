@@ -177,18 +177,18 @@ ADPandABlocks::ADPandABlocks(const char* portName, const char* cmdSerialPortName
     }
 
     //Initialise the lookup table for posbus values
-    int paramInd = 0;
+    int posBusInd = 0;
     for(std::vector<std::string>::iterator it = posFields[0].begin(); it != posFields[0].end(); ++it)
     {
-        if(paramInd > 0 && paramInd <= 4) //IGNORE POSITIONS.ZERO
+        if(posBusInd > 0 && posBusInd <= 4) //IGNORE POSITIONS.ZERO
         {
             std::cout << "INTINT: " << it->c_str() << std::endl;
-            initLookup(*it, "SCALE", paramInd);
-            initLookup(*it, "OFFSET", paramInd);
-            initLookup(*it, "UNITS", paramInd);
+            initLookup(*it, "SCALE", &ADPandABlocksScale[posBusInd], posBusInd);
+            initLookup(*it, "OFFSET", &ADPandABlocksOffset[posBusInd], posBusInd);
+            initLookup(*it, "UNITS", &ADPandABlocksUnits[posBusInd], posBusInd);
         }
-        initLookup(*it, "CAPTURE", paramInd);
-        paramInd++;
+        initLookup(*it, "CAPTURE", &ADPandABlocksCapture[posBusInd], posBusInd);
+        posBusInd++;
     }
 
     /* Create the thread to monitor posbus changes */
@@ -228,12 +228,12 @@ void ADPandABlocks::createPosBusParam(const char* paramName, asynParamType param
     this->unlock();
 }
 
-void ADPandABlocks::initLookup(std::string paramName, std::string paramNameEnd, int paramInd)
+void ADPandABlocks::initLookup(std::string paramName, std::string paramNameEnd, int* paramInd, int posBusInd)
 {
     std::map<std::string, int*> lpMap2;
-    createPosBusParam(paramNameEnd.c_str(), asynParamOctet, &ADPandABlocksScale[paramInd], paramInd);
+    createPosBusParam(paramNameEnd.c_str(), asynParamOctet, paramInd, posBusInd);
     posBusValLookup.insert(std::pair<std::string, std::map<std::string, int*> >(paramName, lpMap2));
-    posBusValLookup[paramName].insert(std::pair<std::string, int*>(paramNameEnd, &ADPandABlocksScale[paramInd]));
+    posBusValLookup[paramName].insert(std::pair<std::string, int*>(paramNameEnd, paramInd));
     std::string paramVal = getPosBusField(paramName, paramNameEnd.c_str());
     setStringParam(*posBusValLookup[paramName][paramNameEnd], paramVal.c_str());
 }
@@ -324,16 +324,45 @@ void ADPandABlocks::checkPosBusChanges(){
         sendCtrl(cmd.str());
         int numChanges = 0;
         changedFields.push_back(readFieldNames(&numChanges));
-        //for every change, update our parameters (GET THE LOCK FIRST)
         this->lock();
-        for(int a = 0; a < numChanges; a++)
+        for(std::vector<std::string>::iterator it = changedFields[0].begin(); it != changedFields[0].end(); ++it)
         {
-        //    std::cout << "CHANGED: " << changedFields[0][a] << std::endl;
+            //std::cout << "CHANGED: " << *it << std::endl;
+            std::vector<std::string> changedFieldsParts = stringSplit(*it, '.');
+            std::stringstream  posBusName;
+            posBusName << changedFieldsParts[0] << "." << changedFieldsParts[1];
+            std::vector<std::string> changedField = stringSplit(changedFieldsParts[2], '=');
+            std::string fieldName = changedField[0];
+            std::string fieldVal = changedField[1];
+            //std::cout << "CHECKING.. " << posBusName.str()  << std::endl;
+            if(posBusValLookup.find(posBusName.str()) != posBusValLookup.end())
+            {
+                if(posBusValLookup[posBusName.str()][fieldName] != NULL)
+                {
+                    //std::cout << "CURRENT VAL: " << *posBusValLookup[posBusName.str()][fieldName] << std::endl;
+                    //std::cout << "KEY: " << posBusName.str() << " EXSTS" << std::endl;
+                    //std::cout << "SETTING: " << posBusName.str() << "." << fieldName << " = " << fieldVal.c_str() << std::endl;
+                    setStringParam(*posBusValLookup[posBusName.str()][fieldName], fieldVal.c_str());
+                    callParamCallbacks();
+                }
+            }
         }
-        //setStringParam(ADPandABlocksScale[a], posBusFields["SCALE"][a].c_str());
         this->unlock();
         epicsThreadSleep(1);
     }
+    callParamCallbacks();
+}
+
+std::vector<std::string> ADPandABlocks::stringSplit(const std::string& s, char delimiter)
+{
+    std::vector<std::string> tokens;
+    std::string token;
+    std::istringstream tokenStream(s);
+    while (std::getline(tokenStream, token, delimiter))
+    {
+        tokens.push_back(token);
+    }
+    return tokens;
 }
 
 asynStatus ADPandABlocks::readHeaderLine(char* rxBuffer, const size_t buffSize) const {
