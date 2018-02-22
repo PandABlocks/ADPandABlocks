@@ -105,6 +105,7 @@ private:
     void createPosBusParam(const char* paramName, asynParamType paramType, int* paramIndex, int paramNo);
     std::string getPosBusField(std::string posbus, const char* paramName);
     void initRbvLookup(std::string paramName, std::string paramNameEnd, int* paramInd, int posBusInd);
+    void initLookup(std::string paramName, std::string paramNameEnd, int* paramInd, int posBusInd);
     std::vector<std::string> stringSplit(const std::string& s, char delimiter);
 private:
     NDArray *pArray;

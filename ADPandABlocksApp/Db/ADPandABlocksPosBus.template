@@ -18,6 +18,15 @@ record(waveform, "$(P)$(R)POSBUS$(POSBUS_IND)") {
   field(NELM, "1024")
 }
 
+record(waveform, "$(P)$(R)POSBUS$(POSBUS_IND):CAPTURE") {
+  field(DESC, "Data end string")
+  field(PINI, "YES")
+  field(DTYP, "asynOctetWrite")
+  field(INP, "@asyn($(PORT),$(POSBUS_IND))POSBUS$(POSBUS_IND):CAPTURE")
+  field(FTVL, "CHAR")
+  field(NELM, "1024")
+}
+
 record(waveform, "$(P)$(R)POSBUS$(POSBUS_IND):CAPTURE_RBV") {
   field(DESC, "Data end string")
   field(SCAN, "I/O Intr")
