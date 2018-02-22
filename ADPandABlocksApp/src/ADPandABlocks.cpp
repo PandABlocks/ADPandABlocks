@@ -183,11 +183,11 @@ ADPandABlocks::ADPandABlocks(const char* portName, const char* cmdSerialPortName
         if(posBusInd > 0 && posBusInd <= 4) //IGNORE POSITIONS.ZERO
         {
             std::cout << "INTINT: " << it->c_str() << std::endl;
-            initLookup(*it, "SCALE", &ADPandABlocksScale[posBusInd], posBusInd);
-            initLookup(*it, "OFFSET", &ADPandABlocksOffset[posBusInd], posBusInd);
-            initLookup(*it, "UNITS", &ADPandABlocksUnits[posBusInd], posBusInd);
+            initRbvLookup(*it, "SCALE", &ADPandABlocksScaleRbv[posBusInd], posBusInd);
+            initRbvLookup(*it, "OFFSET", &ADPandABlocksOffsetRbv[posBusInd], posBusInd);
+            initRbvLookup(*it, "UNITS", &ADPandABlocksUnitsRbv[posBusInd], posBusInd);
         }
-        initLookup(*it, "CAPTURE", &ADPandABlocksCapture[posBusInd], posBusInd);
+        initRbvLookup(*it, "CAPTURE", &ADPandABlocksCaptureRbv[posBusInd], posBusInd);
         posBusInd++;
     }
 
@@ -228,15 +228,28 @@ void ADPandABlocks::createPosBusParam(const char* paramName, asynParamType param
     this->unlock();
 }
 
-void ADPandABlocks::initLookup(std::string paramName, std::string paramNameEnd, int* paramInd, int posBusInd)
+void ADPandABlocks::initRbvLookup(std::string paramName, std::string paramNameEnd, int* paramInd, int posBusInd)
 {
     std::map<std::string, int*> lpMap2;
-    createPosBusParam(paramNameEnd.c_str(), asynParamOctet, paramInd, posBusInd);
-    posBusValLookup.insert(std::pair<std::string, std::map<std::string, int*> >(paramName, lpMap2));
-    posBusValLookup[paramName].insert(std::pair<std::string, int*>(paramNameEnd, paramInd));
+    std::stringstream paramRbv;
+    paramRbv << paramNameEnd << "_RBV";
+    createPosBusParam(paramRbv.str().c_str(), asynParamOctet, paramInd, posBusInd);
+    posBusRbvLookup.insert(std::pair<std::string, std::map<std::string, int*> >(paramName, lpMap2));
+    posBusRbvLookup[paramName].insert(std::pair<std::string, int*>(paramRbv.str(), paramInd));
     std::string paramVal = getPosBusField(paramName, paramNameEnd.c_str());
-    setStringParam(*posBusValLookup[paramName][paramNameEnd], paramVal.c_str());
+    std::cout << "SETTING PARAM: " << paramName << paramRbv << ", " << posBusRbvLookup[paramName][paramRbv.str()] << ", " << paramVal.c_str() << std::endl;
+    setStringParam(*posBusRbvLookup[paramName][paramRbv.str()], paramVal.c_str());
 }
+
+//void ADPandABlocks::initLookup(std::string paramName, std::string paramNameEnd, int* paramInd, int posBusInd)
+//{
+//    std::map<std::string, int*> lpMap2;
+//    createPosBusParam(paramNameEnd.c_str(), asynParamOctet, paramInd, posBusInd);
+//    posBusValLookup.insert(std::pair<std::string, std::map<std::string, int*> >(paramName, lpMap2));
+//    posBusValLookup[paramName].insert(std::pair<std::string, int*>(paramNameEnd, paramInd));
+//    std::string paramVal = getPosBusField(paramName, paramNameEnd.c_str());
+//    setStringParam(*posBusValLookup[paramName][paramNameEnd], paramVal.c_str());
+//}
 
 /* This is the function that will be run for the read thread */
 std::vector<std::string> ADPandABlocks::readFieldNames(int* numFields) {
@@ -342,8 +355,8 @@ void ADPandABlocks::checkPosBusChanges(){
                     //std::cout << "CURRENT VAL: " << *posBusValLookup[posBusName.str()][fieldName] << std::endl;
                     //std::cout << "KEY: " << posBusName.str() << " EXSTS" << std::endl;
                     //std::cout << "SETTING: " << posBusName.str() << "." << fieldName << " = " << fieldVal.c_str() << std::endl;
-                    setStringParam(*posBusValLookup[posBusName.str()][fieldName], fieldVal.c_str());
-                    callParamCallbacks();
+                   // setStringParam(*posBusValLookup[posBusName.str()][fieldName], fieldVal.c_str());
+                   // callParamCallbacks();
                 }
             }
         }
