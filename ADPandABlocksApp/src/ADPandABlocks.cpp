@@ -912,11 +912,13 @@ asynStatus ADPandABlocks::writeOctet(asynUser *pasynUser, const char* value, siz
             {
                 std::cout << "CHANGED PARAM: " << it->first <<"."<< it2->first << std::endl;
                 std::stringstream cmdStr;
-                cmdStr << "CHANGED PARAM: " << it->first <<"."<< it2->first;
-               // sendCtrl(cmdStr.str());
-               // std::string field;
-                //field.assign(readPosBusValues());
-                //std::cout << 
+                cmdStr << it->first <<"."<< it2->first <<"="<<value;
+                this->lock();
+                sendCtrl(cmdStr.str());
+                std::string field;
+                readPosBusValues(&field);
+                std::cout << "FIELD: " << field << std::endl;
+                this->unlock();
             }
         }
     }
