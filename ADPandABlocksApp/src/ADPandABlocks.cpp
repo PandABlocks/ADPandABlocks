@@ -294,7 +294,7 @@ std::vector<std::string> ADPandABlocks::readFieldNames(int* numFields) {
     }
     for(int a = 0; a< i; a++)
     {
-    //    std::cout << "RECEICVED: " << fieldNameStrings[a] << std::endl;
+        std::cout << "RECEICVED: " << fieldNameStrings[a] << std::endl;
     }
    *numFields = i;
    return fieldNameStrings;
@@ -335,40 +335,44 @@ std::string ADPandABlocks::readPosBusValues() {
 }
 
 void ADPandABlocks::checkPosBusChanges(){
+    /*  This will check if anything has changed on the panada and update the
+        Readback values */
+    std::vector<std::vector<std::string> > changedFields;
+    std::vector<std::string> changedField;
+    //query the pandabox to see if any changes have occured
+    std::stringstream cmd;
+    cmd << "*CHANGES.ATTR?";
     while(true)
     {
-      //  std::vector<std::vector<std::string> > changedFields;
-      //  //query the pandabox to see if any changes have occured
-      //  std::stringstream cmd;
-      //  cmd << "*CHANGES.ATTR?";
-      //  sendCtrl(cmd.str());
-      //  int numChanges = 0;
-      //  changedFields.push_back(readFieldNames(&numChanges));
-      //  this->lock();
-      //  for(std::vector<std::string>::iterator it = changedFields[0].begin(); it != changedFields[0].end(); ++it)
-      //  {
-      //      //std::cout << "CHANGED: " << *it << std::endl;
-      //      std::vector<std::string> changedFieldsParts = stringSplit(*it, '.');
-      //      std::stringstream  posBusName;
-      //      posBusName << changedFieldsParts[0] << "." << changedFieldsParts[1];
-      //      std::vector<std::string> changedField = stringSplit(changedFieldsParts[2], '=');
-      //      std::string fieldName = changedField[0];
-      //      std::string fieldVal = changedField[1];
-      //      //std::cout << "CHECKING.. " << posBusName.str()  << std::endl;
-      //      if(posBusValLookup.find(posBusName.str()) != posBusValLookup.end())
-      //      {
-      //          if(posBusValLookup[posBusName.str()][fieldName] != NULL)
-      //          {
-      //              //std::cout << "CURRENT VAL: " << *posBusValLookup[posBusName.str()][fieldName] << std::endl;
-      //              //std::cout << "KEY: " << posBusName.str() << " EXSTS" << std::endl;
-      //              //std::cout << "SETTING: " << posBusName.str() << "." << fieldName << " = " << fieldVal.c_str() << std::endl;
-      //             // setStringParam(*posBusValLookup[posBusName.str()][fieldName], fieldVal.c_str());
-      //             // callParamCallbacks();
-      //          }
-      //      }
-      //  }
-      //  this->unlock();
-      //  epicsThreadSleep(1);
+        this->lock();
+        int numChanges = 0;
+        sendCtrl(cmd.str());
+        changedFields.clear();
+        changedFields.push_back(readFieldNames(&numChanges));
+        for(std::vector<std::string>::iterator it = changedFields[0].begin(); it != changedFields[0].end(); ++it)
+        {
+            std::vector<std::string> changedFieldsParts = stringSplit(*it, '.');
+            std::stringstream  posBusName;
+            posBusName << changedFieldsParts[0] << "." << changedFieldsParts[1];
+            changedField.clear();
+            changedField = stringSplit(changedFieldsParts[2], '=');
+            std::string fieldName = changedField[0] + "_RBV";
+            std::string fieldVal = "";
+            if(changedField.size() == 2)
+            {
+                fieldVal = changedField[1];
+            }
+            if(posBusRbvLookup.find(posBusName.str()) != posBusRbvLookup.end())
+            {
+                if(posBusRbvLookup[posBusName.str()][fieldName] != NULL)
+                {
+                    setStringParam(*posBusRbvLookup[posBusName.str()][fieldName], fieldVal.c_str());
+                    callParamCallbacks();
+                }
+            }
+        }
+        this->unlock();
+        epicsThreadSleep(1);
     }
     callParamCallbacks();
 }
@@ -874,6 +878,52 @@ asynStatus ADPandABlocks::writeInt32(asynUser *pasynUser, epicsInt32 value) {
         asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,"%s:%s: Error setting values'\n",
                 driverName, functionName);
     }
+
+    callParamCallbacks();
+    return status;
+}
+
+/** Called when asyn clients call pasynOctet->write().
+ * This function performs actions for some parameters
+ * For all parameters it sets the value in the parameter library and calls any registered callbacks..
+ * \param[in] pasynUser pasynUser structure that encodes the reason and address.
+ * \param[in] value Value to write. */
+asynStatus ADPandABlocks::writeOctet(asynUser *pasynUser, const char* value, size_t nChars, size_t* nActual) {
+    /* This will check if a user has changed a value and attempt to update the
+     * panda. It will also update the readback values */
+    const char *functionName = "writeOctet";
+    asynStatus status = asynError;
+
+    /* Any work we need to do */
+    int param = pasynUser->reason;
+    std::cout << "WRITE OCTET!" << param << ", " << value << std::endl;
+    // Before setting any param - send it to the Panda and make sure the
+    // response is OK
+    // find the correct param
+    //for(std::map<std::string, std::map<std::string, int*> >::iterator it = posBusValLookup.begin();
+    //        it != posBusValLookup.end(); ++it)
+    //{
+    //   // std::cout << "POSSIBLE PARAM NAMES: " << it->first << std::endl;
+    //   // for(std::map<std::string, int*>iterator it2 = it.begin();it2 != it.end(); ++it2)
+    //   // {
+    //   //     std::cout << "PARAM INT VALUES: " << *it << std::endl;
+    //   // }
+    //}
+    //// -Send change cmd
+   //// std::stringstream setCmd;
+   //// setCmd << "PCAP.BITS"<< n << ".BITS?";
+   //// sendCtrl(setCmd.str());
+    //
+    //// -CheckPandaSetOK()
+    //// -
+    //status = setStringParam(param, value);
+    ////change writing depending on imagemode
+
+    //if(status)
+    //{
+    //    asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,"%s:%s: Error setting values'\n",
+    //            driverName, functionName);
+    //}
 
     callParamCallbacks();
     return status;
