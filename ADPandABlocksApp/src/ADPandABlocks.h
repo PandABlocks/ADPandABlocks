@@ -96,7 +96,7 @@ private:
     void allocateFrame();
     void wrapFrame();
     std::vector<std::string> readFieldNames(int* numFields);
-    std::string readPosBusValues();
+    asynStatus readPosBusValues(std::string* posBusValue);
     asynStatus extractHeaderData(const xmlTextReaderPtr xmlreader, std::map<std::string, std::string>& values)const;
     std::string getHeaderValue(const int index, const std::string attribute)const;
     void getAllData(std::vector<char>& inBuffer, const int dataLen,const  int buffLen)const;

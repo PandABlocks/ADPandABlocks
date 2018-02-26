@@ -220,7 +220,7 @@ std::string ADPandABlocks::getPosBusField(std::string posbus, const char* paramN
     std::stringstream cmdStr;
     cmdStr << posbus << "." << paramName <<"?";
     sendCtrl(cmdStr.str());
-    field.assign(readPosBusValues());
+    readPosBusValues(&field);
     return field;
 }
 
@@ -301,14 +301,14 @@ std::vector<std::string> ADPandABlocks::readFieldNames(int* numFields) {
 }
 
 /* This is the function that will be run for the read thread */
-std::string ADPandABlocks::readPosBusValues() {
+asynStatus ADPandABlocks::readPosBusValues(std::string* posBusValue) {
     const char *functionName = "readPosBusValues";
     char rxBuffer[N_BUFF_CTRL];
     size_t nBytesIn;
     int eomReason;
     asynStatus status = asynSuccess;
     asynUser *pasynUserRead = pasynManager->duplicateAsynUser(pasynUser_ctrl, 0, 0);
-    std::string posBusValue;
+    //std::string posBusValue;
     pasynUserRead->timeout = 3.0;
     status = pasynOctet_ctrl->read(octetPvt_ctrl, pasynUserRead, rxBuffer, N_BUFF_CTRL - 1,
             &nBytesIn, &eomReason);
@@ -325,13 +325,14 @@ std::string ADPandABlocks::readPosBusValues() {
     if(rxBuffer[0] == 'O' && rxBuffer[1] == 'K')
     {
         char* readValue = rxBuffer + 4;
-        posBusValue.assign(readValue);
+        posBusValue->assign(readValue);
     } else {
         //we didn't recieve OK so something went wrong
         asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
                 "%s:%s: Bad response 'bt%.*s'\n", driverName, functionName, (int)nBytesIn, rxBuffer);
+        status = asynError;
     }
-    return posBusValue;
+    return status;
 }
 
 void ADPandABlocks::checkPosBusChanges(){
@@ -900,15 +901,25 @@ asynStatus ADPandABlocks::writeOctet(asynUser *pasynUser, const char* value, siz
     // Before setting any param - send it to the Panda and make sure the
     // response is OK
     // find the correct param
-    //for(std::map<std::string, std::map<std::string, int*> >::iterator it = posBusValLookup.begin();
-    //        it != posBusValLookup.end(); ++it)
-    //{
+    for(std::map<std::string, std::map<std::string, int*> >::iterator it = posBusValLookup.begin();
+            it != posBusValLookup.end(); ++it)
+    {
     //   // std::cout << "POSSIBLE PARAM NAMES: " << it->first << std::endl;
-    //   // for(std::map<std::string, int*>iterator it2 = it.begin();it2 != it.end(); ++it2)
-    //   // {
-    //   //     std::cout << "PARAM INT VALUES: " << *it << std::endl;
-    //   // }
-    //}
+        for(std::map<std::string, int*>::iterator it2 = it->second.begin();it2 != it->second.end(); ++it2)
+        {
+       //     std::cout << "PARAM INT VALUES: " << *it << std::endl;
+            if(param == *it2->second)
+            {
+                std::cout << "CHANGED PARAM: " << it->first <<"."<< it2->first << std::endl;
+                std::stringstream cmdStr;
+                cmdStr << "CHANGED PARAM: " << it->first <<"."<< it2->first;
+               // sendCtrl(cmdStr.str());
+               // std::string field;
+                //field.assign(readPosBusValues());
+                //std::cout << 
+            }
+        }
+    }
     //// -Send change cmd
    //// std::stringstream setCmd;
    //// setCmd << "PCAP.BITS"<< n << ".BITS?";
