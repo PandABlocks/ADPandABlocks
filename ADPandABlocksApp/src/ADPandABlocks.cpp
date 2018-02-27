@@ -182,7 +182,6 @@ ADPandABlocks::ADPandABlocks(const char* portName, const char* cmdSerialPortName
     {
         if(posBusInd > 0 && posBusInd <= 4) //IGNORE POSITIONS.ZERO
         {
-            std::cout << "INTINT: " << it->c_str() << std::endl;
             initLookup(*it, "SCALE", &ADPandABlocksScale[posBusInd], posBusInd);
             initLookup(*it, "OFFSET", &ADPandABlocksOffset[posBusInd], posBusInd);
             initLookup(*it, "UNITS", &ADPandABlocksUnits[posBusInd], posBusInd);
@@ -241,9 +240,7 @@ void ADPandABlocks::initRbvLookup(std::string paramName, std::string paramNameEn
     posBusRbvLookup.insert(std::pair<std::string, std::map<std::string, int*> >(paramName, lpMap2));
     posBusRbvLookup[paramName].insert(std::pair<std::string, int*>(paramRbv.str(), paramInd));
     std::string paramVal = getPosBusField(paramName, paramNameEnd.c_str());
-    std::cout << "SETTING PARAM: " << paramName << ":"<<paramRbv.str() << ", " << *posBusRbvLookup[paramName][paramRbv.str()] << ", " << paramVal.c_str() << std::endl;
     asynStatus status = setStringParam(*posBusRbvLookup[paramName][paramRbv.str()], paramVal.c_str());
-    std::cout << "INITLOOKUPSTATUS_RBV: " << status << std::endl;
 }
 
 void ADPandABlocks::initLookup(std::string paramName, std::string paramNameEnd, int* paramInd, int posBusInd)
@@ -254,12 +251,11 @@ void ADPandABlocks::initLookup(std::string paramName, std::string paramNameEnd, 
     posBusValLookup[paramName].insert(std::pair<std::string, int*>(paramNameEnd, paramInd));
     std::string paramVal = getPosBusField(paramName, paramNameEnd.c_str());
     asynStatus status = setStringParam(*posBusValLookup[paramName][paramNameEnd], paramVal.c_str());
-    std::cout << "SETTING PARAM: " << paramName <<":"<< paramNameEnd << ", " << *posBusValLookup[paramName][paramNameEnd] << ", " << paramVal.c_str() << std::endl;
-    std::cout << "INITLOOKUPSTATUS: " << status << std::endl;
 }
 
 /* This is the function that will be run for the read thread */
 std::vector<std::string> ADPandABlocks::readFieldNames(int* numFields) {
+    this->lock();
     const char *functionName = "readFieldNames";
     char rxBuffer[N_BUFF_CTRL];
     size_t nBytesIn;
@@ -292,11 +288,8 @@ std::vector<std::string> ADPandABlocks::readFieldNames(int* numFields) {
         status = pasynOctet_ctrl->read(octetPvt_ctrl, pasynUserRead, rxBuffer, N_BUFF_CTRL - 1,
                 &nBytesIn, &eomReason);
     }
-    for(int a = 0; a< i; a++)
-    {
-        std::cout << "RECEICVED: " << fieldNameStrings[a] << std::endl;
-    }
    *numFields = i;
+   this->unlock();
    return fieldNameStrings;
 }
 
@@ -805,7 +798,6 @@ asynStatus ADPandABlocks::sendData(const std::string txBuffer){
 }
 
 asynStatus ADPandABlocks::sendCtrl(const std::string txBuffer){
-    std::cout << "SENDING CMD: " << txBuffer << std::endl;
     asynStatus status = send(txBuffer, pasynOctet_ctrl, octetPvt_ctrl, pasynUser_ctrl);
     return status;
 }
@@ -897,47 +889,31 @@ asynStatus ADPandABlocks::writeOctet(asynUser *pasynUser, const char* value, siz
 
     /* Any work we need to do */
     int param = pasynUser->reason;
-    std::cout << "WRITE OCTET!" << param << ", " << value << std::endl;
     // Before setting any param - send it to the Panda and make sure the
     // response is OK
     // find the correct param
     for(std::map<std::string, std::map<std::string, int*> >::iterator it = posBusValLookup.begin();
             it != posBusValLookup.end(); ++it)
     {
-    //   // std::cout << "POSSIBLE PARAM NAMES: " << it->first << std::endl;
         for(std::map<std::string, int*>::iterator it2 = it->second.begin();it2 != it->second.end(); ++it2)
         {
-       //     std::cout << "PARAM INT VALUES: " << *it << std::endl;
             if(param == *it2->second)
             {
-                std::cout << "CHANGED PARAM: " << it->first <<"."<< it2->first << std::endl;
                 std::stringstream cmdStr;
                 cmdStr << it->first <<"."<< it2->first <<"="<<value;
                 this->lock();
                 sendCtrl(cmdStr.str());
                 std::string field;
-                readPosBusValues(&field);
-                std::cout << "FIELD: " << field << std::endl;
+                asynStatus status = readPosBusValues(&field);
+                if(status == asynError)
+                {
+                    asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,"%s:%s: Error setting: %s '\n",
+                            driverName, functionName, cmdStr.str());
+                }
                 this->unlock();
             }
         }
     }
-    //// -Send change cmd
-   //// std::stringstream setCmd;
-   //// setCmd << "PCAP.BITS"<< n << ".BITS?";
-   //// sendCtrl(setCmd.str());
-    //
-    //// -CheckPandaSetOK()
-    //// -
-    //status = setStringParam(param, value);
-    ////change writing depending on imagemode
-
-    //if(status)
-    //{
-    //    asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,"%s:%s: Error setting values'\n",
-    //            driverName, functionName);
-    //}
-
     callParamCallbacks();
     return status;
 }
