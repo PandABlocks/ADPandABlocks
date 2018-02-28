@@ -1,0 +1,1761 @@
+4 0 1
+beginScreenProperties
+major 4
+minor 0
+release 1
+x 353
+y 25
+w 1153
+h 1125
+font "arial-medium-r-18.0"
+ctlFont "arial-medium-r-18.0"
+btnFont "arial-medium-r-18.0"
+fgColor index 14
+bgColor index 3
+textColor index 14
+ctlFgColor1 index 14
+ctlFgColor2 index 0
+ctlBgColor1 index 0
+ctlBgColor2 index 14
+topShadowColor index 0
+botShadowColor index 14
+title "Data Selection - $(P) $(AXIS) $(IND)"
+showGrid
+snapToGrid
+gridSize 5
+endScreenProperties
+
+# (Rectangle)
+object activeRectangleClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 900
+y 35
+w 245
+h 65
+lineColor index 14
+fill
+fillColor index 3
+endObjectProperties
+
+# (Rectangle)
+object activeRectangleClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 655
+y 35
+w 245
+h 65
+lineColor index 14
+fill
+fillColor index 5
+endObjectProperties
+
+# (Rectangle)
+object activeRectangleClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 410
+y 35
+w 245
+h 65
+lineColor index 14
+fill
+fillColor index 3
+endObjectProperties
+
+# (Rectangle)
+object activeRectangleClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 165
+y 35
+w 245
+h 65
+lineColor index 14
+fill
+fillColor index 5
+endObjectProperties
+
+# (Rectangle)
+object activeRectangleClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 5
+y 35
+w 160
+h 65
+lineColor index 14
+fill
+fillColor index 3
+endObjectProperties
+
+# (Group)
+object activeGroupClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x -5
+y 0
+w 1575
+h 30
+
+beginGroup
+
+# (Rectangle)
+object activeRectangleClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x -5
+y 0
+w 1161
+h 25
+lineColor index 1
+fillColor index 0
+endObjectProperties
+
+# (Rectangle)
+object activeRectangleClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x -5
+y 1
+w 1161
+h 25
+lineColor index 11
+fillColor index 0
+endObjectProperties
+
+# (Related Display)
+object relatedDisplayClass
+beginObjectProperties
+major 4
+minor 4
+release 0
+x -5
+y 1
+w 1161
+h 24
+fgColor index 14
+bgColor index 3
+topShadowColor index 0
+botShadowColor index 0
+font "helvetica-bold-r-14.0"
+xPosOffset 5
+yPosOffset 5
+button3Popup
+invisible
+buttonLabel "tooltip"
+numPvs 4
+numDsps 1
+displayFileName {
+  0 "generic-tooltip"
+}
+setPosition {
+  0 "button"
+}
+endObjectProperties
+
+# (Static Text)
+object activeXTextClass
+beginObjectProperties
+major 4
+minor 1
+release 1
+x -5
+y 1
+w 1222
+h 25
+font "helvetica-bold-r-14.0"
+fontAlign "center"
+fgColor index 14
+bgColor index 48
+value {
+  "Pos Bus "
+}
+endObjectProperties
+
+endGroup
+
+endObjectProperties
+
+# (Exit Button)
+object activeExitButtonClass
+beginObjectProperties
+major 4
+minor 1
+release 0
+x 1050
+y 1095
+w 90
+h 25
+fgColor index 43
+bgColor index 4
+topShadowColor index 1
+botShadowColor index 11
+label "EXIT"
+font "arial-medium-r-18.0"
+3d
+endObjectProperties
+
+# (Textupdate)
+object TextupdateClass
+beginObjectProperties
+major 10
+minor 0
+release 0
+x 15
+y 65
+w 145
+h 25
+controlPv "$(P)$(R)POSBUS0"
+fgColor index 16
+fgAlarm
+bgColor index 10
+fill
+font "helvetica-bold-r-14.0"
+endObjectProperties
+
+# (Static Text)
+object activeXTextClass
+beginObjectProperties
+major 4
+minor 1
+release 1
+x 15
+y 40
+w 53
+h 21
+font "arial-medium-r-18.0"
+fgColor index 14
+bgColor index 0
+useDisplayBg
+value {
+  "NAME"
+}
+autoSize
+endObjectProperties
+
+# (Static Text)
+object activeXTextClass
+beginObjectProperties
+major 4
+minor 1
+release 1
+x 170
+y 40
+w 87
+h 21
+font "arial-medium-r-18.0"
+fgColor index 14
+bgColor index 0
+useDisplayBg
+value {
+  "CAPTURE"
+}
+autoSize
+endObjectProperties
+
+# (Static Text)
+object activeXTextClass
+beginObjectProperties
+major 4
+minor 1
+release 1
+x 415
+y 40
+w 60
+h 21
+font "arial-medium-r-18.0"
+fgColor index 14
+bgColor index 0
+useDisplayBg
+value {
+  "SCALE"
+}
+autoSize
+endObjectProperties
+
+# (Static Text)
+object activeXTextClass
+beginObjectProperties
+major 4
+minor 1
+release 1
+x 660
+y 40
+w 74
+h 21
+font "arial-medium-r-18.0"
+fgColor index 14
+bgColor index 0
+useDisplayBg
+value {
+  "OFFSET"
+}
+autoSize
+endObjectProperties
+
+# (Static Text)
+object activeXTextClass
+beginObjectProperties
+major 4
+minor 1
+release 1
+x 905
+y 40
+w 54
+h 21
+font "arial-medium-r-18.0"
+fgColor index 14
+bgColor index 0
+useDisplayBg
+value {
+  "UNITS"
+}
+autoSize
+endObjectProperties
+
+# (Textupdate)
+object TextupdateClass
+beginObjectProperties
+major 10
+minor 0
+release 0
+x 290
+y 65
+w 115
+h 25
+controlPv "$(P)$(R)POSBUS0:CAPTURE_RBV"
+fgColor index 16
+fgAlarm
+bgColor index 10
+fill
+font "helvetica-bold-r-14.0"
+endObjectProperties
+
+# (Textupdate)
+object TextupdateClass
+beginObjectProperties
+major 10
+minor 0
+release 0
+x 535
+y 65
+w 115
+h 25
+controlPv "$(P)$(R)POSBUS0:SCALE_RBV"
+fgColor index 16
+fgAlarm
+bgColor index 10
+fill
+font "helvetica-bold-r-14.0"
+endObjectProperties
+
+# (Textupdate)
+object TextupdateClass
+beginObjectProperties
+major 10
+minor 0
+release 0
+x 780
+y 65
+w 115
+h 25
+controlPv "$(P)$(R)POSBUS0:OFFSET_RBV"
+fgColor index 16
+fgAlarm
+bgColor index 10
+fill
+font "helvetica-bold-r-14.0"
+endObjectProperties
+
+# (Textupdate)
+object TextupdateClass
+beginObjectProperties
+major 10
+minor 0
+release 0
+x 1025
+y 65
+w 115
+h 25
+controlPv "$(P)$(R)POSBUS0_UNITS_RBV"
+fgColor index 16
+fgAlarm
+bgColor index 10
+fill
+font "helvetica-bold-r-14.0"
+endObjectProperties
+
+# (Textentry)
+object TextentryClass
+beginObjectProperties
+major 10
+minor 0
+release 0
+x 170
+y 65
+w 115
+h 25
+controlPv "$(P)$(R)POSBUS0:CAPTURE"
+fgColor index 14
+fgAlarm
+bgColor index 0
+fill
+font "arial-medium-r-18.0"
+endObjectProperties
+
+# (Textentry)
+object TextentryClass
+beginObjectProperties
+major 10
+minor 0
+release 0
+x 415
+y 65
+w 115
+h 25
+controlPv "$(P)$(R)POSBUS0:SCALE"
+fgColor index 14
+fgAlarm
+bgColor index 0
+fill
+font "arial-medium-r-18.0"
+endObjectProperties
+
+# (Textentry)
+object TextentryClass
+beginObjectProperties
+major 10
+minor 0
+release 0
+x 660
+y 65
+w 115
+h 25
+controlPv "$(P)$(R)POSBUS0:OFFSET"
+fgColor index 14
+fgAlarm
+bgColor index 0
+fill
+font "arial-medium-r-18.0"
+endObjectProperties
+
+# (Textentry)
+object TextentryClass
+beginObjectProperties
+major 10
+minor 0
+release 0
+x 905
+y 65
+w 115
+h 25
+controlPv "$(P)$(R)POSBUS0:UNITS"
+fgColor index 14
+fgAlarm
+bgColor index 0
+fill
+font "arial-medium-r-18.0"
+endObjectProperties
+
+# (Embedded Window)
+object activePipClass
+beginObjectProperties
+major 4
+minor 1
+release 0
+x 5
+y 125
+w 1135
+h 30
+fgColor index 14
+bgColor index 0
+topShadowColor index 0
+botShadowColor index 14
+displaySource "menu"
+filePv "LOC\\overview$(!W)=e:0"
+file "PosBus.edl"
+sizeOfs 5
+numDsps 1
+displayFileName {
+  0 "PosBus.edl"
+}
+menuLabel {
+  0 "POSBUS1"
+}
+symbols {
+  0 "N=0,P=$(P),R=$(R)"
+}
+replaceSymbols {
+  0 1
+}
+propagateMacros {
+  0 0
+}
+noScroll
+endObjectProperties
+
+# (Static Text)
+object activeXTextClass
+beginObjectProperties
+major 4
+minor 1
+release 1
+x 905
+y 105
+w 54
+h 21
+font "arial-medium-r-18.0"
+fgColor index 14
+bgColor index 0
+useDisplayBg
+value {
+  "UNITS"
+}
+autoSize
+endObjectProperties
+
+# (Static Text)
+object activeXTextClass
+beginObjectProperties
+major 4
+minor 1
+release 1
+x 660
+y 105
+w 74
+h 21
+font "arial-medium-r-18.0"
+fgColor index 14
+bgColor index 0
+useDisplayBg
+value {
+  "OFFSET"
+}
+autoSize
+endObjectProperties
+
+# (Static Text)
+object activeXTextClass
+beginObjectProperties
+major 4
+minor 1
+release 1
+x 415
+y 105
+w 60
+h 21
+font "arial-medium-r-18.0"
+fgColor index 14
+bgColor index 0
+useDisplayBg
+value {
+  "SCALE"
+}
+autoSize
+endObjectProperties
+
+# (Static Text)
+object activeXTextClass
+beginObjectProperties
+major 4
+minor 1
+release 1
+x 170
+y 105
+w 87
+h 21
+font "arial-medium-r-18.0"
+fgColor index 14
+bgColor index 0
+useDisplayBg
+value {
+  "CAPTURE"
+}
+autoSize
+endObjectProperties
+
+# (Static Text)
+object activeXTextClass
+beginObjectProperties
+major 4
+minor 1
+release 1
+x 15
+y 105
+w 53
+h 21
+font "arial-medium-r-18.0"
+fgColor index 14
+bgColor index 0
+useDisplayBg
+value {
+  "NAME"
+}
+autoSize
+endObjectProperties
+
+# (Embedded Window)
+object activePipClass
+beginObjectProperties
+major 4
+minor 1
+release 0
+x 5
+y 155
+w 1135
+h 30
+fgColor index 14
+bgColor index 0
+topShadowColor index 0
+botShadowColor index 14
+displaySource "menu"
+filePv "LOC\\overview$(!W)=e:0"
+file "PosBus.edl"
+sizeOfs 5
+numDsps 1
+displayFileName {
+  0 "PosBus.edl"
+}
+menuLabel {
+  0 "POSBUS1"
+}
+symbols {
+  0 "N=1,P=$(P),R=$(R)"
+}
+replaceSymbols {
+  0 1
+}
+propagateMacros {
+  0 0
+}
+noScroll
+endObjectProperties
+
+# (Embedded Window)
+object activePipClass
+beginObjectProperties
+major 4
+minor 1
+release 0
+x 5
+y 185
+w 1135
+h 30
+fgColor index 14
+bgColor index 0
+topShadowColor index 0
+botShadowColor index 14
+displaySource "menu"
+filePv "LOC\\overview$(!W)=e:0"
+file "PosBus.edl"
+sizeOfs 5
+numDsps 1
+displayFileName {
+  0 "PosBus.edl"
+}
+menuLabel {
+  0 "POSBUS1"
+}
+symbols {
+  0 "N=2,P=$(P),R=$(R)"
+}
+replaceSymbols {
+  0 1
+}
+propagateMacros {
+  0 0
+}
+noScroll
+endObjectProperties
+
+# (Embedded Window)
+object activePipClass
+beginObjectProperties
+major 4
+minor 1
+release 0
+x 5
+y 215
+w 1135
+h 30
+fgColor index 14
+bgColor index 0
+topShadowColor index 0
+botShadowColor index 14
+displaySource "menu"
+filePv "LOC\\overview$(!W)=e:0"
+file "PosBus.edl"
+sizeOfs 5
+numDsps 1
+displayFileName {
+  0 "PosBus.edl"
+}
+menuLabel {
+  0 "POSBUS1"
+}
+symbols {
+  0 "N=3,P=$(P),R=$(R)"
+}
+replaceSymbols {
+  0 1
+}
+propagateMacros {
+  0 0
+}
+noScroll
+endObjectProperties
+
+# (Embedded Window)
+object activePipClass
+beginObjectProperties
+major 4
+minor 1
+release 0
+x 5
+y 245
+w 1135
+h 30
+fgColor index 14
+bgColor index 0
+topShadowColor index 0
+botShadowColor index 14
+displaySource "menu"
+filePv "LOC\\overview$(!W)=e:0"
+file "PosBus.edl"
+sizeOfs 5
+numDsps 1
+displayFileName {
+  0 "PosBus.edl"
+}
+menuLabel {
+  0 "POSBUS1"
+}
+symbols {
+  0 "N=4,P=$(P),R=$(R)"
+}
+replaceSymbols {
+  0 1
+}
+propagateMacros {
+  0 0
+}
+noScroll
+endObjectProperties
+
+# (Embedded Window)
+object activePipClass
+beginObjectProperties
+major 4
+minor 1
+release 0
+x 5
+y 275
+w 1135
+h 30
+fgColor index 14
+bgColor index 0
+topShadowColor index 0
+botShadowColor index 14
+displaySource "menu"
+filePv "LOC\\overview$(!W)=e:0"
+file "PosBus.edl"
+sizeOfs 5
+numDsps 1
+displayFileName {
+  0 "PosBus.edl"
+}
+menuLabel {
+  0 "POSBUS1"
+}
+symbols {
+  0 "N=5,P=$(P),R=$(R)"
+}
+replaceSymbols {
+  0 1
+}
+propagateMacros {
+  0 0
+}
+noScroll
+endObjectProperties
+
+# (Embedded Window)
+object activePipClass
+beginObjectProperties
+major 4
+minor 1
+release 0
+x 5
+y 335
+w 1135
+h 30
+fgColor index 14
+bgColor index 0
+topShadowColor index 0
+botShadowColor index 14
+displaySource "menu"
+filePv "LOC\\overview$(!W)=e:0"
+file "PosBus.edl"
+sizeOfs 5
+numDsps 1
+displayFileName {
+  0 "PosBus.edl"
+}
+menuLabel {
+  0 "POSBUS1"
+}
+symbols {
+  0 "N=7,P=$(P),R=$(R)"
+}
+replaceSymbols {
+  0 1
+}
+propagateMacros {
+  0 0
+}
+noScroll
+endObjectProperties
+
+# (Embedded Window)
+object activePipClass
+beginObjectProperties
+major 4
+minor 1
+release 0
+x 5
+y 305
+w 1135
+h 30
+fgColor index 14
+bgColor index 0
+topShadowColor index 0
+botShadowColor index 14
+displaySource "menu"
+filePv "LOC\\overview$(!W)=e:0"
+file "PosBus.edl"
+sizeOfs 5
+numDsps 1
+displayFileName {
+  0 "PosBus.edl"
+}
+menuLabel {
+  0 "POSBUS1"
+}
+symbols {
+  0 "N=6,P=$(P),R=$(R)"
+}
+replaceSymbols {
+  0 1
+}
+propagateMacros {
+  0 0
+}
+noScroll
+endObjectProperties
+
+# (Embedded Window)
+object activePipClass
+beginObjectProperties
+major 4
+minor 1
+release 0
+x 5
+y 365
+w 1135
+h 30
+fgColor index 14
+bgColor index 0
+topShadowColor index 0
+botShadowColor index 14
+displaySource "menu"
+filePv "LOC\\overview$(!W)=e:0"
+file "PosBus.edl"
+sizeOfs 5
+numDsps 1
+displayFileName {
+  0 "PosBus.edl"
+}
+menuLabel {
+  0 "POSBUS1"
+}
+symbols {
+  0 "N=8,P=$(P),R=$(R)"
+}
+replaceSymbols {
+  0 1
+}
+propagateMacros {
+  0 0
+}
+noScroll
+endObjectProperties
+
+# (Embedded Window)
+object activePipClass
+beginObjectProperties
+major 4
+minor 1
+release 0
+x 5
+y 395
+w 1135
+h 30
+fgColor index 14
+bgColor index 0
+topShadowColor index 0
+botShadowColor index 14
+displaySource "menu"
+filePv "LOC\\overview$(!W)=e:0"
+file "PosBus.edl"
+sizeOfs 5
+numDsps 1
+displayFileName {
+  0 "PosBus.edl"
+}
+menuLabel {
+  0 "POSBUS1"
+}
+symbols {
+  0 "N=9,P=$(P),R=$(R)"
+}
+replaceSymbols {
+  0 1
+}
+propagateMacros {
+  0 0
+}
+noScroll
+endObjectProperties
+
+# (Embedded Window)
+object activePipClass
+beginObjectProperties
+major 4
+minor 1
+release 0
+x 5
+y 425
+w 1135
+h 30
+fgColor index 14
+bgColor index 0
+topShadowColor index 0
+botShadowColor index 14
+displaySource "menu"
+filePv "LOC\\overview$(!W)=e:0"
+file "PosBus.edl"
+sizeOfs 5
+numDsps 1
+displayFileName {
+  0 "PosBus.edl"
+}
+menuLabel {
+  0 "POSBUS1"
+}
+symbols {
+  0 "N=10,P=$(P),R=$(R)"
+}
+replaceSymbols {
+  0 1
+}
+propagateMacros {
+  0 0
+}
+noScroll
+endObjectProperties
+
+# (Embedded Window)
+object activePipClass
+beginObjectProperties
+major 4
+minor 1
+release 0
+x 5
+y 455
+w 1135
+h 30
+fgColor index 14
+bgColor index 0
+topShadowColor index 0
+botShadowColor index 14
+displaySource "menu"
+filePv "LOC\\overview$(!W)=e:0"
+file "PosBus.edl"
+sizeOfs 5
+numDsps 1
+displayFileName {
+  0 "PosBus.edl"
+}
+menuLabel {
+  0 "POSBUS1"
+}
+symbols {
+  0 "N=11,P=$(P),R=$(R)"
+}
+replaceSymbols {
+  0 1
+}
+propagateMacros {
+  0 0
+}
+noScroll
+endObjectProperties
+
+# (Embedded Window)
+object activePipClass
+beginObjectProperties
+major 4
+minor 1
+release 0
+x 5
+y 545
+w 1135
+h 30
+fgColor index 14
+bgColor index 0
+topShadowColor index 0
+botShadowColor index 14
+displaySource "menu"
+filePv "LOC\\overview$(!W)=e:0"
+file "PosBus.edl"
+sizeOfs 5
+numDsps 1
+displayFileName {
+  0 "PosBus.edl"
+}
+menuLabel {
+  0 "POSBUS1"
+}
+symbols {
+  0 "N=14,P=$(P),R=$(R)"
+}
+replaceSymbols {
+  0 1
+}
+propagateMacros {
+  0 0
+}
+noScroll
+endObjectProperties
+
+# (Embedded Window)
+object activePipClass
+beginObjectProperties
+major 4
+minor 1
+release 0
+x 5
+y 575
+w 1135
+h 30
+fgColor index 14
+bgColor index 0
+topShadowColor index 0
+botShadowColor index 14
+displaySource "menu"
+filePv "LOC\\overview$(!W)=e:0"
+file "PosBus.edl"
+sizeOfs 5
+numDsps 1
+displayFileName {
+  0 "PosBus.edl"
+}
+menuLabel {
+  0 "POSBUS1"
+}
+symbols {
+  0 "N=15,P=$(P),R=$(R)"
+}
+replaceSymbols {
+  0 1
+}
+propagateMacros {
+  0 0
+}
+noScroll
+endObjectProperties
+
+# (Embedded Window)
+object activePipClass
+beginObjectProperties
+major 4
+minor 1
+release 0
+x 5
+y 515
+w 1135
+h 30
+fgColor index 14
+bgColor index 0
+topShadowColor index 0
+botShadowColor index 14
+displaySource "menu"
+filePv "LOC\\overview$(!W)=e:0"
+file "PosBus.edl"
+sizeOfs 5
+numDsps 1
+displayFileName {
+  0 "PosBus.edl"
+}
+menuLabel {
+  0 "POSBUS1"
+}
+symbols {
+  0 "N=13,P=$(P),R=$(R)"
+}
+replaceSymbols {
+  0 1
+}
+propagateMacros {
+  0 0
+}
+noScroll
+endObjectProperties
+
+# (Embedded Window)
+object activePipClass
+beginObjectProperties
+major 4
+minor 1
+release 0
+x 5
+y 485
+w 1135
+h 30
+fgColor index 14
+bgColor index 0
+topShadowColor index 0
+botShadowColor index 14
+displaySource "menu"
+filePv "LOC\\overview$(!W)=e:0"
+file "PosBus.edl"
+sizeOfs 5
+numDsps 1
+displayFileName {
+  0 "PosBus.edl"
+}
+menuLabel {
+  0 "POSBUS1"
+}
+symbols {
+  0 "N=12,P=$(P),R=$(R)"
+}
+replaceSymbols {
+  0 1
+}
+propagateMacros {
+  0 0
+}
+noScroll
+endObjectProperties
+
+# (Embedded Window)
+object activePipClass
+beginObjectProperties
+major 4
+minor 1
+release 0
+x 5
+y 1055
+w 1135
+h 30
+fgColor index 14
+bgColor index 0
+topShadowColor index 0
+botShadowColor index 14
+displaySource "menu"
+filePv "LOC\\overview$(!W)=e:0"
+file "PosBus.edl"
+sizeOfs 5
+numDsps 1
+displayFileName {
+  0 "PosBus.edl"
+}
+menuLabel {
+  0 "POSBUS1"
+}
+symbols {
+  0 "N=31,P=$(P),R=$(R)"
+}
+replaceSymbols {
+  0 1
+}
+propagateMacros {
+  0 0
+}
+noScroll
+endObjectProperties
+
+# (Embedded Window)
+object activePipClass
+beginObjectProperties
+major 4
+minor 1
+release 0
+x 5
+y 1025
+w 1135
+h 30
+fgColor index 14
+bgColor index 0
+topShadowColor index 0
+botShadowColor index 14
+displaySource "menu"
+filePv "LOC\\overview$(!W)=e:0"
+file "PosBus.edl"
+sizeOfs 5
+numDsps 1
+displayFileName {
+  0 "PosBus.edl"
+}
+menuLabel {
+  0 "POSBUS1"
+}
+symbols {
+  0 "N=30,P=$(P),R=$(R)"
+}
+replaceSymbols {
+  0 1
+}
+propagateMacros {
+  0 0
+}
+noScroll
+endObjectProperties
+
+# (Embedded Window)
+object activePipClass
+beginObjectProperties
+major 4
+minor 1
+release 0
+x 5
+y 995
+w 1135
+h 30
+fgColor index 14
+bgColor index 0
+topShadowColor index 0
+botShadowColor index 14
+displaySource "menu"
+filePv "LOC\\overview$(!W)=e:0"
+file "PosBus.edl"
+sizeOfs 5
+numDsps 1
+displayFileName {
+  0 "PosBus.edl"
+}
+menuLabel {
+  0 "POSBUS1"
+}
+symbols {
+  0 "N=29,P=$(P),R=$(R)"
+}
+replaceSymbols {
+  0 1
+}
+propagateMacros {
+  0 0
+}
+noScroll
+endObjectProperties
+
+# (Embedded Window)
+object activePipClass
+beginObjectProperties
+major 4
+minor 1
+release 0
+x 5
+y 965
+w 1135
+h 30
+fgColor index 14
+bgColor index 0
+topShadowColor index 0
+botShadowColor index 14
+displaySource "menu"
+filePv "LOC\\overview$(!W)=e:0"
+file "PosBus.edl"
+sizeOfs 5
+numDsps 1
+displayFileName {
+  0 "PosBus.edl"
+}
+menuLabel {
+  0 "POSBUS1"
+}
+symbols {
+  0 "N=28,P=$(P),R=$(R)"
+}
+replaceSymbols {
+  0 1
+}
+propagateMacros {
+  0 0
+}
+noScroll
+endObjectProperties
+
+# (Embedded Window)
+object activePipClass
+beginObjectProperties
+major 4
+minor 1
+release 0
+x 5
+y 935
+w 1135
+h 30
+fgColor index 14
+bgColor index 0
+topShadowColor index 0
+botShadowColor index 14
+displaySource "menu"
+filePv "LOC\\overview$(!W)=e:0"
+file "PosBus.edl"
+sizeOfs 5
+numDsps 1
+displayFileName {
+  0 "PosBus.edl"
+}
+menuLabel {
+  0 "POSBUS1"
+}
+symbols {
+  0 "N=27,P=$(P),R=$(R)"
+}
+replaceSymbols {
+  0 1
+}
+propagateMacros {
+  0 0
+}
+noScroll
+endObjectProperties
+
+# (Embedded Window)
+object activePipClass
+beginObjectProperties
+major 4
+minor 1
+release 0
+x 5
+y 905
+w 1135
+h 30
+fgColor index 14
+bgColor index 0
+topShadowColor index 0
+botShadowColor index 14
+displaySource "menu"
+filePv "LOC\\overview$(!W)=e:0"
+file "PosBus.edl"
+sizeOfs 5
+numDsps 1
+displayFileName {
+  0 "PosBus.edl"
+}
+menuLabel {
+  0 "POSBUS1"
+}
+symbols {
+  0 "N=26,P=$(P),R=$(R)"
+}
+replaceSymbols {
+  0 1
+}
+propagateMacros {
+  0 0
+}
+noScroll
+endObjectProperties
+
+# (Embedded Window)
+object activePipClass
+beginObjectProperties
+major 4
+minor 1
+release 0
+x 5
+y 875
+w 1135
+h 30
+fgColor index 14
+bgColor index 0
+topShadowColor index 0
+botShadowColor index 14
+displaySource "menu"
+filePv "LOC\\overview$(!W)=e:0"
+file "PosBus.edl"
+sizeOfs 5
+numDsps 1
+displayFileName {
+  0 "PosBus.edl"
+}
+menuLabel {
+  0 "POSBUS1"
+}
+symbols {
+  0 "N=25,P=$(P),R=$(R)"
+}
+replaceSymbols {
+  0 1
+}
+propagateMacros {
+  0 0
+}
+noScroll
+endObjectProperties
+
+# (Embedded Window)
+object activePipClass
+beginObjectProperties
+major 4
+minor 1
+release 0
+x 5
+y 845
+w 1135
+h 30
+fgColor index 14
+bgColor index 0
+topShadowColor index 0
+botShadowColor index 14
+displaySource "menu"
+filePv "LOC\\overview$(!W)=e:0"
+file "PosBus.edl"
+sizeOfs 5
+numDsps 1
+displayFileName {
+  0 "PosBus.edl"
+}
+menuLabel {
+  0 "POSBUS1"
+}
+symbols {
+  0 "N=24,P=$(P),R=$(R)"
+}
+replaceSymbols {
+  0 1
+}
+propagateMacros {
+  0 0
+}
+noScroll
+endObjectProperties
+
+# (Embedded Window)
+object activePipClass
+beginObjectProperties
+major 4
+minor 1
+release 0
+x 5
+y 815
+w 1135
+h 30
+fgColor index 14
+bgColor index 0
+topShadowColor index 0
+botShadowColor index 14
+displaySource "menu"
+filePv "LOC\\overview$(!W)=e:0"
+file "PosBus.edl"
+sizeOfs 5
+numDsps 1
+displayFileName {
+  0 "PosBus.edl"
+}
+menuLabel {
+  0 "POSBUS1"
+}
+symbols {
+  0 "N=23,P=$(P),R=$(R)"
+}
+replaceSymbols {
+  0 1
+}
+propagateMacros {
+  0 0
+}
+noScroll
+endObjectProperties
+
+# (Embedded Window)
+object activePipClass
+beginObjectProperties
+major 4
+minor 1
+release 0
+x 5
+y 785
+w 1135
+h 30
+fgColor index 14
+bgColor index 0
+topShadowColor index 0
+botShadowColor index 14
+displaySource "menu"
+filePv "LOC\\overview$(!W)=e:0"
+file "PosBus.edl"
+sizeOfs 5
+numDsps 1
+displayFileName {
+  0 "PosBus.edl"
+}
+menuLabel {
+  0 "POSBUS1"
+}
+symbols {
+  0 "N=22,P=$(P),R=$(R)"
+}
+replaceSymbols {
+  0 1
+}
+propagateMacros {
+  0 0
+}
+noScroll
+endObjectProperties
+
+# (Embedded Window)
+object activePipClass
+beginObjectProperties
+major 4
+minor 1
+release 0
+x 5
+y 755
+w 1135
+h 30
+fgColor index 14
+bgColor index 0
+topShadowColor index 0
+botShadowColor index 14
+displaySource "menu"
+filePv "LOC\\overview$(!W)=e:0"
+file "PosBus.edl"
+sizeOfs 5
+numDsps 1
+displayFileName {
+  0 "PosBus.edl"
+}
+menuLabel {
+  0 "POSBUS1"
+}
+symbols {
+  0 "N=21,P=$(P),R=$(R)"
+}
+replaceSymbols {
+  0 1
+}
+propagateMacros {
+  0 0
+}
+noScroll
+endObjectProperties
+
+# (Embedded Window)
+object activePipClass
+beginObjectProperties
+major 4
+minor 1
+release 0
+x 5
+y 725
+w 1135
+h 30
+fgColor index 14
+bgColor index 0
+topShadowColor index 0
+botShadowColor index 14
+displaySource "menu"
+filePv "LOC\\overview$(!W)=e:0"
+file "PosBus.edl"
+sizeOfs 5
+numDsps 1
+displayFileName {
+  0 "PosBus.edl"
+}
+menuLabel {
+  0 "POSBUS1"
+}
+symbols {
+  0 "N=20,P=$(P),R=$(R)"
+}
+replaceSymbols {
+  0 1
+}
+propagateMacros {
+  0 0
+}
+noScroll
+endObjectProperties
+
+# (Embedded Window)
+object activePipClass
+beginObjectProperties
+major 4
+minor 1
+release 0
+x 5
+y 695
+w 1135
+h 30
+fgColor index 14
+bgColor index 0
+topShadowColor index 0
+botShadowColor index 14
+displaySource "menu"
+filePv "LOC\\overview$(!W)=e:0"
+file "PosBus.edl"
+sizeOfs 5
+numDsps 1
+displayFileName {
+  0 "PosBus.edl"
+}
+menuLabel {
+  0 "POSBUS1"
+}
+symbols {
+  0 "N=19,P=$(P),R=$(R)"
+}
+replaceSymbols {
+  0 1
+}
+propagateMacros {
+  0 0
+}
+noScroll
+endObjectProperties
+
+# (Embedded Window)
+object activePipClass
+beginObjectProperties
+major 4
+minor 1
+release 0
+x 5
+y 665
+w 1135
+h 30
+fgColor index 14
+bgColor index 0
+topShadowColor index 0
+botShadowColor index 14
+displaySource "menu"
+filePv "LOC\\overview$(!W)=e:0"
+file "PosBus.edl"
+sizeOfs 5
+numDsps 1
+displayFileName {
+  0 "PosBus.edl"
+}
+menuLabel {
+  0 "POSBUS1"
+}
+symbols {
+  0 "N=28,P=$(P),R=$(R)"
+}
+replaceSymbols {
+  0 1
+}
+propagateMacros {
+  0 0
+}
+noScroll
+endObjectProperties
+
+# (Embedded Window)
+object activePipClass
+beginObjectProperties
+major 4
+minor 1
+release 0
+x 5
+y 635
+w 1135
+h 30
+fgColor index 14
+bgColor index 0
+topShadowColor index 0
+botShadowColor index 14
+displaySource "menu"
+filePv "LOC\\overview$(!W)=e:0"
+file "PosBus.edl"
+sizeOfs 5
+numDsps 1
+displayFileName {
+  0 "PosBus.edl"
+}
+menuLabel {
+  0 "POSBUS1"
+}
+symbols {
+  0 "N=17,P=$(P),R=$(R)"
+}
+replaceSymbols {
+  0 1
+}
+propagateMacros {
+  0 0
+}
+noScroll
+endObjectProperties
+
+# (Embedded Window)
+object activePipClass
+beginObjectProperties
+major 4
+minor 1
+release 0
+x 5
+y 605
+w 1135
+h 30
+fgColor index 14
+bgColor index 0
+topShadowColor index 0
+botShadowColor index 14
+displaySource "menu"
+filePv "LOC\\overview$(!W)=e:0"
+file "PosBus.edl"
+sizeOfs 5
+numDsps 1
+displayFileName {
+  0 "PosBus.edl"
+}
+menuLabel {
+  0 "POSBUS1"
+}
+symbols {
+  0 "N=16,P=$(P),R=$(R)"
+}
+replaceSymbols {
+  0 1
+}
+propagateMacros {
+  0 0
+}
+noScroll
+endObjectProperties
+
