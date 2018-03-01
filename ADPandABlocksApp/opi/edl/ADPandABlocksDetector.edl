@@ -3,8 +3,8 @@ beginScreenProperties
 major 4
 minor 0
 release 1
-x 806
-y 204
+x 809
+y 229
 w 390
 h 870
 font "arial-bold-r-12.0"
@@ -139,6 +139,32 @@ numPvs 4
 numDsps 1
 displayFileName {
   0 "Positions.edl"
+}
+symbols {
+  0 "N=0,"
+}
+endObjectProperties
+
+# (Related Display)
+object relatedDisplayClass
+beginObjectProperties
+major 4
+minor 4
+release 0
+x 145
+y 795
+w 125
+h 25
+fgColor index 14
+bgColor index 3
+topShadowColor index 1
+botShadowColor index 11
+font "arial-bold-r-12.0"
+buttonLabel "Positions1"
+numPvs 4
+numDsps 1
+displayFileName {
+  0 "Positions1.edl"
 }
 symbols {
   0 "N=0,"

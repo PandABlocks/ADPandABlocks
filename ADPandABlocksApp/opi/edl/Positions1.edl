@@ -3,8 +3,8 @@ beginScreenProperties
 major 4
 minor 0
 release 1
-x 669
-y 41
+x 476
+y 75
 w 1150
 h 1071
 font "arial-medium-r-18.0"
@@ -5414,6 +5414,9 @@ endObjectProperties
 
 endGroup
 
+visPv "$(P)$(R)POSBUS1:ISMOTOR"
+visMin "1"
+visMax "2"
 endObjectProperties
 
 # (Group)

@@ -3,8 +3,8 @@ beginScreenProperties
 major 4
 minor 0
 release 1
-x 732
-y 298
+x 738
+y 348
 w 1150
 h 28
 font "arial-medium-r-18.0"
@@ -136,60 +136,6 @@ fill
 font "helvetica-bold-r-14.0"
 endObjectProperties
 
-# (Textupdate)
-object TextupdateClass
-beginObjectProperties
-major 10
-minor 0
-release 0
-x 530
-y 5
-w 115
-h 25
-controlPv "$(P)$(R)POSBUS$(N):SCALE_RBV"
-fgColor index 16
-fgAlarm
-bgColor index 10
-fill
-font "helvetica-bold-r-14.0"
-endObjectProperties
-
-# (Textupdate)
-object TextupdateClass
-beginObjectProperties
-major 10
-minor 0
-release 0
-x 775
-y 5
-w 115
-h 25
-controlPv "$(P)$(R)POSBUS$(N):OFFSET_RBV"
-fgColor index 16
-fgAlarm
-bgColor index 10
-fill
-font "helvetica-bold-r-14.0"
-endObjectProperties
-
-# (Textupdate)
-object TextupdateClass
-beginObjectProperties
-major 10
-minor 0
-release 0
-x 1020
-y 5
-w 115
-h 25
-controlPv "$(P)$(R)POSBUS$(N):UNITS_RBV"
-fgColor index 16
-fgAlarm
-bgColor index 10
-fill
-font "helvetica-bold-r-14.0"
-endObjectProperties
-
 # (Text Control)
 object activeXTextDspClass
 beginObjectProperties
@@ -215,17 +161,48 @@ inputFocusUpdates
 objType "controls"
 endObjectProperties
 
+# (Group)
+object activeGroupClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 410
+y 5
+w 725
+h 25
+
+beginGroup
+
+# (Textupdate)
+object TextupdateClass
+beginObjectProperties
+major 10
+minor 0
+release 0
+x 1020
+y 5
+w 115
+h 25
+controlPv "$(P)$(R)POSBUS$(N):UNITS_RBV"
+fgColor index 16
+fgAlarm
+bgColor index 10
+fill
+font "helvetica-bold-r-14.0"
+endObjectProperties
+
 # (Text Control)
 object activeXTextDspClass
 beginObjectProperties
 major 4
 minor 6
 release 0
-x 410
+x 900
 y 5
 w 115
 h 25
-controlPv "$(P)$(R)POSBUS$(N):SCALE"
+controlPv "$(P)$(R)POSBUS$(N):UNITS"
 font "arial-medium-r-14.0"
 fgColor index 25
 bgColor index 3
@@ -238,6 +215,24 @@ useHexPrefix
 newPos
 inputFocusUpdates
 objType "controls"
+endObjectProperties
+
+# (Textupdate)
+object TextupdateClass
+beginObjectProperties
+major 10
+minor 0
+release 0
+x 775
+y 5
+w 115
+h 25
+controlPv "$(P)$(R)POSBUS$(N):OFFSET_RBV"
+fgColor index 16
+fgAlarm
+bgColor index 10
+fill
+font "helvetica-bold-r-14.0"
 endObjectProperties
 
 # (Text Control)
@@ -265,17 +260,35 @@ inputFocusUpdates
 objType "controls"
 endObjectProperties
 
+# (Textupdate)
+object TextupdateClass
+beginObjectProperties
+major 10
+minor 0
+release 0
+x 530
+y 5
+w 115
+h 25
+controlPv "$(P)$(R)POSBUS$(N):SCALE_RBV"
+fgColor index 16
+fgAlarm
+bgColor index 10
+fill
+font "helvetica-bold-r-14.0"
+endObjectProperties
+
 # (Text Control)
 object activeXTextDspClass
 beginObjectProperties
 major 4
 minor 6
 release 0
-x 900
+x 410
 y 5
 w 115
 h 25
-controlPv "$(P)$(R)POSBUS$(N):UNITS"
+controlPv "$(P)$(R)POSBUS$(N):SCALE"
 font "arial-medium-r-14.0"
 fgColor index 25
 bgColor index 3
@@ -288,5 +301,12 @@ useHexPrefix
 newPos
 inputFocusUpdates
 objType "controls"
+endObjectProperties
+
+endGroup
+
+visPv "$(P)$(R)POSBUS$(N):ISMOTOR"
+visMin "1"
+visMax "2"
 endObjectProperties
 

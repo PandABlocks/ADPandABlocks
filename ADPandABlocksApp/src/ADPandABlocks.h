@@ -88,6 +88,7 @@ protected:
     int ADPandABlocksUnitsRbv[NENC];     // string read     - motor units
     int ADPandABlocksCapture[NPOSBUS];   // string write    - pcap capture type
     int ADPandABlocksCaptureRbv[NPOSBUS];// string read     - pcap capture type
+    int ADPandABlocksIsMotor[NPOSBUS];   // int write       - if posbus is a motor
 #define NUM_PARAMS (&LAST_PARAM - &FIRST_PARAM + 1)
 
 private:
@@ -108,6 +109,7 @@ private:
     void initRbvLookup(std::string paramName, std::string paramNameEnd, int* paramInd, int posBusInd);
     void initLookup(std::string paramName, std::string paramNameEnd, int* paramInd, int posBusInd);
     std::vector<std::string> stringSplit(const std::string& s, char delimiter);
+    void setMotor(int posBusInd, int isMotor, int* paramIndex);
 private:
     NDArray *pArray;
     asynUser *pasynUser_ctrl;

@@ -188,6 +188,7 @@ ADPandABlocks::ADPandABlocks(const char* portName, const char* cmdSerialPortName
             initRbvLookup(*it, "SCALE", &ADPandABlocksScaleRbv[posBusInd], posBusInd);
             initRbvLookup(*it, "OFFSET", &ADPandABlocksOffsetRbv[posBusInd], posBusInd);
             initRbvLookup(*it, "UNITS", &ADPandABlocksUnitsRbv[posBusInd], posBusInd);
+            setMotor(posBusInd, 1, &ADPandABlocksIsMotor[posBusInd]);
         }
         initLookup(*it, "CAPTURE", &ADPandABlocksCapture[posBusInd], posBusInd);
         initRbvLookup(*it, "CAPTURE", &ADPandABlocksCaptureRbv[posBusInd], posBusInd);
@@ -231,6 +232,15 @@ void ADPandABlocks::createPosBusParam(const char* paramName, asynParamType param
     this->unlock();
 }
 
+void ADPandABlocks::setMotor(int posBusInd, int isMotor, int* paramIndex)
+{
+    this->lock();
+    std::stringstream paramStr;
+    paramStr << "POSBUS" << posBusInd << ":ISMOTOR";
+    createParam(paramStr.str().c_str(), asynParamInt32, paramIndex);
+    setIntegerParam(*paramIndex, isMotor);
+    this->unlock();
+}
 void ADPandABlocks::initRbvLookup(std::string paramName, std::string paramNameEnd, int* paramInd, int posBusInd)
 {
     std::map<std::string, int*> lpMap2;
