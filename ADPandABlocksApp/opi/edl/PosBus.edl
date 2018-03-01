@@ -3,8 +3,8 @@ beginScreenProperties
 major 4
 minor 0
 release 1
-x 432
-y 204
+x 732
+y 298
 w 1150
 h 28
 font "arial-medium-r-18.0"
@@ -190,75 +190,103 @@ fill
 font "helvetica-bold-r-14.0"
 endObjectProperties
 
-# (Textentry)
-object TextentryClass
+# (Text Control)
+object activeXTextDspClass
 beginObjectProperties
-major 10
-minor 0
+major 4
+minor 6
 release 0
 x 165
 y 5
 w 115
 h 25
 controlPv "$(P)$(R)POSBUS$(N):CAPTURE"
-fgColor index 14
-fgAlarm
-bgColor index 0
-fill
-font "arial-medium-r-18.0"
+font "arial-medium-r-14.0"
+fgColor index 25
+bgColor index 5
+editable
+motifWidget
+limitsFromDb
+nullColor index 0
+useKp
+useHexPrefix
+newPos
+inputFocusUpdates
+objType "controls"
 endObjectProperties
 
-# (Textentry)
-object TextentryClass
+# (Text Control)
+object activeXTextDspClass
 beginObjectProperties
-major 10
-minor 0
+major 4
+minor 6
 release 0
 x 410
 y 5
 w 115
 h 25
 controlPv "$(P)$(R)POSBUS$(N):SCALE"
-fgColor index 14
-fgAlarm
-bgColor index 0
-fill
-font "arial-medium-r-18.0"
+font "arial-medium-r-14.0"
+fgColor index 25
+bgColor index 3
+editable
+motifWidget
+limitsFromDb
+nullColor index 0
+useKp
+useHexPrefix
+newPos
+inputFocusUpdates
+objType "controls"
 endObjectProperties
 
-# (Textentry)
-object TextentryClass
+# (Text Control)
+object activeXTextDspClass
 beginObjectProperties
-major 10
-minor 0
+major 4
+minor 6
 release 0
 x 655
 y 5
 w 115
 h 25
 controlPv "$(P)$(R)POSBUS$(N):OFFSET"
-fgColor index 14
-fgAlarm
-bgColor index 0
-fill
-font "arial-medium-r-18.0"
+font "arial-medium-r-14.0"
+fgColor index 25
+bgColor index 5
+editable
+motifWidget
+limitsFromDb
+nullColor index 0
+useKp
+useHexPrefix
+newPos
+inputFocusUpdates
+objType "controls"
 endObjectProperties
 
-# (Textentry)
-object TextentryClass
+# (Text Control)
+object activeXTextDspClass
 beginObjectProperties
-major 10
-minor 0
+major 4
+minor 6
 release 0
 x 900
 y 5
 w 115
 h 25
 controlPv "$(P)$(R)POSBUS$(N):UNITS"
-fgColor index 14
-fgAlarm
-bgColor index 0
-fill
-font "arial-medium-r-18.0"
+font "arial-medium-r-14.0"
+fgColor index 25
+bgColor index 3
+editable
+motifWidget
+limitsFromDb
+nullColor index 0
+useKp
+useHexPrefix
+newPos
+inputFocusUpdates
+objType "controls"
 endObjectProperties
 

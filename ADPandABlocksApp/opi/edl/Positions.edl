@@ -3,10 +3,10 @@ beginScreenProperties
 major 4
 minor 0
 release 1
-x 353
-y 25
-w 1153
-h 1125
+x 356
+y 50
+w 1147
+h 1057
 font "arial-medium-r-18.0"
 ctlFont "arial-medium-r-18.0"
 btnFont "arial-medium-r-18.0"
@@ -24,81 +24,6 @@ showGrid
 snapToGrid
 gridSize 5
 endScreenProperties
-
-# (Rectangle)
-object activeRectangleClass
-beginObjectProperties
-major 4
-minor 0
-release 0
-x 900
-y 35
-w 245
-h 65
-lineColor index 14
-fill
-fillColor index 3
-endObjectProperties
-
-# (Rectangle)
-object activeRectangleClass
-beginObjectProperties
-major 4
-minor 0
-release 0
-x 655
-y 35
-w 245
-h 65
-lineColor index 14
-fill
-fillColor index 5
-endObjectProperties
-
-# (Rectangle)
-object activeRectangleClass
-beginObjectProperties
-major 4
-minor 0
-release 0
-x 410
-y 35
-w 245
-h 65
-lineColor index 14
-fill
-fillColor index 3
-endObjectProperties
-
-# (Rectangle)
-object activeRectangleClass
-beginObjectProperties
-major 4
-minor 0
-release 0
-x 165
-y 35
-w 245
-h 65
-lineColor index 14
-fill
-fillColor index 5
-endObjectProperties
-
-# (Rectangle)
-object activeRectangleClass
-beginObjectProperties
-major 4
-minor 0
-release 0
-x 5
-y 35
-w 160
-h 65
-lineColor index 14
-fill
-fillColor index 3
-endObjectProperties
 
 # (Group)
 object activeGroupClass
@@ -201,7 +126,7 @@ major 4
 minor 1
 release 0
 x 1050
-y 1095
+y 1025
 w 90
 h 25
 fgColor index 43
@@ -213,268 +138,6 @@ font "arial-medium-r-18.0"
 3d
 endObjectProperties
 
-# (Textupdate)
-object TextupdateClass
-beginObjectProperties
-major 10
-minor 0
-release 0
-x 15
-y 65
-w 145
-h 25
-controlPv "$(P)$(R)POSBUS0"
-fgColor index 16
-fgAlarm
-bgColor index 10
-fill
-font "helvetica-bold-r-14.0"
-endObjectProperties
-
-# (Static Text)
-object activeXTextClass
-beginObjectProperties
-major 4
-minor 1
-release 1
-x 15
-y 40
-w 53
-h 21
-font "arial-medium-r-18.0"
-fgColor index 14
-bgColor index 0
-useDisplayBg
-value {
-  "NAME"
-}
-autoSize
-endObjectProperties
-
-# (Static Text)
-object activeXTextClass
-beginObjectProperties
-major 4
-minor 1
-release 1
-x 170
-y 40
-w 87
-h 21
-font "arial-medium-r-18.0"
-fgColor index 14
-bgColor index 0
-useDisplayBg
-value {
-  "CAPTURE"
-}
-autoSize
-endObjectProperties
-
-# (Static Text)
-object activeXTextClass
-beginObjectProperties
-major 4
-minor 1
-release 1
-x 415
-y 40
-w 60
-h 21
-font "arial-medium-r-18.0"
-fgColor index 14
-bgColor index 0
-useDisplayBg
-value {
-  "SCALE"
-}
-autoSize
-endObjectProperties
-
-# (Static Text)
-object activeXTextClass
-beginObjectProperties
-major 4
-minor 1
-release 1
-x 660
-y 40
-w 74
-h 21
-font "arial-medium-r-18.0"
-fgColor index 14
-bgColor index 0
-useDisplayBg
-value {
-  "OFFSET"
-}
-autoSize
-endObjectProperties
-
-# (Static Text)
-object activeXTextClass
-beginObjectProperties
-major 4
-minor 1
-release 1
-x 905
-y 40
-w 54
-h 21
-font "arial-medium-r-18.0"
-fgColor index 14
-bgColor index 0
-useDisplayBg
-value {
-  "UNITS"
-}
-autoSize
-endObjectProperties
-
-# (Textupdate)
-object TextupdateClass
-beginObjectProperties
-major 10
-minor 0
-release 0
-x 290
-y 65
-w 115
-h 25
-controlPv "$(P)$(R)POSBUS0:CAPTURE_RBV"
-fgColor index 16
-fgAlarm
-bgColor index 10
-fill
-font "helvetica-bold-r-14.0"
-endObjectProperties
-
-# (Textupdate)
-object TextupdateClass
-beginObjectProperties
-major 10
-minor 0
-release 0
-x 535
-y 65
-w 115
-h 25
-controlPv "$(P)$(R)POSBUS0:SCALE_RBV"
-fgColor index 16
-fgAlarm
-bgColor index 10
-fill
-font "helvetica-bold-r-14.0"
-endObjectProperties
-
-# (Textupdate)
-object TextupdateClass
-beginObjectProperties
-major 10
-minor 0
-release 0
-x 780
-y 65
-w 115
-h 25
-controlPv "$(P)$(R)POSBUS0:OFFSET_RBV"
-fgColor index 16
-fgAlarm
-bgColor index 10
-fill
-font "helvetica-bold-r-14.0"
-endObjectProperties
-
-# (Textupdate)
-object TextupdateClass
-beginObjectProperties
-major 10
-minor 0
-release 0
-x 1025
-y 65
-w 115
-h 25
-controlPv "$(P)$(R)POSBUS0_UNITS_RBV"
-fgColor index 16
-fgAlarm
-bgColor index 10
-fill
-font "helvetica-bold-r-14.0"
-endObjectProperties
-
-# (Textentry)
-object TextentryClass
-beginObjectProperties
-major 10
-minor 0
-release 0
-x 170
-y 65
-w 115
-h 25
-controlPv "$(P)$(R)POSBUS0:CAPTURE"
-fgColor index 14
-fgAlarm
-bgColor index 0
-fill
-font "arial-medium-r-18.0"
-endObjectProperties
-
-# (Textentry)
-object TextentryClass
-beginObjectProperties
-major 10
-minor 0
-release 0
-x 415
-y 65
-w 115
-h 25
-controlPv "$(P)$(R)POSBUS0:SCALE"
-fgColor index 14
-fgAlarm
-bgColor index 0
-fill
-font "arial-medium-r-18.0"
-endObjectProperties
-
-# (Textentry)
-object TextentryClass
-beginObjectProperties
-major 10
-minor 0
-release 0
-x 660
-y 65
-w 115
-h 25
-controlPv "$(P)$(R)POSBUS0:OFFSET"
-fgColor index 14
-fgAlarm
-bgColor index 0
-fill
-font "arial-medium-r-18.0"
-endObjectProperties
-
-# (Textentry)
-object TextentryClass
-beginObjectProperties
-major 10
-minor 0
-release 0
-x 905
-y 65
-w 115
-h 25
-controlPv "$(P)$(R)POSBUS0:UNITS"
-fgColor index 14
-fgAlarm
-bgColor index 0
-fill
-font "arial-medium-r-18.0"
-endObjectProperties
-
 # (Embedded Window)
 object activePipClass
 beginObjectProperties
@@ -482,7 +145,7 @@ major 4
 minor 1
 release 0
 x 5
-y 125
+y 55
 w 1135
 h 30
 fgColor index 14
@@ -519,7 +182,7 @@ major 4
 minor 1
 release 1
 x 905
-y 105
+y 35
 w 54
 h 21
 font "arial-medium-r-18.0"
@@ -539,7 +202,7 @@ major 4
 minor 1
 release 1
 x 660
-y 105
+y 35
 w 74
 h 21
 font "arial-medium-r-18.0"
@@ -559,7 +222,7 @@ major 4
 minor 1
 release 1
 x 415
-y 105
+y 35
 w 60
 h 21
 font "arial-medium-r-18.0"
@@ -579,7 +242,7 @@ major 4
 minor 1
 release 1
 x 170
-y 105
+y 35
 w 87
 h 21
 font "arial-medium-r-18.0"
@@ -599,7 +262,7 @@ major 4
 minor 1
 release 1
 x 15
-y 105
+y 35
 w 53
 h 21
 font "arial-medium-r-18.0"
@@ -619,7 +282,7 @@ major 4
 minor 1
 release 0
 x 5
-y 155
+y 85
 w 1135
 h 30
 fgColor index 14
@@ -656,7 +319,7 @@ major 4
 minor 1
 release 0
 x 5
-y 185
+y 115
 w 1135
 h 30
 fgColor index 14
@@ -693,7 +356,7 @@ major 4
 minor 1
 release 0
 x 5
-y 215
+y 145
 w 1135
 h 30
 fgColor index 14
@@ -730,7 +393,7 @@ major 4
 minor 1
 release 0
 x 5
-y 245
+y 175
 w 1135
 h 30
 fgColor index 14
@@ -767,7 +430,7 @@ major 4
 minor 1
 release 0
 x 5
-y 275
+y 205
 w 1135
 h 30
 fgColor index 14
@@ -804,7 +467,7 @@ major 4
 minor 1
 release 0
 x 5
-y 335
+y 265
 w 1135
 h 30
 fgColor index 14
@@ -841,7 +504,7 @@ major 4
 minor 1
 release 0
 x 5
-y 305
+y 235
 w 1135
 h 30
 fgColor index 14
@@ -878,7 +541,7 @@ major 4
 minor 1
 release 0
 x 5
-y 365
+y 295
 w 1135
 h 30
 fgColor index 14
@@ -915,7 +578,7 @@ major 4
 minor 1
 release 0
 x 5
-y 395
+y 325
 w 1135
 h 30
 fgColor index 14
@@ -952,7 +615,7 @@ major 4
 minor 1
 release 0
 x 5
-y 425
+y 355
 w 1135
 h 30
 fgColor index 14
@@ -989,7 +652,7 @@ major 4
 minor 1
 release 0
 x 5
-y 455
+y 385
 w 1135
 h 30
 fgColor index 14
@@ -1026,7 +689,7 @@ major 4
 minor 1
 release 0
 x 5
-y 545
+y 475
 w 1135
 h 30
 fgColor index 14
@@ -1063,7 +726,7 @@ major 4
 minor 1
 release 0
 x 5
-y 575
+y 505
 w 1135
 h 30
 fgColor index 14
@@ -1100,7 +763,7 @@ major 4
 minor 1
 release 0
 x 5
-y 515
+y 445
 w 1135
 h 30
 fgColor index 14
@@ -1137,7 +800,7 @@ major 4
 minor 1
 release 0
 x 5
-y 485
+y 415
 w 1135
 h 30
 fgColor index 14
@@ -1174,7 +837,7 @@ major 4
 minor 1
 release 0
 x 5
-y 1055
+y 985
 w 1135
 h 30
 fgColor index 14
@@ -1211,7 +874,7 @@ major 4
 minor 1
 release 0
 x 5
-y 1025
+y 955
 w 1135
 h 30
 fgColor index 14
@@ -1248,7 +911,7 @@ major 4
 minor 1
 release 0
 x 5
-y 995
+y 925
 w 1135
 h 30
 fgColor index 14
@@ -1285,7 +948,7 @@ major 4
 minor 1
 release 0
 x 5
-y 965
+y 895
 w 1135
 h 30
 fgColor index 14
@@ -1322,7 +985,7 @@ major 4
 minor 1
 release 0
 x 5
-y 935
+y 865
 w 1135
 h 30
 fgColor index 14
@@ -1359,7 +1022,7 @@ major 4
 minor 1
 release 0
 x 5
-y 905
+y 835
 w 1135
 h 30
 fgColor index 14
@@ -1396,7 +1059,7 @@ major 4
 minor 1
 release 0
 x 5
-y 875
+y 805
 w 1135
 h 30
 fgColor index 14
@@ -1433,7 +1096,7 @@ major 4
 minor 1
 release 0
 x 5
-y 845
+y 775
 w 1135
 h 30
 fgColor index 14
@@ -1470,7 +1133,7 @@ major 4
 minor 1
 release 0
 x 5
-y 815
+y 745
 w 1135
 h 30
 fgColor index 14
@@ -1507,7 +1170,7 @@ major 4
 minor 1
 release 0
 x 5
-y 785
+y 715
 w 1135
 h 30
 fgColor index 14
@@ -1544,7 +1207,7 @@ major 4
 minor 1
 release 0
 x 5
-y 755
+y 685
 w 1135
 h 30
 fgColor index 14
@@ -1581,7 +1244,7 @@ major 4
 minor 1
 release 0
 x 5
-y 725
+y 655
 w 1135
 h 30
 fgColor index 14
@@ -1618,7 +1281,7 @@ major 4
 minor 1
 release 0
 x 5
-y 695
+y 625
 w 1135
 h 30
 fgColor index 14
@@ -1655,7 +1318,7 @@ major 4
 minor 1
 release 0
 x 5
-y 665
+y 595
 w 1135
 h 30
 fgColor index 14
@@ -1692,7 +1355,7 @@ major 4
 minor 1
 release 0
 x 5
-y 635
+y 565
 w 1135
 h 30
 fgColor index 14
@@ -1729,7 +1392,7 @@ major 4
 minor 1
 release 0
 x 5
-y 605
+y 535
 w 1135
 h 30
 fgColor index 14
