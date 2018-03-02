@@ -3,8 +3,8 @@ beginScreenProperties
 major 4
 minor 0
 release 1
-x 680
-y 42
+x 116
+y 72
 w 1150
 h 1071
 font "arial-medium-r-18.0"
@@ -4990,314 +4990,6 @@ beginObjectProperties
 major 4
 minor 0
 release 0
-x 15
-y 95
-w 390
-h 25
-
-beginGroup
-
-# (Textupdate)
-object TextupdateClass
-beginObjectProperties
-major 10
-minor 0
-release 0
-x 290
-y 95
-w 115
-h 25
-controlPv "$(P)$(R)POSBUS1:CAPTURE_RBV"
-fgColor index 16
-fgAlarm
-bgColor index 10
-fill
-font "helvetica-bold-r-14.0"
-endObjectProperties
-
-# (Text Control)
-object activeXTextDspClass
-beginObjectProperties
-major 4
-minor 6
-release 0
-x 170
-y 95
-w 115
-h 25
-controlPv "$(P)$(R)POSBUS1:CAPTURE"
-font "arial-medium-r-14.0"
-fgColor index 25
-bgColor index 3
-editable
-limitsFromDb
-nullColor index 0
-useKp
-useHexPrefix
-newPos
-inputFocusUpdates
-objType "controls"
-endObjectProperties
-
-# (Textupdate)
-object TextupdateClass
-beginObjectProperties
-major 10
-minor 0
-release 0
-x 15
-y 95
-w 145
-h 25
-controlPv "$(P)$(R)POSBUS1"
-fgColor index 16
-fgAlarm
-bgColor index 10
-fill
-font "helvetica-bold-r-14.0"
-endObjectProperties
-
-endGroup
-
-endObjectProperties
-
-# (Group)
-object activeGroupClass
-beginObjectProperties
-major 4
-minor 0
-release 0
-x 15
-y 125
-w 390
-h 25
-
-beginGroup
-
-# (Textupdate)
-object TextupdateClass
-beginObjectProperties
-major 10
-minor 0
-release 0
-x 290
-y 125
-w 115
-h 25
-controlPv "$(P)$(R)POSBUS2:CAPTURE_RBV"
-fgColor index 16
-fgAlarm
-bgColor index 10
-fill
-font "helvetica-bold-r-14.0"
-endObjectProperties
-
-# (Text Control)
-object activeXTextDspClass
-beginObjectProperties
-major 4
-minor 6
-release 0
-x 170
-y 125
-w 115
-h 25
-controlPv "$(P)$(R)POSBUS2:CAPTURE"
-font "arial-medium-r-14.0"
-fgColor index 25
-bgColor index 3
-editable
-limitsFromDb
-nullColor index 0
-useKp
-useHexPrefix
-newPos
-inputFocusUpdates
-objType "controls"
-endObjectProperties
-
-# (Textupdate)
-object TextupdateClass
-beginObjectProperties
-major 10
-minor 0
-release 0
-x 15
-y 125
-w 145
-h 25
-controlPv "$(P)$(R)POSBUS2"
-fgColor index 16
-fgAlarm
-bgColor index 10
-fill
-font "helvetica-bold-r-14.0"
-endObjectProperties
-
-endGroup
-
-endObjectProperties
-
-# (Group)
-object activeGroupClass
-beginObjectProperties
-major 4
-minor 0
-release 0
-x 15
-y 155
-w 390
-h 25
-
-beginGroup
-
-# (Textupdate)
-object TextupdateClass
-beginObjectProperties
-major 10
-minor 0
-release 0
-x 290
-y 155
-w 115
-h 25
-controlPv "$(P)$(R)POSBUS1:CAPTURE_RBV"
-fgColor index 16
-fgAlarm
-bgColor index 10
-fill
-font "helvetica-bold-r-14.0"
-endObjectProperties
-
-# (Text Control)
-object activeXTextDspClass
-beginObjectProperties
-major 4
-minor 6
-release 0
-x 170
-y 155
-w 115
-h 25
-controlPv "$(P)$(R)POSBUS1:CAPTURE"
-font "arial-medium-r-14.0"
-fgColor index 25
-bgColor index 3
-editable
-limitsFromDb
-nullColor index 0
-useKp
-useHexPrefix
-newPos
-inputFocusUpdates
-objType "controls"
-endObjectProperties
-
-# (Textupdate)
-object TextupdateClass
-beginObjectProperties
-major 10
-minor 0
-release 0
-x 15
-y 155
-w 145
-h 25
-controlPv "$(P)$(R)POSBUS1"
-fgColor index 16
-fgAlarm
-bgColor index 10
-fill
-font "helvetica-bold-r-14.0"
-endObjectProperties
-
-endGroup
-
-endObjectProperties
-
-# (Group)
-object activeGroupClass
-beginObjectProperties
-major 4
-minor 0
-release 0
-x 15
-y 185
-w 390
-h 25
-
-beginGroup
-
-# (Textupdate)
-object TextupdateClass
-beginObjectProperties
-major 10
-minor 0
-release 0
-x 290
-y 185
-w 115
-h 25
-controlPv "$(P)$(R)POSBUS1:CAPTURE_RBV"
-fgColor index 16
-fgAlarm
-bgColor index 10
-fill
-font "helvetica-bold-r-14.0"
-endObjectProperties
-
-# (Text Control)
-object activeXTextDspClass
-beginObjectProperties
-major 4
-minor 6
-release 0
-x 170
-y 185
-w 115
-h 25
-controlPv "$(P)$(R)POSBUS1:CAPTURE"
-font "arial-medium-r-14.0"
-fgColor index 25
-bgColor index 3
-editable
-limitsFromDb
-nullColor index 0
-useKp
-useHexPrefix
-newPos
-inputFocusUpdates
-objType "controls"
-endObjectProperties
-
-# (Textupdate)
-object TextupdateClass
-beginObjectProperties
-major 10
-minor 0
-release 0
-x 15
-y 185
-w 145
-h 25
-controlPv "$(P)$(R)POSBUS1"
-fgColor index 16
-fgAlarm
-bgColor index 10
-fill
-font "helvetica-bold-r-14.0"
-endObjectProperties
-
-endGroup
-
-endObjectProperties
-
-# (Group)
-object activeGroupClass
-beginObjectProperties
-major 4
-minor 0
-release 0
 x 415
 y 125
 w 235
@@ -6021,83 +5713,6 @@ beginObjectProperties
 major 4
 minor 0
 release 0
-x 15
-y 65
-w 390
-h 25
-
-beginGroup
-
-# (Textupdate)
-object TextupdateClass
-beginObjectProperties
-major 10
-minor 0
-release 0
-x 290
-y 65
-w 115
-h 25
-controlPv "$(P)$(R)POSBUS0:CAPTURE_RBV"
-fgColor index 16
-fgAlarm
-bgColor index 10
-fill
-font "helvetica-bold-r-14.0"
-endObjectProperties
-
-# (Text Control)
-object activeXTextDspClass
-beginObjectProperties
-major 4
-minor 6
-release 0
-x 170
-y 65
-w 115
-h 25
-controlPv "$(P)$(R)POSBUS0:CAPTURE"
-font "arial-medium-r-14.0"
-fgColor index 25
-bgColor index 3
-editable
-limitsFromDb
-nullColor index 0
-useKp
-useHexPrefix
-newPos
-inputFocusUpdates
-objType "controls"
-endObjectProperties
-
-# (Textupdate)
-object TextupdateClass
-beginObjectProperties
-major 10
-minor 0
-release 0
-x 15
-y 65
-w 145
-h 25
-controlPv "$(P)$(R)POSBUS0"
-fgColor index 16
-fgAlarm
-bgColor index 10
-fill
-font "helvetica-bold-r-14.0"
-endObjectProperties
-
-endGroup
-
-endObjectProperties
-
-# (Group)
-object activeGroupClass
-beginObjectProperties
-major 4
-minor 0
-release 0
 x 415
 y 65
 w 235
@@ -6271,83 +5886,6 @@ endObjectProperties
 endGroup
 
 visMin "1"
-endObjectProperties
-
-# (Group)
-object activeGroupClass
-beginObjectProperties
-major 4
-minor 0
-release 0
-x 15
-y 215
-w 390
-h 25
-
-beginGroup
-
-# (Textupdate)
-object TextupdateClass
-beginObjectProperties
-major 10
-minor 0
-release 0
-x 290
-y 215
-w 115
-h 25
-controlPv "$(P)$(R)POSBUS1:CAPTURE_RBV"
-fgColor index 16
-fgAlarm
-bgColor index 10
-fill
-font "helvetica-bold-r-14.0"
-endObjectProperties
-
-# (Text Control)
-object activeXTextDspClass
-beginObjectProperties
-major 4
-minor 6
-release 0
-x 170
-y 215
-w 115
-h 25
-controlPv "$(P)$(R)POSBUS1:CAPTURE"
-font "arial-medium-r-14.0"
-fgColor index 25
-bgColor index 3
-editable
-limitsFromDb
-nullColor index 0
-useKp
-useHexPrefix
-newPos
-inputFocusUpdates
-objType "controls"
-endObjectProperties
-
-# (Textupdate)
-object TextupdateClass
-beginObjectProperties
-major 10
-minor 0
-release 0
-x 15
-y 215
-w 145
-h 25
-controlPv "$(P)$(R)POSBUS1"
-fgColor index 16
-fgAlarm
-bgColor index 10
-fill
-font "helvetica-bold-r-14.0"
-endObjectProperties
-
-endGroup
-
 endObjectProperties
 
 # (Group)
@@ -6548,5 +6086,341 @@ botShadowColor index 14
 controlPv "$(P)$(R)POSBUS1:CAPTURE"
 indicatorPv "$(P)$(R)POSBUS1:CAPTURE"
 font "arial-bold-r-14.0"
+endObjectProperties
+
+# (Textupdate)
+object TextupdateClass
+beginObjectProperties
+major 10
+minor 0
+release 0
+x 290
+y 65
+w 115
+h 25
+controlPv "$(P)$(R)POSBUS0:CAPTURE_RBV"
+fgColor index 16
+fgAlarm
+bgColor index 10
+fill
+font "helvetica-bold-r-14.0"
+endObjectProperties
+
+# (Textupdate)
+object TextupdateClass
+beginObjectProperties
+major 10
+minor 0
+release 0
+x 15
+y 65
+w 145
+h 25
+controlPv "$(P)$(R)POSBUS0"
+fgColor index 16
+fgAlarm
+bgColor index 10
+fill
+font "helvetica-bold-r-14.0"
+endObjectProperties
+
+# (Menu Button)
+object activeMenuButtonClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 170
+y 65
+w 115
+h 25
+fgColor index 25
+bgColor index 2
+inconsistentColor index 0
+topShadowColor index 0
+botShadowColor index 14
+controlPv "$(P)$(R)POSBUS1:CAPTURE"
+indicatorPv "$(P)$(R)POSBUS1:CAPTURE"
+font "arial-bold-r-14.0"
+endObjectProperties
+
+# (Textupdate)
+object TextupdateClass
+beginObjectProperties
+major 10
+minor 0
+release 0
+x 290
+y 95
+w 115
+h 25
+controlPv "$(P)$(R)POSBUS1:CAPTURE_RBV"
+fgColor index 16
+fgAlarm
+bgColor index 10
+fill
+font "helvetica-bold-r-14.0"
+endObjectProperties
+
+# (Menu Button)
+object activeMenuButtonClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 170
+y 95
+w 115
+h 25
+fgColor index 25
+bgColor index 2
+inconsistentColor index 0
+topShadowColor index 0
+botShadowColor index 14
+controlPv "$(P)$(R)POSBUS1:CAPTURE"
+indicatorPv "$(P)$(R)POSBUS1:CAPTURE"
+font "arial-bold-r-14.0"
+endObjectProperties
+
+# (Textupdate)
+object TextupdateClass
+beginObjectProperties
+major 10
+minor 0
+release 0
+x 15
+y 95
+w 145
+h 25
+controlPv "$(P)$(R)POSBUS1"
+fgColor index 16
+fgAlarm
+bgColor index 10
+fill
+font "helvetica-bold-r-14.0"
+endObjectProperties
+
+# (Textupdate)
+object TextupdateClass
+beginObjectProperties
+major 10
+minor 0
+release 0
+x 290
+y 125
+w 115
+h 25
+controlPv "$(P)$(R)POSBUS2:CAPTURE_RBV"
+fgColor index 16
+fgAlarm
+bgColor index 10
+fill
+font "helvetica-bold-r-14.0"
+endObjectProperties
+
+# (Menu Button)
+object activeMenuButtonClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 170
+y 125
+w 115
+h 25
+fgColor index 25
+bgColor index 2
+inconsistentColor index 0
+topShadowColor index 0
+botShadowColor index 14
+controlPv "$(P)$(R)POSBUS2:CAPTURE"
+indicatorPv "$(P)$(R)POSBUS2:CAPTURE"
+font "arial-bold-r-14.0"
+endObjectProperties
+
+# (Textupdate)
+object TextupdateClass
+beginObjectProperties
+major 10
+minor 0
+release 0
+x 15
+y 125
+w 145
+h 25
+controlPv "$(P)$(R)POSBUS2"
+fgColor index 16
+fgAlarm
+bgColor index 10
+fill
+font "helvetica-bold-r-14.0"
+endObjectProperties
+
+# (Textupdate)
+object TextupdateClass
+beginObjectProperties
+major 10
+minor 0
+release 0
+x 290
+y 155
+w 115
+h 25
+controlPv "$(P)$(R)POSBUS3:CAPTURE_RBV"
+fgColor index 16
+fgAlarm
+bgColor index 10
+fill
+font "helvetica-bold-r-14.0"
+endObjectProperties
+
+# (Menu Button)
+object activeMenuButtonClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 170
+y 155
+w 115
+h 25
+fgColor index 25
+bgColor index 2
+inconsistentColor index 0
+topShadowColor index 0
+botShadowColor index 14
+controlPv "$(P)$(R)POSBUS3:CAPTURE"
+indicatorPv "$(P)$(R)POSBUS3:CAPTURE"
+font "arial-bold-r-14.0"
+endObjectProperties
+
+# (Textupdate)
+object TextupdateClass
+beginObjectProperties
+major 10
+minor 0
+release 0
+x 15
+y 155
+w 145
+h 25
+controlPv "$(P)$(R)POSBUS3"
+fgColor index 16
+fgAlarm
+bgColor index 10
+fill
+font "helvetica-bold-r-14.0"
+endObjectProperties
+
+# (Textupdate)
+object TextupdateClass
+beginObjectProperties
+major 10
+minor 0
+release 0
+x 290
+y 185
+w 115
+h 25
+controlPv "$(P)$(R)POSBUS4:CAPTURE_RBV"
+fgColor index 16
+fgAlarm
+bgColor index 10
+fill
+font "helvetica-bold-r-14.0"
+endObjectProperties
+
+# (Menu Button)
+object activeMenuButtonClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 170
+y 185
+w 115
+h 25
+fgColor index 25
+bgColor index 2
+inconsistentColor index 0
+topShadowColor index 0
+botShadowColor index 14
+controlPv "$(P)$(R)POSBUS1:CAPTURE"
+indicatorPv "$(P)$(R)POSBUS1:CAPTURE"
+font "arial-bold-r-14.0"
+endObjectProperties
+
+# (Textupdate)
+object TextupdateClass
+beginObjectProperties
+major 10
+minor 0
+release 0
+x 15
+y 185
+w 145
+h 25
+controlPv "$(P)$(R)POSBUS4"
+fgColor index 16
+fgAlarm
+bgColor index 10
+fill
+font "helvetica-bold-r-14.0"
+endObjectProperties
+
+# (Textupdate)
+object TextupdateClass
+beginObjectProperties
+major 10
+minor 0
+release 0
+x 290
+y 215
+w 115
+h 25
+controlPv "$(P)$(R)POSBUS5:CAPTURE_RBV"
+fgColor index 16
+fgAlarm
+bgColor index 10
+fill
+font "helvetica-bold-r-14.0"
+endObjectProperties
+
+# (Menu Button)
+object activeMenuButtonClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 170
+y 215
+w 115
+h 25
+fgColor index 25
+bgColor index 2
+inconsistentColor index 0
+topShadowColor index 0
+botShadowColor index 14
+controlPv "$(P)$(R)POSBUS1:CAPTURE"
+indicatorPv "$(P)$(R)POSBUS1:CAPTURE"
+font "arial-bold-r-14.0"
+endObjectProperties
+
+# (Textupdate)
+object TextupdateClass
+beginObjectProperties
+major 10
+minor 0
+release 0
+x 15
+y 215
+w 145
+h 25
+controlPv "$(P)$(R)POSBUS0"
+fgColor index 16
+fgAlarm
+bgColor index 10
+fill
+font "helvetica-bold-r-14.0"
 endObjectProperties
 

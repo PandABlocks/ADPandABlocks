@@ -850,7 +850,6 @@ asynStatus ADPandABlocks::send(const std::string txBuffer, asynOctet *pasynOctet
 asynStatus ADPandABlocks::writeInt32(asynUser *pasynUser, epicsInt32 value) {
     const char *functionName = "writeInt32";
     asynStatus status = asynError;
-
     /* Any work we need to do */
     int param = pasynUser->reason;
     status = setIntegerParam(param, value);
@@ -890,7 +889,7 @@ asynStatus ADPandABlocks::writeInt32(asynUser *pasynUser, epicsInt32 value) {
             sendCtrl("*PCAP.DISARM=");
         }
     }
-    else
+    else //handle the capture menu
     {
         for(std::map<std::string, std::map<std::string, int*> >::iterator it = posBusValLookup.begin();
                 it != posBusValLookup.end(); ++it)
