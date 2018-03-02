@@ -12,6 +12,7 @@
 #include <stdexcept>
 #include <iostream>
 #include <sstream>
+#include <stdlib.h>
 
 #include <libxml/xmlreader.h>
 
@@ -180,6 +181,7 @@ ADPandABlocks::ADPandABlocks(const char* portName, const char* cmdSerialPortName
     int posBusInd = 0;
     for(std::vector<std::string>::iterator it = posFields[0].begin(); it != posFields[0].end(); ++it)
     {
+        setMotor(posBusInd, 0, &ADPandABlocksIsMotor[posBusInd]);
         if(posBusInd > 0 && posBusInd <= 4) //IGNORE POSITIONS.ZERO
         {
             initLookup(*it, "SCALE", &ADPandABlocksScale[posBusInd], posBusInd);
@@ -256,7 +258,13 @@ void ADPandABlocks::initRbvLookup(std::string paramName, std::string paramNameEn
 void ADPandABlocks::initLookup(std::string paramName, std::string paramNameEnd, int* paramInd, int posBusInd)
 {
     std::map<std::string, int*> lpMap2;
-    createPosBusParam(paramNameEnd.c_str(), asynParamOctet, paramInd, posBusInd);
+    if(paramNameEnd == "CAPTURE"){
+        std::cout << "CAPTURE INIT" << paramName << std::endl;
+        createPosBusParam(paramNameEnd.c_str(), asynParamInt32, paramInd, posBusInd);
+    }
+    else{
+        createPosBusParam(paramNameEnd.c_str(), asynParamOctet, paramInd, posBusInd);
+    }
     posBusValLookup.insert(std::pair<std::string, std::map<std::string, int*> >(paramName, lpMap2));
     posBusValLookup[paramName].insert(std::pair<std::string, int*>(paramNameEnd, paramInd));
     std::string paramVal = getPosBusField(paramName, paramNameEnd.c_str());
@@ -845,9 +853,16 @@ asynStatus ADPandABlocks::writeInt32(asynUser *pasynUser, epicsInt32 value) {
 
     /* Any work we need to do */
     int param = pasynUser->reason;
-
     status = setIntegerParam(param, value);
     //change writing depending on imagemode
+    std::vector<std::string> captureStrings;
+    captureStrings.push_back("No");
+    captureStrings.push_back("Triggered");
+    captureStrings.push_back("Difference");
+    captureStrings.push_back("Average");
+    captureStrings.push_back("Extended");
+
+
     if(param == ADImageMode)
     {
         imgMode = value;
@@ -873,6 +888,31 @@ asynStatus ADPandABlocks::writeInt32(asynUser *pasynUser, epicsInt32 value) {
             asynPrint(pasynUserSelf, ASYN_TRACEIO_DRIVER,
                     "SEND DISARM CMD:\n");
             sendCtrl("*PCAP.DISARM=");
+        }
+    }
+    else
+    {
+        for(std::map<std::string, std::map<std::string, int*> >::iterator it = posBusValLookup.begin();
+                it != posBusValLookup.end(); ++it)
+        {
+            for(std::map<std::string, int*>::iterator it2 = it->second.begin();it2 != it->second.end(); ++it2)
+            {
+                if(param == *it2->second)
+                {
+                    std::stringstream cmdStr;
+                    cmdStr << it->first <<"."<< it2->first <<"="<<captureStrings[value];
+                    this->lock();
+                    sendCtrl(cmdStr.str());
+                    std::string field;
+                    asynStatus status = readPosBusValues(&field);
+                    if(status == asynError)
+                    {
+                        asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,"%s:%s: Error setting: %s '\n",
+                                driverName, functionName, cmdStr.str());
+                    }
+                    this->unlock();
+                }
+            }
         }
     }
 

@@ -3,8 +3,8 @@ beginScreenProperties
 major 4
 minor 0
 release 1
-x 476
-y 75
+x 680
+y 42
 w 1150
 h 1071
 font "arial-medium-r-18.0"
@@ -5030,7 +5030,6 @@ font "arial-medium-r-14.0"
 fgColor index 25
 bgColor index 3
 editable
-motifWidget
 limitsFromDb
 nullColor index 0
 useKp
@@ -5108,7 +5107,6 @@ font "arial-medium-r-14.0"
 fgColor index 25
 bgColor index 3
 editable
-motifWidget
 limitsFromDb
 nullColor index 0
 useKp
@@ -5186,7 +5184,6 @@ font "arial-medium-r-14.0"
 fgColor index 25
 bgColor index 3
 editable
-motifWidget
 limitsFromDb
 nullColor index 0
 useKp
@@ -5264,7 +5261,6 @@ font "arial-medium-r-14.0"
 fgColor index 25
 bgColor index 3
 editable
-motifWidget
 limitsFromDb
 nullColor index 0
 useKp
@@ -6065,7 +6061,6 @@ font "arial-medium-r-14.0"
 fgColor index 25
 bgColor index 3
 editable
-motifWidget
 limitsFromDb
 nullColor index 0
 useKp
@@ -6324,7 +6319,6 @@ font "arial-medium-r-14.0"
 fgColor index 25
 bgColor index 3
 editable
-motifWidget
 limitsFromDb
 nullColor index 0
 useKp
@@ -6534,5 +6528,25 @@ endObjectProperties
 
 endGroup
 
+endObjectProperties
+
+# (Menu Button)
+object activeMenuButtonClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 315
+y 1040
+w 135
+h 25
+fgColor index 25
+bgColor index 2
+inconsistentColor index 0
+topShadowColor index 0
+botShadowColor index 14
+controlPv "$(P)$(R)POSBUS1:CAPTURE"
+indicatorPv "$(P)$(R)POSBUS1:CAPTURE"
+font "arial-bold-r-14.0"
 endObjectProperties
 
