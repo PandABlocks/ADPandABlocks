@@ -259,7 +259,6 @@ void ADPandABlocks::initLookup(std::string paramName, std::string paramNameEnd, 
 {
     std::map<std::string, int*> lpMap2;
     if(paramNameEnd == "CAPTURE"){
-        std::cout << "CAPTURE INIT" << paramName << std::endl;
         createPosBusParam(paramNameEnd.c_str(), asynParamInt32, paramInd, posBusInd);
     }
     else{
@@ -287,6 +286,7 @@ std::vector<std::string> ADPandABlocks::readFieldNames(int* numFields) {
     int i = 0;
     while(rxBuffer[0] != '.')
     {
+        if (strlen(rxBuffer) == 0) break;
         i++;
         if (eomReason & ASYN_EOM_EOS) {
             // Replace the terminator with a null so we can use it as a string
@@ -934,36 +934,39 @@ asynStatus ADPandABlocks::writeOctet(asynUser *pasynUser, const char* value, siz
     /* This will check if a user has changed a value and attempt to update the
      * panda. It will also update the readback values */
     const char *functionName = "writeOctet";
+    std::cout << "OCTET WRITE" << std::endl;
     asynStatus status = asynError;
-
+    this->lock();
     /* Any work we need to do */
     int param = pasynUser->reason;
     // Before setting any param - send it to the Panda and make sure the
     // response is OK
     // find the correct param
-    for(std::map<std::string, std::map<std::string, int*> >::iterator it = posBusValLookup.begin();
-            it != posBusValLookup.end(); ++it)
+    if(posBusValLookup.empty() == false)
     {
-        for(std::map<std::string, int*>::iterator it2 = it->second.begin();it2 != it->second.end(); ++it2)
+        for(std::map<std::string, std::map<std::string, int*> >::iterator it = posBusValLookup.begin();
+                it != posBusValLookup.end(); ++it)
         {
-            if(param == *it2->second)
+            for(std::map<std::string, int*>::iterator it2 = it->second.begin();it2 != it->second.end(); ++it2)
             {
-                std::stringstream cmdStr;
-                cmdStr << it->first <<"."<< it2->first <<"="<<value;
-                this->lock();
-                sendCtrl(cmdStr.str());
-                std::string field;
-                asynStatus status = readPosBusValues(&field);
-                if(status == asynError)
+                if(param == *it2->second)
                 {
-                    asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,"%s:%s: Error setting: %s '\n",
-                            driverName, functionName, cmdStr.str());
+                    std::stringstream cmdStr;
+                    cmdStr << it->first <<"."<< it2->first <<"="<<value;
+                    sendCtrl(cmdStr.str());
+                    std::string field;
+                    asynStatus status = readPosBusValues(&field);
+                    if(status == asynError)
+                    {
+                        asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,"%s:%s: Error setting: %s '\n",
+                                driverName, functionName, cmdStr.str());
+                    }
                 }
-                this->unlock();
             }
         }
     }
     callParamCallbacks();
+    this->unlock();
     return status;
 }
 
