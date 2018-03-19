@@ -3,10 +3,10 @@ beginScreenProperties
 major 4
 minor 0
 release 1
-x 721
-y 387
-w 1150
-h 28
+x 1961
+y 421
+w 1140
+h 29
 font "arial-medium-r-18.0"
 ctlFont "arial-medium-r-18.0"
 btnFont "arial-medium-r-18.0"
@@ -136,18 +136,25 @@ fill
 font "helvetica-bold-r-14.0"
 endObjectProperties
 
-# (Group)
-object activeGroupClass
+# (Menu Button)
+object activeMenuButtonClass
 beginObjectProperties
 major 4
 minor 0
 release 0
-x 410
+x 165
 y 5
-w 725
-h 25
-
-beginGroup
+w 115
+h 20
+fgColor index 25
+bgColor index 2
+inconsistentColor index 0
+topShadowColor index 0
+botShadowColor index 14
+controlPv "$(P)$(R)POSBUS$(N):CAPTURE"
+indicatorPv "$(P)$(R)POSBUS$(N):CAPTURE"
+font "arial-bold-r-14.0"
+endObjectProperties
 
 # (Textupdate)
 object TextupdateClass
@@ -165,31 +172,6 @@ fgAlarm
 bgColor index 10
 fill
 font "helvetica-bold-r-14.0"
-endObjectProperties
-
-# (Text Control)
-object activeXTextDspClass
-beginObjectProperties
-major 4
-minor 6
-release 0
-x 900
-y 5
-w 115
-h 25
-controlPv "$(P)$(R)POSBUS$(N):UNITS"
-font "arial-medium-r-14.0"
-fgColor index 25
-bgColor index 3
-editable
-motifWidget
-limitsFromDb
-nullColor index 0
-useKp
-useHexPrefix
-newPos
-inputFocusUpdates
-objType "controls"
 endObjectProperties
 
 # (Textupdate)
@@ -210,31 +192,6 @@ fill
 font "helvetica-bold-r-14.0"
 endObjectProperties
 
-# (Text Control)
-object activeXTextDspClass
-beginObjectProperties
-major 4
-minor 6
-release 0
-x 655
-y 5
-w 115
-h 25
-controlPv "$(P)$(R)POSBUS$(N):OFFSET"
-font "arial-medium-r-14.0"
-fgColor index 25
-bgColor index 5
-editable
-motifWidget
-limitsFromDb
-nullColor index 0
-useKp
-useHexPrefix
-newPos
-inputFocusUpdates
-objType "controls"
-endObjectProperties
-
 # (Textupdate)
 object TextupdateClass
 beginObjectProperties
@@ -253,55 +210,58 @@ fill
 font "helvetica-bold-r-14.0"
 endObjectProperties
 
-# (Text Control)
-object activeXTextDspClass
+# (Textentry)
+object TextentryClass
 beginObjectProperties
-major 4
-minor 6
+major 10
+minor 0
 release 0
 x 410
 y 5
 w 115
 h 25
 controlPv "$(P)$(R)POSBUS$(N):SCALE"
-font "arial-medium-r-14.0"
 fgColor index 25
+fgAlarm
 bgColor index 3
-editable
-motifWidget
-limitsFromDb
-nullColor index 0
-useKp
-useHexPrefix
-newPos
-inputFocusUpdates
-objType "controls"
+fill
+font "arial-medium-r-12.0"
 endObjectProperties
 
-endGroup
-
-visPv "$(P)$(R)POSBUS$(N):ISMOTOR"
-visMin "1"
-visMax "2"
-endObjectProperties
-
-# (Menu Button)
-object activeMenuButtonClass
+# (Textentry)
+object TextentryClass
 beginObjectProperties
-major 4
+major 10
 minor 0
 release 0
-x 165
+x 655
 y 5
 w 115
-h 20
+h 25
+controlPv "$(P)$(R)POSBUS$(N):OFFSET"
+displayMode "decimal"
 fgColor index 25
-bgColor index 2
-inconsistentColor index 0
-topShadowColor index 0
-botShadowColor index 14
-controlPv "$(P)$(R)POSBUS$(N):CAPTURE"
-indicatorPv "$(P)$(R)POSBUS$(N):CAPTURE"
-font "arial-bold-r-14.0"
+fgAlarm
+bgColor index 5
+fill
+font "arial-medium-r-12.0"
+endObjectProperties
+
+# (Textentry)
+object TextentryClass
+beginObjectProperties
+major 10
+minor 0
+release 0
+x 900
+y 5
+w 115
+h 25
+controlPv "$(P)$(R)POSBUS$(N):UNITS"
+displayMode "decimal"
+fgColor index 25
+bgColor index 3
+fill
+font "arial-medium-r-12.0"
 endObjectProperties
 

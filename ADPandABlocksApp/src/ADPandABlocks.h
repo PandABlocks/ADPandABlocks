@@ -133,7 +133,7 @@ private:
 
     //Lookup table for posbus params
     //std::map<std::string, std::map<char*, std::string> > posBusValLookup;
-    std::map<std::string, std::map<std::string, int*> > posBusValLookup;
+    std::map<std::string, std::map<std::string, int*> > posBusLookup;
     std::map<std::string, std::map<std::string, int*> > posBusRbvLookup;
 
     //states for readDataTask state machine
