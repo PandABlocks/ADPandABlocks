@@ -3,10 +3,10 @@ beginScreenProperties
 major 4
 minor 0
 release 1
-x 356
-y 50
-w 1147
-h 1057
+x 129
+y 125
+w 1244
+h 1077
 font "arial-medium-r-18.0"
 ctlFont "arial-medium-r-18.0"
 btnFont "arial-medium-r-18.0"
@@ -181,7 +181,7 @@ beginObjectProperties
 major 4
 minor 1
 release 1
-x 905
+x 785
 y 35
 w 54
 h 21
@@ -201,7 +201,7 @@ beginObjectProperties
 major 4
 minor 1
 release 1
-x 660
+x 540
 y 35
 w 74
 h 21
@@ -221,7 +221,7 @@ beginObjectProperties
 major 4
 minor 1
 release 1
-x 415
+x 295
 y 35
 w 60
 h 21
@@ -1337,7 +1337,7 @@ menuLabel {
   0 "POSBUS1"
 }
 symbols {
-  0 "N=28,P=$(P),R=$(R)"
+  0 "N=18,P=$(P),R=$(R)"
 }
 replaceSymbols {
   0 1

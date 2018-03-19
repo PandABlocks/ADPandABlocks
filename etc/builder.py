@@ -56,8 +56,8 @@ class ADPandABlocks(AsynPort):
         for i in range(self.N_POSBUS):
             makeTemplateInstance(_PosBusTemplate, locals(), {'POSBUS_IND' : ("%d" % i)})
 
-        for i in range(1, self.N_ENC+1):
-            makeTemplateInstance(_EncTemplate, locals(),{'ENC_IND' : ("%d" %i)})
+        #for i in range(1, self.N_ENC+1):
+        #    makeTemplateInstance(_EncTemplate, locals(),{'ENC_IND' : ("%d" %i)})
 
     def Initialise(self):
         # Print the command to create the device in the startup script

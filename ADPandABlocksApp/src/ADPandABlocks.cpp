@@ -12,6 +12,7 @@
 #include <stdexcept>
 #include <iostream>
 #include <sstream>
+#include <algorithm>
 #include <stdlib.h>
 
 #include <libxml/xmlreader.h>
@@ -54,6 +55,17 @@ ADPandABlocks::ADPandABlocks(const char* portName, const char* cmdSerialPortName
     errorMsg[asynError] = "asynError";
     errorMsg[asynDisconnected] = "asynDisconnected";
     errorMsg[asynDisabled] = "asynDisabled";
+
+    captureType["No"] = 0;
+    captureType["Triggered"] = 1;
+    captureType["Difference"] = 2;
+    captureType["Average"] = 3;
+    captureType["Extended"] = 4;
+    captureStrings.push_back("No");
+    captureStrings.push_back("Triggered");
+    captureStrings.push_back("Difference");
+    captureStrings.push_back("Average");
+    captureStrings.push_back("Extended");
 
     const char *functionName = "ADPandABlocks";
     asynStatus status = asynSuccess;
@@ -181,19 +193,10 @@ ADPandABlocks::ADPandABlocks(const char* portName, const char* cmdSerialPortName
     int posBusInd = 0;
     for(std::vector<std::string>::iterator it = posFields[0].begin(); it != posFields[0].end(); ++it)
     {
-        setMotor(posBusInd, 0, &ADPandABlocksIsMotor[posBusInd]);
-        //if(posBusInd > 0 && posBusInd <= 4) //IGNORE POSITIONS.ZERO
-        //{
-            initLookup(*it, "SCALE", &ADPandABlocksScale[posBusInd], posBusInd);
-            initLookup(*it, "OFFSET", &ADPandABlocksOffset[posBusInd], posBusInd);
-            initLookup(*it, "UNITS", &ADPandABlocksUnits[posBusInd], posBusInd);
-            //initRbvLookup(*it, "SCALE", &ADPandABlocksScaleRbv[posBusInd], posBusInd);
-            //initRbvLookup(*it, "OFFSET", &ADPandABlocksOffsetRbv[posBusInd], posBusInd);
-            //initRbvLookup(*it, "UNITS", &ADPandABlocksUnitsRbv[posBusInd], posBusInd);
-            setMotor(posBusInd, 1, &ADPandABlocksIsMotor[posBusInd]);
-        //}
+        initLookup(*it, "SCALE", &ADPandABlocksScale[posBusInd], posBusInd);
+        initLookup(*it, "OFFSET", &ADPandABlocksOffset[posBusInd], posBusInd);
+        initLookup(*it, "UNITS", &ADPandABlocksUnits[posBusInd], posBusInd);
         initLookup(*it, "CAPTURE", &ADPandABlocksCapture[posBusInd], posBusInd);
-        //initRbvLookup(*it, "CAPTURE", &ADPandABlocksCaptureRbv[posBusInd], posBusInd);
         posBusInd++;
     }
 
@@ -232,27 +235,6 @@ void ADPandABlocks::createPosBusParam(const char* paramName, asynParamType param
     epicsSnprintf(str, NBUFF, "POSBUS%d:%s", paramNo, paramName);
     createParam(str, paramType, paramIndex);
     this->unlock();
-}
-
-void ADPandABlocks::setMotor(int posBusInd, int isMotor, int* paramIndex)
-{
-    this->lock();
-    std::stringstream paramStr;
-    paramStr << "POSBUS" << posBusInd << ":ISMOTOR";
-    createParam(paramStr.str().c_str(), asynParamInt32, paramIndex);
-    setIntegerParam(*paramIndex, isMotor);
-    this->unlock();
-}
-void ADPandABlocks::initRbvLookup(std::string paramName, std::string paramNameEnd, int* paramInd, int posBusInd)
-{
-    //std::map<std::string, int*> lpMap2;
-    //std::stringstream paramRbv;
-    //paramRbv << paramNameEnd << "_RBV";
-    //createPosBusParam(paramRbv.str().c_str(), asynParamOctet, paramInd, posBusInd);
-    //posBusRbvLookup.insert(std::pair<std::string, std::map<std::string, int*> >(paramName, lpMap2));
-    //posBusRbvLookup[paramName].insert(std::pair<std::string, int*>(paramRbv.str(), paramInd));
-    //std::string paramVal = getPosBusField(paramName, paramNameEnd.c_str());
-    //asynStatus status = setStringParam(*posBusRbvLookup[paramName][paramRbv.str()], paramVal.c_str());
 }
 
 void ADPandABlocks::initLookup(std::string paramName, std::string paramNameEnd, int* paramInd, int posBusInd)
@@ -368,27 +350,24 @@ void ADPandABlocks::checkPosBusChanges(){
             posBusName << changedFieldsParts[0] << "." << changedFieldsParts[1];
             changedField.clear();
             changedField = stringSplit(changedFieldsParts[2], '=');
-            //std::string fieldName = changedField[0] + "_RBV";
             std::string fieldName = changedField[0];
             std::string fieldVal = "";
             if(changedField.size() == 2)
             {
                 fieldVal = changedField[1];
             }
-            //if(posBusRbvLookup.find(posBusName.str()) != posBusRbvLookup.end())
-            //{
-            //    if(posBusRbvLookup[posBusName.str()][fieldName] != NULL)
-            //    {
-            //        setStringParam(*posBusRbvLookup[posBusName.str()][fieldName], fieldVal.c_str());
-            //        callParamCallbacks();
-            //    }
-            //}
             if(posBusLookup.find(posBusName.str()) != posBusLookup.end())
             {
-                //if(posBusLookup[posBusName.str()][fieldName] != NULL)
                 if(posBusLookup[posBusName.str()].find(fieldName) != posBusLookup[posBusName.str()].end())
                 {
-                    setStringParam(*posBusLookup[posBusName.str()][fieldName], fieldVal.c_str());
+                    if(fieldName == "CAPTURE")
+                    {
+                        setIntegerParam(*posBusLookup[posBusName.str()][fieldName], captureType[fieldVal.c_str()]);
+                    }
+                    else
+                    {
+                        setStringParam(*posBusLookup[posBusName.str()][fieldName], fieldVal.c_str());
+                    }
                     callParamCallbacks();
                 }
             }
@@ -864,13 +843,6 @@ asynStatus ADPandABlocks::writeInt32(asynUser *pasynUser, epicsInt32 value) {
     int param = pasynUser->reason;
     status = setIntegerParam(param, value);
     //change writing depending on imagemode
-    std::vector<std::string> captureStrings;
-    captureStrings.push_back("No");
-    captureStrings.push_back("Triggered");
-    captureStrings.push_back("Difference");
-    captureStrings.push_back("Average");
-    captureStrings.push_back("Extended");
-
     if(param == ADImageMode)
     {
         imgMode = value;

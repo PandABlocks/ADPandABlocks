@@ -18,15 +18,6 @@ record(waveform, "$(P)$(R)POSBUS$(POSBUS_IND)") {
   field(NELM, "1024")
 }
 
-#record(waveform, "$(P)$(R)POSBUS$(POSBUS_IND):CAPTURE") {
-#  field(DESC, "Data end string")
-#  field(PINI, "YES")
-#  field(DTYP, "asynOctetWrite")
-#  field(INP, "@asyn($(PORT),$(POSBUS_IND))POSBUS$(POSBUS_IND):CAPTURE")
-#  field(FTVL, "CHAR")
-#  field(NELM, "1024")
-#}
-
 record(mbbo, "$(P)$(R)POSBUS$(POSBUS_IND):CAPTURE") {
   field(DESC, "Data end string")
   field(PINI, "YES")
@@ -45,16 +36,33 @@ record(mbbo, "$(P)$(R)POSBUS$(POSBUS_IND):CAPTURE") {
   info(asyn:READBACK, "1")
 }
 
-record(waveform, "$(P)$(R)POSBUS$(POSBUS_IND):CAPTURE_RBV") {
-  field(DESC, "Data end string")
-  field(SCAN, "I/O Intr")
-  field(DTYP, "asynOctetRead")
-  field(INP, "@asyn($(PORT),$(POSBUS_IND))POSBUS$(POSBUS_IND):CAPTURE_RBV")
-  field(FTVL, "CHAR")
-  field(NELM, "1024")
+record(stringout, "$(P)$(R)POSBUS$(POSBUS_IND):SCALE") {
+  field(DESC, "INENC scale value")
+  field(PINI, "YES")
+  field(DTYP, "asynOctetWrite")
+  field(OUT, "@asyn($(PORT),$(POSBUS_IND))POSBUS$(POSBUS_IND):SCALE")
+  #field(FTVL, "CHAR")
+  #field(NELM, "1024")
+  info(asyn:READBACK, "1")
 }
 
-record(ao, "$(P)$(R)POSBUS$(POSBUS_IND):ISMOTOR") {
-  field(DTYP, "asynInt32")
-  field(OUT, "@asyn($(PORT), 0)POSBUS$(POSBUS_IND):ISMOTOR")
+record(stringout, "$(P)$(R)POSBUS$(POSBUS_IND):OFFSET") {
+  field(DESC, "INENC offset value")
+  field(PINI, "YES")
+  field(DTYP, "asynOctetWrite")
+  field(OUT, "@asyn($(PORT),$(POSBUS_IND))POSBUS$(POSBUS_IND):OFFSET")
+  #field(FTVL, "CHAR")
+  #field(NELM, "1024")
+  info(asyn:READBACK, "1")
 }
+
+record(stringout, "$(P)$(R)POSBUS$(POSBUS_IND):UNITS") {
+  field(DESC, "INENC units value")
+  field(PINI, "YES")
+  field(DTYP, "asynOctetWrite")
+  field(OUT, "@asyn($(PORT),$(POSBUS_IND))POSBUS$(POSBUS_IND):UNITS")
+  #field(FTVL, "CHAR")
+  #field(NELM, "1024")
+  info(asyn:READBACK, "1")
+}
+

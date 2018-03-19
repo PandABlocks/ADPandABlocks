@@ -80,15 +80,10 @@ protected:
     int ADPandABlocksPCTime;             // float64array read - position compare timestamps
 #define LAST_PARAM ADPandABlocksPCTime
     int ADPandABlocksPosFields[NPOSBUS]; // string read     - position field names
-    int ADPandABlocksScale[NENC];        // string write    - motor scale
-    int ADPandABlocksScaleRbv[NENC];     // string read     - motor scale
-    int ADPandABlocksOffset[NENC];       // string write    - motor offset
-    int ADPandABlocksOffsetRbv[NENC];    // string read     - motor offset
-    int ADPandABlocksUnits[NENC];        // string write    - motor units
-    int ADPandABlocksUnitsRbv[NENC];     // string read     - motor units
+    int ADPandABlocksScale[NPOSBUS];        // string write    - motor scale
+    int ADPandABlocksOffset[NPOSBUS];       // string write    - motor offset
+    int ADPandABlocksUnits[NPOSBUS];        // string write    - motor units
     int ADPandABlocksCapture[NPOSBUS];   // string write    - pcap capture type
-    int ADPandABlocksCaptureRbv[NPOSBUS];// string read     - pcap capture type
-    int ADPandABlocksIsMotor[NPOSBUS];   // int write       - if posbus is a motor
 #define NUM_PARAMS (&LAST_PARAM - &FIRST_PARAM + 1)
 
 private:
@@ -106,10 +101,8 @@ private:
     asynStatus readDataBytes(char* rxBuffer, const size_t nBytes)const;
     void createPosBusParam(const char* paramName, asynParamType paramType, int* paramIndex, int paramNo);
     std::string getPosBusField(std::string posbus, const char* paramName);
-    void initRbvLookup(std::string paramName, std::string paramNameEnd, int* paramInd, int posBusInd);
     void initLookup(std::string paramName, std::string paramNameEnd, int* paramInd, int posBusInd);
     std::vector<std::string> stringSplit(const std::string& s, char delimiter);
-    void setMotor(int posBusInd, int isMotor, int* paramIndex);
 private:
     NDArray *pArray;
     asynUser *pasynUser_ctrl;
@@ -132,9 +125,11 @@ private:
     std::vector<std::vector<std::string> > posFields;
 
     //Lookup table for posbus params
-    //std::map<std::string, std::map<char*, std::string> > posBusValLookup;
     std::map<std::string, std::map<std::string, int*> > posBusLookup;
-    std::map<std::string, std::map<std::string, int*> > posBusRbvLookup;
+
+    //Capture type map
+    std::map<std::string, int> captureType;
+    std::vector<std::string> captureStrings;
 
     //states for readDataTask state machine
     enum readState{waitHeaderStart, waitHeaderEnd, waitDataStart, receivingData, dataEnd,};
