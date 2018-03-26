@@ -3,6 +3,7 @@ from iocbuilder.modules.asyn import Asyn, AsynPort
 from iocbuilder.modules.ADCore import ADCore, ADBaseTemplate, includesTemplates, \
     makeTemplateInstance
 from iocbuilder.arginfo import *
+from iocbuilder.modules.motor import MotorLib
 
 # Peform template subsitution
 @includesTemplates(ADBaseTemplate)
@@ -72,4 +73,48 @@ class ADPandABlocks(AsynPort):
         DATAPORT = Ident("Low level Asyn port for receiving data", AsynPort),
         MAXBUF   = Simple("Maximum number of buffers (areaDetector)", int),
         MAXMEM   = Simple("Maximum memory (areaDetector)", int))
+
+
+class ADPandABlocksMotorSync(AsynPort):
+
+    # We depend upon Asyn
+    Dependencies = (ADCore, MotorLib,)
+
+    # Make sure our DBD file gets used or created
+    #DbdFileList = ['ADPandABlocksMotorSync']
+
+    # Make sure our library gets included by dependent IOCs
+    #LibFileList = ['ADPandABlocks']
+
+    UniqueName = "PORT"
+    N_ENC = 4
+
+    def __init__(self, PORT, **args):
+
+        # Call init on Device superclass
+        self.__super.__init__(PORT)
+
+        # Store arguments away to use later
+        self.PORT = PORT
+        #self.MAXBUF = MAXBUF
+        #self.MAXMEM = MAXMEM
+        #self.NELM = 100000
+
+        locals().update(args)
+        for i in range(1, self.N_ENC+1):
+            makeTemplateInstance(_EncTemplate, locals(),{'ENC_IND' : ("%d" %i)})
+            locals().update(args)
+
+    def Initialise(self):
+        # Print the command to create the device in the startup script
+        print "# Create driver"
+        print 'ADPandABlocksConfig("%(PORT)s", 0)' % self.__dict__
+
+    # tell xmlbuilder what args to supply
+    ArgInfo = _MainDbFile.ArgInfo + makeArgInfo(__init__,
+        PORT     = Simple("Asyn port name for the created driver", str))
+        #MAXBUF   = Simple("Maximum number of buffers (areaDetector)", int),
+        #MAXMEM   = Simple("Maximum memory (areaDetector)", int))
+
+
 

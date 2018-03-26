@@ -19,6 +19,7 @@ LIBRARY_IOC += ADPandABlocks
 # xxxRecord.dbd will be installed into <top>/dbd
 #DBD += xxx.dbd
 DBD += ADPandABlocks.dbd
+#DBD += ADPandABlocksMotorSync.dbd
 ADPandABlocks_DBD += base.dbd
 ADPandABlocks_DBD += asyn.dbd
 ADPandABlocks_DBD += ADPandABlockssupport.dbd
