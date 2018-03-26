@@ -242,14 +242,18 @@ void ADPandABlocks::initLookup(std::string paramName, std::string paramNameEnd, 
     std::map<std::string, int*> lpMap2;
     if(paramNameEnd == "CAPTURE"){
         createPosBusParam(paramNameEnd.c_str(), asynParamInt32, paramInd, posBusInd);
+        posBusLookup.insert(std::pair<std::string, std::map<std::string, int*> >(paramName, lpMap2));
+        posBusLookup[paramName].insert(std::pair<std::string, int*>(paramNameEnd, paramInd));
+        std::string paramVal = getPosBusField(paramName, paramNameEnd.c_str());
+        asynStatus status = setIntegerParam(*posBusLookup[paramName][paramNameEnd], atoi(paramVal.c_str()));
     }
     else{
         createPosBusParam(paramNameEnd.c_str(), asynParamOctet, paramInd, posBusInd);
+        posBusLookup.insert(std::pair<std::string, std::map<std::string, int*> >(paramName, lpMap2));
+        posBusLookup[paramName].insert(std::pair<std::string, int*>(paramNameEnd, paramInd));
+        std::string paramVal = getPosBusField(paramName, paramNameEnd.c_str());
+        asynStatus status = setStringParam(*posBusLookup[paramName][paramNameEnd], paramVal.c_str());
     }
-    posBusLookup.insert(std::pair<std::string, std::map<std::string, int*> >(paramName, lpMap2));
-    posBusLookup[paramName].insert(std::pair<std::string, int*>(paramNameEnd, paramInd));
-    std::string paramVal = getPosBusField(paramName, paramNameEnd.c_str());
-    asynStatus status = setStringParam(*posBusLookup[paramName][paramNameEnd], paramVal.c_str());
 }
 
 /* This is the function that will be run for the read thread */
