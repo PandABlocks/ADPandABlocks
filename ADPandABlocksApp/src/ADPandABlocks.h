@@ -80,6 +80,7 @@ protected:
     int ADPandABlocksPCTime;             // float64array read - position compare timestamps
 #define LAST_PARAM ADPandABlocksPCTime
     int ADPandABlocksPosFields[NPOSBUS]; // string read     - position field names
+    int ADPandABlocksPosVals[NPOSBUS]; // string read     - position field names
     int ADPandABlocksScale[NPOSBUS];        // string write    - motor scale
     int ADPandABlocksOffset[NPOSBUS];       // string write    - motor offset
     int ADPandABlocksUnits[NPOSBUS];        // string write    - motor units
@@ -103,6 +104,7 @@ private:
     std::string getPosBusField(std::string posbus, const char* paramName);
     void initLookup(std::string paramName, std::string paramNameEnd, int* paramInd, int posBusInd);
     std::vector<std::string> stringSplit(const std::string& s, char delimiter);
+    void processChanges(std::string cmd, bool posn);
 private:
     NDArray *pArray;
     asynUser *pasynUser_ctrl;

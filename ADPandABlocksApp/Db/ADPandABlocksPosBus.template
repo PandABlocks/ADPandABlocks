@@ -9,13 +9,13 @@
 # % macro, POSBUS_IND, Position Bus index
 # % macro, CAPTURE_IND, index for capture param on posbus
 
-record(waveform, "$(P)$(R)POSBUS$(POSBUS_IND)") {
+record(stringin, "$(P)$(R)POSBUS$(POSBUS_IND)") {
   field(DESC, "Data end string")
   field(SCAN, "I/O Intr")
   field(DTYP, "asynOctetRead")
   field(INP, "@asyn($(PORT),$(POSBUS_IND))POSBUS$(POSBUS_IND)")
-  field(FTVL, "CHAR")
-  field(NELM, "1024")
+  #field(FTVL, "CHAR")
+  #field(NELM, "1024")
 }
 
 record(mbbo, "$(P)$(R)POSBUS$(POSBUS_IND):CAPTURE") {
@@ -66,3 +66,12 @@ record(stringout, "$(P)$(R)POSBUS$(POSBUS_IND):UNITS") {
   info(asyn:READBACK, "1")
 }
 
+record(stringout, "$(P)$(R)POSBUS$(POSBUS_IND):VAL") {
+  field(DESC, "INENC scale value")
+  field(PINI, "YES")
+  field(DTYP, "asynOctetWrite")
+  field(OUT, "@asyn($(PORT),$(POSBUS_IND))POSBUS$(POSBUS_IND):VAL")
+  #field(FTVL, "CHAR")
+  #field(NELM, "1024")
+  info(asyn:READBACK, "1")
+}

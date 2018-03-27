@@ -187,12 +187,15 @@ ADPandABlocks::ADPandABlocks(const char* portName, const char* cmdSerialPortName
         epicsSnprintf(str, NBUFF, "POSBUS%d", a);
         createParam(str, asynParamOctet, &ADPandABlocksPosFields[a]);
         setStringParam(ADPandABlocksPosFields[a], posFields[0][a].c_str());
+        //epicsSnprintf(str, NBUFF, "POSBUS%d:VAL", a);
+        //createParam(str, asynParamOctet, &ADPandABlocksPosVals[a]);
     }
 
     //Initialise the lookup table for posbus values
     int posBusInd = 0;
     for(std::vector<std::string>::iterator it = posFields[0].begin(); it != posFields[0].end(); ++it)
     {
+        initLookup(*it, "VAL", &ADPandABlocksPosVals[posBusInd], posBusInd);
         initLookup(*it, "SCALE", &ADPandABlocksScale[posBusInd], posBusInd);
         initLookup(*it, "OFFSET", &ADPandABlocksOffset[posBusInd], posBusInd);
         initLookup(*it, "UNITS", &ADPandABlocksUnits[posBusInd], posBusInd);
@@ -251,8 +254,14 @@ void ADPandABlocks::initLookup(std::string paramName, std::string paramNameEnd, 
         createPosBusParam(paramNameEnd.c_str(), asynParamOctet, paramInd, posBusInd);
         posBusLookup.insert(std::pair<std::string, std::map<std::string, int*> >(paramName, lpMap2));
         posBusLookup[paramName].insert(std::pair<std::string, int*>(paramNameEnd, paramInd));
-        std::string paramVal = getPosBusField(paramName, paramNameEnd.c_str());
-        asynStatus status = setStringParam(*posBusLookup[paramName][paramNameEnd], paramVal.c_str());
+        if(paramNameEnd != "VAL"){
+            std::string paramVal = getPosBusField(paramName, paramNameEnd.c_str());
+            asynStatus status = setStringParam(*posBusLookup[paramName][paramNameEnd], paramVal.c_str());
+        }
+        else{
+            asynStatus status = setStringParam(*posBusLookup[paramName][paramNameEnd], "");
+        }
+
     }
 }
 
@@ -337,49 +346,68 @@ void ADPandABlocks::checkPosBusChanges(){
         Readback values */
     std::vector<std::vector<std::string> > changedFields;
     std::vector<std::string> changedField;
+    std::vector<std::vector<std::string> > changedPosVals;
+    std::vector<std::string> changedPosn;
     //query the pandabox to see if any changes have occured
-    std::stringstream cmd;
-    cmd << "*CHANGES.ATTR?";
     while(true)
     {
         this->lock();
-        int numChanges = 0;
-        sendCtrl(cmd.str());
-        changedFields.clear();
-        changedFields.push_back(readFieldNames(&numChanges));
-        for(std::vector<std::string>::iterator it = changedFields[0].begin(); it != changedFields[0].end(); ++it)
+        std::stringstream cmd;
+        cmd << "*CHANGES.ATTR?";
+        processChanges(cmd.str(), false);
+        //clear the cmd string
+        cmd.str(std::string());
+        cmd << "*CHANGES.POSN?";
+        processChanges(cmd.str(), true);
+        this->unlock();
+        epicsThreadSleep(0.1);
+        callParamCallbacks();
+    }
+}
+
+void ADPandABlocks::processChanges(std::string cmd, bool posn)
+{
+    std::vector<std::vector<std::string> > changed;
+    std::vector<std::string> changedField;
+    int numChanges = 0;
+    sendCtrl(cmd);
+    changed.clear();
+    changed.push_back(readFieldNames(&numChanges));
+    for(std::vector<std::string>::iterator it = changed[0].begin(); it != changed[0].end(); ++it)
+    {
+        std::vector<std::string> changedParts = stringSplit(*it, '.');
+        std::stringstream  posBusName;
+        changedField.clear();
+        changedField = stringSplit(changedParts.back(), '=');
+        std::string fieldName = changedField[0];
+        std::string fieldVal = "";
+        if(posn){
+            posBusName << changedParts[0] << "." << changedField[0];
+            fieldName = "VAL";
+        }
+        else{
+            posBusName << changedParts[0] << "." << changedParts[1];
+        }
+        if(changedField.size() == 2)
         {
-            std::vector<std::string> changedFieldsParts = stringSplit(*it, '.');
-            std::stringstream  posBusName;
-            posBusName << changedFieldsParts[0] << "." << changedFieldsParts[1];
-            changedField.clear();
-            changedField = stringSplit(changedFieldsParts[2], '=');
-            std::string fieldName = changedField[0];
-            std::string fieldVal = "";
-            if(changedField.size() == 2)
+            fieldVal = changedField[1];
+        }
+        if(posBusLookup.find(posBusName.str()) != posBusLookup.end())
+        {
+            if(posBusLookup[posBusName.str()].find(fieldName) != posBusLookup[posBusName.str()].end())
             {
-                fieldVal = changedField[1];
-            }
-            if(posBusLookup.find(posBusName.str()) != posBusLookup.end())
-            {
-                if(posBusLookup[posBusName.str()].find(fieldName) != posBusLookup[posBusName.str()].end())
+                if(fieldName == "CAPTURE")
                 {
-                    if(fieldName == "CAPTURE")
-                    {
-                        setIntegerParam(*posBusLookup[posBusName.str()][fieldName], captureType[fieldVal.c_str()]);
-                    }
-                    else
-                    {
-                        setStringParam(*posBusLookup[posBusName.str()][fieldName], fieldVal.c_str());
-                    }
-                    callParamCallbacks();
+                    setIntegerParam(*posBusLookup[posBusName.str()][fieldName], captureType[fieldVal.c_str()]);
                 }
+                else
+                {
+                    setStringParam(*posBusLookup[posBusName.str()][fieldName], fieldVal.c_str());
+                }
+                //callParamCallbacks();
             }
         }
-        this->unlock();
-        epicsThreadSleep(1);
     }
-    callParamCallbacks();
 }
 
 std::vector<std::string> ADPandABlocks::stringSplit(const std::string& s, char delimiter)
