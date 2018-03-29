@@ -380,22 +380,23 @@ void ADPandABlocks::processChanges(std::string cmd, bool posn)
     changed.push_back(readFieldNames(&numChanges));
     for(std::vector<std::string>::iterator it = changed[0].begin(); it != changed[0].end(); ++it)
     {
-        std::vector<std::string> changedParts = stringSplit(*it, '.');
+        std::vector<std::string> changedParts = stringSplit(*it, '=');
         std::stringstream  posBusName;
         changedField.clear();
-        changedField = stringSplit(changedParts.back(), '=');
-        std::string fieldName = changedField[0];
+        changedField = stringSplit(changedParts[0], '.');
+        std::string fieldName = changedField[1];
         std::string fieldVal = "";
         if(posn){
-            posBusName << changedParts[0] << "." << changedField[0];
+            posBusName << changedParts[0];
             fieldName = "VAL";
         }
         else{
-            posBusName << changedParts[0] << "." << changedParts[1];
+            posBusName << changedField[0] << "." << changedField[1];
+            fieldName = changedField[2];
         }
-        if(changedField.size() == 2)
+        if(changedParts.size() == 2)
         {
-            fieldVal = changedField[1];
+            fieldVal = changedParts[1];
         }
         if(posBusLookup.find(posBusName.str()) != posBusLookup.end())
         {
