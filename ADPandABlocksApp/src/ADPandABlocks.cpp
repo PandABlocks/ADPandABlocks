@@ -182,13 +182,18 @@ ADPandABlocks::ADPandABlocks(const char* portName, const char* cmdSerialPortName
 
     /*Make params for each of the POSITION fields*/
     char str[NBUFF];
-    for(int a = 1; a <numPosFields; a++) //IGNORE THE FIRST VALUE AS IT IS POSITIONS.ZERO
+    for(int a = 0; a < 32; a++) //IGNORE THE FIRST VALUE AS IT IS POSITIONS.ZERO
     {
-        epicsSnprintf(str, NBUFF, "POSBUS%d", a);
-        createParam(str, asynParamOctet, &ADPandABlocksPosFields[a]);
-        setStringParam(ADPandABlocksPosFields[a], posFields[0][a].c_str());
-        //epicsSnprintf(str, NBUFF, "POSBUS%d:VAL", a);
-        //createParam(str, asynParamOctet, &ADPandABlocksPosVals[a]);
+        if(a == 0 || a < numPosFields){
+            epicsSnprintf(str, NBUFF, "POSBUS%d", a);
+            createParam(str, asynParamOctet, &ADPandABlocksPosFields[a]);
+            setStringParam(ADPandABlocksPosFields[a], posFields[0][a].c_str());
+        }
+        else{
+            epicsSnprintf(str, NBUFF, "POSBUS%d", a);
+            createParam(str, asynParamOctet, &ADPandABlocksPosFields[a]);
+            setStringParam(ADPandABlocksPosFields[a], "UNUSED");
+        }
     }
 
     //Initialise the lookup table for posbus values
