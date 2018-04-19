@@ -13,8 +13,11 @@ class _MainDbFile (AutoSubstitution):
 class _PosBusTemplate (AutoSubstitution):
     TemplateFile = 'ADPandABlocksPosBus.template'
 
-class EncTemplate (AutoSubstitution):
-    TemplateFile = 'ADPandABlocksEnc.template'
+class MotorSync (AutoSubstitution):
+    """Synchronises motor record MRES, OFFSET, UNITS with PandABlocks INENC and
+    sets position after home"""
+    TemplateFile = 'ADPandABlocksMotorSync.template'
+
 
 # Main class for the ADPandABlocks device
 class ADPandABlocks(AsynPort):
