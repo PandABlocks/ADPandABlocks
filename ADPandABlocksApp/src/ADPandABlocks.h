@@ -69,6 +69,7 @@ public:
 
     /* These are the methods that we override from asynPortDriver */
     virtual asynStatus writeInt32(asynUser *pasynUser, epicsInt32 value);
+    virtual asynStatus writeFloat64(asynUser *pasynUser, epicsFloat64 value);
     virtual asynStatus writeOctet(asynUser *pasynUser, const char* value, size_t nChars, size_t* nActual);
 
 protected:
@@ -80,12 +81,16 @@ protected:
     int ADPandABlocksPCTime;             // float64array read - position compare timestamps
 #define LAST_PARAM ADPandABlocksPCTime
     int ADPandABlocksPosFields[NPOSBUS]; // string read     - position field names
-    int ADPandABlocksPosVals[NPOSBUS]; // string read     - position field names
-    int ADPandABlocksScale[NPOSBUS];        // string write    - motor scale
-    int ADPandABlocksOffset[NPOSBUS];       // string write    - motor offset
-    int ADPandABlocksUnits[NPOSBUS];        // string write    - motor units
+    int ADPandABlocksPosVals[NPOSBUS];   // string read     - position field values
+    int ADPandABlocksScale[NPOSBUS];     // string write    - motor scale
+    int ADPandABlocksOffset[NPOSBUS];    // string write    - motor offset
+    int ADPandABlocksUnits[NPOSBUS];     // string write    - motor units
     int ADPandABlocksCapture[NPOSBUS];   // string write    - pcap capture type
-#define NUM_PARAMS (&LAST_PARAM - &FIRST_PARAM + 1)
+    int ADPandABlocksMScale[NENC];       // float64 write   - motor scale
+    int ADPandABlocksMSetpos[NENC];      // float64 write   - motor setpos
+    int ADPandABlocksMOffset[NENC];      // float64 write   - motor offset
+    int ADPandABlocksMUnits[NENC];       // string write    - motor units
+#define NUM_PARAMS (&LAST_PARAM - &FIRST_PARAM + 1 + NPOSBUS*6 + NENC*4)
 
 private:
     headerMap parseHeader(const std::string& headerString);

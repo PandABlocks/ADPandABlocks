@@ -1,61 +1,80 @@
 #====================================================================#
 # Template file: ADPandABlocksEnc.template
 # Macros:
-# % macro, PORT, Asyn Port name for ADPandABlocks coms
+# % macro, MOTOR, pv of motor record
 # % macro, P, Device prefix
 # % macro, R, Device suffix
-# % macro, ENC_IND, index for scale param on posbus
+# % macro, ENC_IND, index for motor
+# % macro, DIR, motor direction + for positive - for negative
+# % macro, MULT, scale factor multiply
 #------
 
-record(motor, "$(P)$(R)NOMOTOR") {
-  field(DTYP, "Soft Channel")
-  field(ERES, "1")
-  field(OFF, "0")
-  field(EGU, "")
-}
 
-record(ai, "$(P)$(R)NOMOTOR:SCALE") {
-  field(VAL, "1")
-}
-
-record(ai, "$(P)$(R)NOMOTOR:OFF") {
-  field(VAL, "0")
-}
-
-record(calcout, "$(P)$(R)M$(ENC_IND):SCALE") {
+record(calcout, "$(P)$(R)INENC$(ENC_IND):SCALECALC") {
   field(CALC, "(B=0?A:-A)*(C>0?C:1)*D")
-  field(INPA, "$(M$(ENC_IND)=$(P)$(R)NOMOTOR).ERES CP")
-  field(INPB, "$(M$(ENC_IND)=$(P)$(R)NOMOTOR).DIR CP")
-  field(INPC, "$(M$(ENC_IND)=$(P)$(R)NOMOTOR):SCALE CP")
-  field(INPD, "$(M$(ENC_IND)DIR=+)$(M$(ENC_IND)MULT=1)")
-  field(OUT,  "$(P)$(R)POSBUS$(ENC_IND):SCALE")
+  field(INPA, "$(MOTOR).ERES CP")
+  field(INPB, "$(MOTOR).DIR CP")
+  field(INPC, "$(MOTOR):SCALE CP")
+  field(INPD, "$(DIR=+)$(MULT=1)")
+  field(OUT,  "$(P)$(R)INENC$(ENC_IND):SCALE")
   field(PREC, "4")
 }
 
-record(calcout, "$(P)$(R)M$(ENC_IND):OFF") {
-  field(CALC, "(B=0?A:-A)*(C>0?C:1)*D")
-  field(INPA, "$(M$(ENC_IND)=$(P)$(R)NOMOTOR).OFF CP")
-  field(INPB, "$(M$(ENC_IND)=$(P)$(R)NOMOTOR).DIR CP")
-  field(INPC, "$(M$(ENC_IND)=$(P)$(R)NOMOTOR):SCALE CP")
-  field(INPD, "$(M$(ENC_IND)DIR=+)$(M$(ENC_IND)MULT=1)")
-  field(OUT,  "$(P)$(R)POSBUS$(ENC_IND):SCALE")
+record(calcout, "$(P)$(R)INENC$(ENC_IND):OFFCALC") {
+  field(CALC, "A")
+  field(INPA, "$(MOTOR).OFF CP")
+  field(OUT,  "$(P)$(R)INENC$(ENC_IND):OFF")
   field(PREC, "4")
 }
 
-record(stringout, "$(P)$(R)M$(ENC_IND):UNITS") {
+record(stringout, "$(P)$(R)INENC$(ENC_IND):UNITSCALC") {
+  field(OUT,  "$(P)$(R)INENC$(ENC_IND):UNITS")
+  field(DOL, "$(MOTOR).EGU CP")
+  field(OMSL, "closed_loop")
+}
+
+record(calcout, "$(P)$(R):INENC$(ENC_IND):SDISTRANS") {
+  field(DESC, "Trigger seq when SDIS trans to Zero")
+  field(CALC, "A")
+  field(INPA, "$(MOTOR):SDIS.A CP")
+  field(OOPT, "Transition To Zero")
+  field(OUT, "$(P)$(R):INENC$(ENC_IND):ONENABLE.PROC")
+}
+
+record(seq, "$(P)$(R):INENC$(ENC_IND):ONENABLE") {
+  field(DESC, "1s after motor enabled, call setpos")
+  field(DOL1, "1")
+  field(LNK1, "$(P)$(R):INENC$(ENC_IND):SETPOS.PROC PP")
+  field(DLY1, "$(M1HOMESETTLE=5)")
+}
+
+# % archiver 10 Monitor
+record(calcout, "$(P)$(R):INENC$(ENC_IND):SETPOSCALC") {
+  field(CALC, "A*(B>0?B:1)")
+  field(INPA, "$(MOTOR).REP") #WRITES TO THE MOTOR RECORD VAL IN COUNTS INSTEAD OF :RBV
+  field(INPB, "$(MOTOR):SCALE")
+  field(OUT, "$(P)$(R):INENC$(ENC_IND):SETPOS PP")
+}
+
+record(ao, "$(P)$(R):INENC$(ENC_IND):SETPOS") {
+  field(DESC, "INENC set current position")
+  field(DTYP, "asynFloat64")
+  field(OUT, "@asyn($(PORT),0)INENC$(ENC_IND):SETPOS")
+}
+record(ao, "$(P)$(R):INENC$(ENC_IND):SCALE") {
   field(DESC, "INENC scale value")
-  field(PINI, "YES")
-  field(DTYP, "asynOctetWrite")
-  field(OUT,  "$(P)$(R)POSBUS$(ENC_IND):UNITS")
-  info(asyn:READBACK, "1")
+  field(DTYP, "asynFloat64")
+  field(OUT, "@asyn($(PORT),0)INENC$(ENC_IND):SCALE")
 }
 
-#record(ao, "$(P)$(R)M1:ERES:OUT") {
-#  field(DTYP, "asynFloat64")
-#  field(OUT, "@asyn($(PORT),0) $(P)$(R)POSBUS$(ENC_IND):SCALE")
-#  field(DOL, "$(P)$(R)M1:ERES CP")
-#  field(OMSL, "closed_loop")
-#}
+record(ao, "$(P)$(R):INENC$(ENC_IND):OFF") {
+  field(DESC, "INENC scale value")
+  field(DTYP, "asynFloat64")
+  field(OUT, "@asyn($(PORT),0)INENC$(ENC_IND):OFF")
+}
 
-##----
-
+record(stringout, "$(P)$(R):INENC$(ENC_IND):UNITS") {
+  field(DESC, "INENC scale value")
+  field(DTYP, "asynOctetWrite")
+  field(OUT, "@asyn($(PORT),0)INENC$(ENC_IND):UNITS")
+}
