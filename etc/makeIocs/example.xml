@@ -9,8 +9,6 @@
 	<!--<EPICS_BASE.StartupCommand at_end="False" command="asynSetTraceMask(&quot;pandabox_data&quot;, 0, 20)"/>-->
 	<!--<EPICS_BASE.StartupCommand at_end="False" command="asynSetTraceIOMask(&quot;pandabox_data&quot;,0,2)"/>-->
 	<ADPandABlocks.ADPandABlocks ADDR="0" CMDPORT="pandabox_cmd" DATAPORT="pandabox_data" MAXBUF="1000" P="TS-MO-PANDA-01" PORT="PANDA.DRV" R=":DRV:" TIMEOUT="1"/>
-	<ADPandABlocks.ADPandABlocksMotorSync ADDR="1" ENC_IND="1" MOTOR="XX:XX" P="TS-MO-PANDA-01" PORT="PANDA_MOT" R=":DRV:" TIMEOUT="1"/>
-	<ADPandABlocks.ADPandABlocksMotorSync ADDR="1" ENC_IND="2" MOTOR="XX:XX" P="TS-MO-PANDA-01" PORT="PANDA_MOT" R=":DRV:" TIMEOUT="1"/>
 	<ADCore.NDAttrPlot ADDR="0" ENABLED="1" NDARRAY_PORT="PANDA.DRV" N_CACHE="50000" P="TS-MO-PANDA-01" PORT="PANDA.PLOT" R=":PLOT:" TIMEOUT="1"/>
 	<ADCore.NDFileHDF5 ADDR="0" ENABLED="1" NDARRAY_PORT="PANDA.DRV" P="TS-MO-PANDA-01" PORT="PANDA.HDF" QUEUE="100" R=":HDF:" TIMEOUT="1"/>
 	<!--<EPICS_BASE.dbpf pv="PANDA:PANDABOX-01:HDF5:FileWriteMode" value="2"/>-->
