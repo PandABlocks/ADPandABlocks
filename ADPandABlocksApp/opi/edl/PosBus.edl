@@ -3,9 +3,9 @@ beginScreenProperties
 major 4
 minor 0
 release 1
-x 1970
-y 496
-w 1149
+x 2063
+y 526
+w 800
 h 31
 font "arial-medium-r-18.0"
 ctlFont "arial-medium-r-18.0"
@@ -24,51 +24,6 @@ showGrid
 snapToGrid
 gridSize 5
 endScreenProperties
-
-# (Rectangle)
-object activeRectangleClass
-beginObjectProperties
-major 4
-minor 0
-release 0
-x 905
-y 0
-w 245
-h 30
-lineColor index 3
-fill
-fillColor index 5
-endObjectProperties
-
-# (Rectangle)
-object activeRectangleClass
-beginObjectProperties
-major 4
-minor 0
-release 0
-x 660
-y 0
-w 245
-h 30
-lineColor index 5
-fill
-fillColor index 3
-endObjectProperties
-
-# (Rectangle)
-object activeRectangleClass
-beginObjectProperties
-major 4
-minor 0
-release 0
-x 415
-y 0
-w 245
-h 30
-lineColor index 3
-fill
-fillColor index 5
-endObjectProperties
 
 # (Rectangle)
 object activeRectangleClass
@@ -138,60 +93,6 @@ indicatorPv "$(P)$(R)POSBUS$(N):CAPTURE"
 font "arial-bold-r-14.0"
 endObjectProperties
 
-# (Textupdate)
-object TextupdateClass
-beginObjectProperties
-major 10
-minor 0
-release 0
-x 1030
-y 5
-w 115
-h 25
-controlPv "$(P)$(R)POSBUS$(N):UNITS"
-fgColor index 16
-fgAlarm
-bgColor index 10
-fill
-font "helvetica-bold-r-14.0"
-endObjectProperties
-
-# (Textupdate)
-object TextupdateClass
-beginObjectProperties
-major 10
-minor 0
-release 0
-x 785
-y 5
-w 115
-h 25
-controlPv "$(P)$(R)POSBUS$(N):OFFSET"
-fgColor index 16
-fgAlarm
-bgColor index 10
-fill
-font "helvetica-bold-r-14.0"
-endObjectProperties
-
-# (Textupdate)
-object TextupdateClass
-beginObjectProperties
-major 10
-minor 0
-release 0
-x 540
-y 5
-w 115
-h 25
-controlPv "$(P)$(R)POSBUS$(N):SCALE"
-fgColor index 16
-fgAlarm
-bgColor index 10
-fill
-font "helvetica-bold-r-14.0"
-endObjectProperties
-
 # (Textentry)
 object TextentryClass
 beginObjectProperties
@@ -216,7 +117,7 @@ beginObjectProperties
 major 10
 minor 0
 release 0
-x 665
+x 550
 y 5
 w 115
 h 25
@@ -235,7 +136,7 @@ beginObjectProperties
 major 10
 minor 0
 release 0
-x 910
+x 680
 y 5
 w 115
 h 25
