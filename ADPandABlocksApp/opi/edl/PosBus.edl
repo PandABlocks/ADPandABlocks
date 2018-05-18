@@ -3,9 +3,9 @@ beginScreenProperties
 major 4
 minor 0
 release 1
-x 2063
-y 526
-w 800
+x 2602
+y 537
+w 810
 h 31
 font "arial-medium-r-18.0"
 ctlFont "arial-medium-r-18.0"
@@ -33,7 +33,7 @@ minor 0
 release 0
 x 160
 y 0
-w 125
+w 140
 h 30
 lineColor index 5
 fill
@@ -81,7 +81,7 @@ minor 0
 release 0
 x 165
 y 5
-w 115
+w 125
 h 20
 fgColor index 25
 bgColor index 2
@@ -99,7 +99,7 @@ beginObjectProperties
 major 10
 minor 0
 release 0
-x 420
+x 430
 y 5
 w 115
 h 25
@@ -117,7 +117,7 @@ beginObjectProperties
 major 10
 minor 0
 release 0
-x 550
+x 560
 y 5
 w 115
 h 25
@@ -136,7 +136,7 @@ beginObjectProperties
 major 10
 minor 0
 release 0
-x 680
+x 690
 y 5
 w 115
 h 25
@@ -155,7 +155,7 @@ beginObjectProperties
 major 4
 minor 0
 release 0
-x 285
+x 295
 y 0
 w 125
 h 30
@@ -170,7 +170,7 @@ beginObjectProperties
 major 10
 minor 0
 release 0
-x 290
+x 305
 y 5
 w 115
 h 25
