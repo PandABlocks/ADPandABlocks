@@ -57,15 +57,23 @@ ADPandABlocks::ADPandABlocks(const char* portName, const char* cmdSerialPortName
     errorMsg[asynDisabled] = "asynDisabled";
 
     captureType["No"] = 0;
-    captureType["Triggered"] = 1;
-    captureType["Difference"] = 2;
-    captureType["Average"] = 3;
-    captureType["Extended"] = 4;
+    captureType["Value"] = 1;
+    captureType["Diff"] = 2;
+    captureType["Sum"] = 3;
+    captureType["Mean"] = 4;
+    captureType["Min"] = 5;
+    captureType["Max"] = 6;
+    captureType["Min Max"] = 7;
+    captureType["Min Max Mean"] = 8;
     captureStrings.push_back("No");
-    captureStrings.push_back("Triggered");
-    captureStrings.push_back("Difference");
-    captureStrings.push_back("Average");
-    captureStrings.push_back("Extended");
+    captureStrings.push_back("Value");
+    captureStrings.push_back("Diff");
+    captureStrings.push_back("Sum");
+    captureStrings.push_back("Mean");
+    captureStrings.push_back("Min");
+    captureStrings.push_back("Max");
+    captureStrings.push_back("Min Max");
+    captureStrings.push_back("Min Max Mean");
 
     const char *functionName = "ADPandABlocks";
     asynStatus status = asynSuccess;
@@ -266,6 +274,8 @@ void ADPandABlocks::initLookup(std::string paramName, std::string paramNameEnd, 
         posBusLookup.insert(std::pair<std::string, std::map<std::string, int*> >(paramName, lpMap2));
         posBusLookup[paramName].insert(std::pair<std::string, int*>(paramNameEnd, paramInd));
         std::string paramVal = getPosBusField(paramName, paramNameEnd.c_str());
+        // TODO: delete this line
+        std::cout << "Setting integerParam " << paramName << ", " << paramNameEnd << ": " << paramVal << std::endl;
         asynStatus status = setIntegerParam(*posBusLookup[paramName][paramNameEnd], atoi(paramVal.c_str()));
     }
     else{
@@ -360,7 +370,7 @@ asynStatus ADPandABlocks::readPosBusValues(std::string* posBusValue) {
 }
 
 void ADPandABlocks::checkPosBusChanges(){
-    /*  This will check if anything has changed on the panada and update the
+    /*  This will check if anything has changed on the panda and update the
         Readback values */
     std::vector<std::vector<std::string> > changedFields;
     std::vector<std::string> changedField;

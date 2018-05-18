@@ -20,17 +20,24 @@ record(stringin, "$(P)$(R)POSBUS$(POSBUS_IND)") {
 
 record(mbbo, "$(P)$(R)POSBUS$(POSBUS_IND):CAPTURE") {
   field(DESC, "Data end string")
-  field(PINI, "YES")
   field(ZRVL, "0")
   field(ZRST, "No")
   field(ONVL, "1")
-  field(ONST, "Triggered")
+  field(ONST, "Value")
   field(TWVL, "2")
-  field(TWST, "Difference")
+  field(TWST, "Diff")
   field(THVL, "3")
-  field(THST, "Average")
+  field(THST, "Sum")
   field(FRVL, "4")
-  field(FRST, "Extended")
+  field(FRST, "Mean")
+  field(FVVL, "5")
+  field(FVST, "Min")
+  field(SXVL, "6")
+  field(SXST, "Max")
+  field(SVVL, "7")
+  field(SVST, "Min Max")
+  field(EIVL, "8")
+  field(EIST, "Min Max Mean")
   field(DTYP, "asynInt32")
   field(OUT, "@asyn($(PORT),$(POSBUS_IND))POSBUS$(POSBUS_IND):CAPTURE")
   info(asyn:READBACK, "1")
@@ -38,7 +45,6 @@ record(mbbo, "$(P)$(R)POSBUS$(POSBUS_IND):CAPTURE") {
 
 record(stringout, "$(P)$(R)POSBUS$(POSBUS_IND):SCALE") {
   field(DESC, "INENC scale value")
-  field(PINI, "YES")
   field(DTYP, "asynOctetWrite")
   field(OUT, "@asyn($(PORT),$(POSBUS_IND))POSBUS$(POSBUS_IND):SCALE")
   info(asyn:READBACK, "1")
@@ -46,7 +52,6 @@ record(stringout, "$(P)$(R)POSBUS$(POSBUS_IND):SCALE") {
 
 record(stringout, "$(P)$(R)POSBUS$(POSBUS_IND):OFFSET") {
   field(DESC, "INENC offset value")
-  field(PINI, "YES")
   field(DTYP, "asynOctetWrite")
   field(OUT, "@asyn($(PORT),$(POSBUS_IND))POSBUS$(POSBUS_IND):OFFSET")
   info(asyn:READBACK, "1")
@@ -54,7 +59,6 @@ record(stringout, "$(P)$(R)POSBUS$(POSBUS_IND):OFFSET") {
 
 record(stringout, "$(P)$(R)POSBUS$(POSBUS_IND):UNITS") {
   field(DESC, "INENC units value")
-  field(PINI, "YES")
   field(DTYP, "asynOctetWrite")
   field(OUT, "@asyn($(PORT),$(POSBUS_IND))POSBUS$(POSBUS_IND):UNITS")
   info(asyn:READBACK, "1")
@@ -62,7 +66,6 @@ record(stringout, "$(P)$(R)POSBUS$(POSBUS_IND):UNITS") {
 
 record(stringout, "$(P)$(R)POSBUS$(POSBUS_IND):VAL") {
   field(DESC, "INENC scale value")
-  field(PINI, "YES")
   field(DTYP, "asynOctetWrite")
   field(OUT, "@asyn($(PORT),$(POSBUS_IND))POSBUS$(POSBUS_IND):VAL")
   info(asyn:READBACK, "1")
