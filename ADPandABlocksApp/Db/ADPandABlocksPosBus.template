@@ -65,8 +65,15 @@ record(stringout, "$(P)$(R)POSBUS$(POSBUS_IND):UNITS") {
 }
 
 record(stringout, "$(P)$(R)POSBUS$(POSBUS_IND):VAL") {
-  field(DESC, "INENC scale value")
+  field(DESC, "INENC value")
   field(DTYP, "asynOctetWrite")
   field(OUT, "@asyn($(PORT),$(POSBUS_IND))POSBUS$(POSBUS_IND):VAL")
+  info(asyn:READBACK, "1")
+}
+
+record(stringout, "$(P)$(R)POSBUS$(POSBUS_IND):SCALEDVAL") {
+  field(DESC, "INENC scaled value")
+  field(DTYP, "asynOctetWrite")
+  field(OUT, "@asyn($(PORT),$(POSBUS_IND))POSBUS$(POSBUS_IND):SCALEDVAL")
   info(asyn:READBACK, "1")
 }
