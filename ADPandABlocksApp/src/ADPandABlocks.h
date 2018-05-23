@@ -69,7 +69,7 @@ public:
 
     /* These are the methods that we override from asynPortDriver */
     virtual asynStatus writeInt32(asynUser *pasynUser, epicsInt32 value);
-    //virtual asynStatus writeFloat64(asynUser *pasynUser, epicsFloat64 value);
+    virtual asynStatus writeFloat64(asynUser *pasynUser, epicsFloat64 value);
     virtual asynStatus writeOctet(asynUser *pasynUser, const char* value, size_t nChars, size_t* nActual);
 
 protected:
@@ -82,6 +82,7 @@ protected:
 #define LAST_PARAM ADPandABlocksPCTime
     int ADPandABlocksPosFields[NPOSBUS]; // string read     - position field names
     int ADPandABlocksPosVals[NPOSBUS];   // string read     - position field values
+    int ADPandABlocksPosScaledVals[NPOSBUS];     // string read    - position field scaled value
     int ADPandABlocksScale[NPOSBUS];     // string write    - motor scale
     int ADPandABlocksOffset[NPOSBUS];    // string write    - motor offset
     int ADPandABlocksUnits[NPOSBUS];     // string write    - motor units
@@ -90,7 +91,7 @@ protected:
     int ADPandABlocksMSetpos[NENC];      // float64 write   - motor setpos
     int ADPandABlocksMOffset[NENC];      // float64 write   - motor offset
     int ADPandABlocksMUnits[NENC];       // string write    - motor units
-#define NUM_PARAMS (&LAST_PARAM - &FIRST_PARAM + 1 + NPOSBUS*6 + NENC*4)
+#define NUM_PARAMS (&LAST_PARAM - &FIRST_PARAM + 1 + NPOSBUS*7 + NENC*4)
 
 private:
     headerMap parseHeader(const std::string& headerString);
@@ -110,6 +111,16 @@ private:
     void initLookup(std::string paramName, std::string paramNameEnd, int* paramInd, int posBusInd);
     std::vector<std::string> stringSplit(const std::string& s, char delimiter);
     void processChanges(std::string cmd, bool posn);
+    void updateScaledPositionValue(std::string posBusName);
+    template<typename T>
+    void checkMotorParams(int reason, T value);
+    bool asynReasonIsMotor(int reason, int &motorIndex);
+    template<typename T>
+    void updatePandAMotorParam(int motorIndex, T value);
+    template<typename T>
+    void updatePandAParam(std::string name, std::string field, T value);
+    double stringToDouble(std::string str);
+    std::string doubleToString(double value);
 private:
     NDArray *pArray;
     asynUser *pasynUser_ctrl;
@@ -121,6 +132,10 @@ private:
     asynOctet *pasynOctet_data;
     void *octetPvt_data;
     int arrayCounter, numImagesCounter, imgMode, imgNo;
+
+    // Enum for tracking motor field updates
+    enum motorField {scale, offset, units, setpos};
+    motorField updatedMotorField;
 
     //vector of maps for the header values
     headerMap headerValues;
