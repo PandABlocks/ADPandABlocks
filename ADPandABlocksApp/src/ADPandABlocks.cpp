@@ -40,11 +40,11 @@ static const char *driverName = "ADPandABlocks";
 static std::map<asynStatus, std::string> errorMsg;
 
 ADPandABlocks::ADPandABlocks(const char* portName, const char* cmdSerialPortName, const char* dataSerialPortName, int maxPts, int maxBuffers, int maxMemory) :
-        		ADDriver(portName, 1 /*maxAddr*/, NUM_PARAMS, maxBuffers, maxMemory,
-        				asynInt8ArrayMask | asynFloat64ArrayMask | asynInt32Mask | asynFloat64Mask | asynOctetMask | asynDrvUserMask,
-        				asynInt8ArrayMask | asynFloat64ArrayMask | asynInt32Mask | asynFloat64Mask | asynOctetMask,
-        				ASYN_CANBLOCK, /*ASYN_CANBLOCK=1, ASYN_MULTIDEVICE=0 */
-        				1, /*autoConnect*/ 0, /*default priority */ 0 /*default stack size*/) {
+        				ADDriver(portName, 1 /*maxAddr*/, NUM_PARAMS, maxBuffers, maxMemory,
+        						asynInt8ArrayMask | asynFloat64ArrayMask | asynInt32Mask | asynFloat64Mask | asynOctetMask | asynDrvUserMask,
+        						asynInt8ArrayMask | asynFloat64ArrayMask | asynInt32Mask | asynFloat64Mask | asynOctetMask,
+        						ASYN_CANBLOCK, /*ASYN_CANBLOCK=1, ASYN_MULTIDEVICE=0 */
+        						1, /*autoConnect*/ 0, /*default priority */ 0 /*default stack size*/) {
 
 	//private variables
 	state = waitHeaderStart; //init state for the data read
@@ -187,6 +187,13 @@ ADPandABlocks::ADPandABlocks(const char* portName, const char* cmdSerialPortName
 	sendCtrl(fieldCmd.str());
 	int numPosFields = 0;
 	posFields.push_back(readFieldNames(&numPosFields));
+	while (numPosFields < 32)
+	{
+		std::stringstream fieldNum;
+		fieldNum << "POSBUS" << numPosFields+1;
+		posFields[0].push_back(fieldNum.str());
+		numPosFields++;
+	}
 
 	/*Make params for each of the POSITION fields*/
 	char str[NBUFF];
@@ -321,8 +328,6 @@ void ADPandABlocks::updatePandAParam<int>(std::string name, std::string field, i
 std::string ADPandABlocks::getPosBusField(std::string posbus, const char* paramName){
 	std::string field;
 	std::stringstream cmdStr;
-	// TODO: delete line after testing
-	// std::cout << "Sending command " << posbus << "." << paramName << "?" << std::endl;
 	cmdStr << posbus << "." << paramName << "?";
 	sendCtrl(cmdStr.str());
 	readPosBusValues(&field);
@@ -340,26 +345,34 @@ void ADPandABlocks::createPosBusParam(const char* paramName, asynParamType param
 void ADPandABlocks::initLookup(std::string paramName, std::string paramNameEnd, int* paramInd, int posBusInd)
 {
 	std::map<std::string, int*> lpMap2;
+	// Create parameters and initialise used positions
 	if(paramNameEnd == "CAPTURE"){
 		createPosBusParam(paramNameEnd.c_str(), asynParamInt32, paramInd, posBusInd);
 		posBusLookup.insert(std::pair<std::string, std::map<std::string, int*> >(paramName, lpMap2));
 		posBusLookup[paramName].insert(std::pair<std::string, int*>(paramNameEnd, paramInd));
-		std::string paramVal = getPosBusField(paramName, paramNameEnd.c_str());
-		asynStatus status = setIntegerParam(*posBusLookup[paramName][paramNameEnd], atoi(paramVal.c_str()));
+		if (paramName.find("POSBUS") == std::string::npos)
+		{
+			std::string paramVal = getPosBusField(paramName, paramNameEnd.c_str());
+			asynStatus status = setIntegerParam(*posBusLookup[paramName][paramNameEnd], atoi(paramVal.c_str()));
+		}
 	}
 	else{
 		createPosBusParam(paramNameEnd.c_str(), asynParamOctet, paramInd, posBusInd);
 		posBusLookup.insert(std::pair<std::string, std::map<std::string, int*> >(paramName, lpMap2));
 		posBusLookup[paramName].insert(std::pair<std::string, int*>(paramNameEnd, paramInd));
-		if(paramNameEnd != "VAL" && paramNameEnd != "UNSCALEDVAL"){
-			std::string paramVal = getPosBusField(paramName, paramNameEnd.c_str());
-			asynStatus status = setStringParam(*posBusLookup[paramName][paramNameEnd], paramVal.c_str());
-		}
-		else{
-			asynStatus status = setStringParam(*posBusLookup[paramName][paramNameEnd], "");
+		if (paramName.find("POSBUS") == std::string::npos)
+		{
+			if(paramNameEnd != "VAL" && paramNameEnd != "UNSCALEDVAL"){
+				std::string paramVal = getPosBusField(paramName, paramNameEnd.c_str());
+				asynStatus status = setStringParam(*posBusLookup[paramName][paramNameEnd], paramVal.c_str());
+			}
+			else{
+				asynStatus status = setStringParam(*posBusLookup[paramName][paramNameEnd], "");
+			}
 		}
 
 	}
+
 }
 
 /* This is the function that will be run for the read thread */
@@ -431,7 +444,7 @@ asynStatus ADPandABlocks::readPosBusValues(std::string* posBusValue) {
 	} else {
 		//we didn't recieve OK so something went wrong
 		asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
-						"%s:%s Bad response: %d, %s\n", driverName, functionName, (int)nBytesIn, rxBuffer);
+				"%s:%s Bad response: %d, %s\n", driverName, functionName, (int)nBytesIn, rxBuffer);
 		status = asynError;
 	}
 	return status;
@@ -482,8 +495,6 @@ void ADPandABlocks::processChanges(std::string cmd, bool posn)
 		}
 		posBusNameStr = posBusName.str();
 
-		// TODO: delete cout
-		std::cout << "Setting param " << posBusNameStr << "." << fieldName << ": " << fieldVal << std::endl;
 		if (fieldName == "CAPTURE")
 		{
 			updatePandAParam(posBusNameStr, fieldName, captureType[fieldVal.c_str()]);
@@ -997,38 +1008,33 @@ void ADPandABlocks::checkMotorParams(int reason, T value)
  * Function to check if reason matches one of motor offset, units, scale or setpos
  *   \param[in] reason asyn index of changed parameter
  *   \param[in] motorIndex motor index of changed parameter
- *   \param[out] result Whether the reason is due to motor-related parameter
+ *   \param[out] reasonIsMotor Whether the reason is due to motor-related parameter
  */
 bool ADPandABlocks::asynReasonIsMotor(int reason, int &motorIndex)
 {
-	bool result = false;
+	bool reasonIsMotor = false;
 	// Check each motor
-	// TODO: delete print statements
 	for (int i=0; i<4; i++)
 	{
 		if (reason == ADPandABlocksMScale[i])
 		{
-			printf("MScale changed\n");
 			updatedMotorField = scale;
-			result = true;
+			reasonIsMotor = true;
 		}
 		else if (reason == ADPandABlocksMOffset[i])
 		{
-			printf("MOffset changed\n");
 			updatedMotorField = offset;
-			result = true;
+			reasonIsMotor = true;
 		}
 		else if (reason == ADPandABlocksMUnits[i])
 		{
-			printf("MUnits changed\n");
 			updatedMotorField = units;
-			result = true;
+			reasonIsMotor = true;
 		}
 		else if (reason == ADPandABlocksMSetpos[i])
 		{
-			printf("MSetpos changed\n");
 			updatedMotorField = setpos;
-			result = true;
+			reasonIsMotor = true;
 		}
 		if (result)
 		{
@@ -1036,7 +1042,7 @@ bool ADPandABlocks::asynReasonIsMotor(int reason, int &motorIndex)
 			break;
 		}
 	}
-	return result;
+	return reasonIsMotor;
 }
 
 /*
@@ -1047,10 +1053,7 @@ bool ADPandABlocks::asynReasonIsMotor(int reason, int &motorIndex)
 template<typename T>
 void ADPandABlocks::updatePandAMotorParam(int motorIndex, T value)
 {
-
-	// TODO: delete print statements
 	std::stringstream posBusName, posBusField;
-	std::string posBusNameStr, posBusFieldStr;
 	posBusName << "INENC" << motorIndex << ".VAL";
 	switch(updatedMotorField)
 	{
@@ -1066,12 +1069,12 @@ void ADPandABlocks::updatePandAMotorParam(int motorIndex, T value)
 		posBusField << "SCALE";
 		break;
 	}
+	case setpos: {
+		posBusField << "SETPOS";
+		break;
 	}
-	posBusNameStr = posBusName.str();
-	posBusFieldStr = posBusField.str();
-	std::cout << "Setting param " << posBusNameStr << "." << posBusFieldStr << ": " << value << std::endl;
-	updatePandAParam(posBusNameStr, posBusFieldStr, value);
-
+	}
+	updatePandAParam(posBusName.str(), posBusField.str(), value);
 }
 
 /** Called when asyn clients call pasynFloat64->write().
@@ -1197,8 +1200,6 @@ asynStatus ADPandABlocks::writeOctet(asynUser *pasynUser, const char* value, siz
 	valueStream << value;
 	checkMotorParams(param, valueStream.str());
 
-	printf("Sending to panda\n");
-
 	// Before setting any param - send it to the Panda and make sure the
 	// response is OK
 	// find the correct param
@@ -1225,11 +1226,8 @@ asynStatus ADPandABlocks::writeOctet(asynUser *pasynUser, const char* value, siz
 			}
 		}
 	}
-
-	printf("Performing callbacks\n");
 	callParamCallbacks();
 	this->unlock();
-	printf("Returning status\n");
 	return status;
 }
 
