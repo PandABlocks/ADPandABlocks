@@ -3,8 +3,8 @@ beginScreenProperties
 major 4
 minor 0
 release 1
-x 2606
-y 561
+x 2610
+y 585
 w 810
 h 31
 font "arial-medium-r-18.0"
@@ -174,7 +174,7 @@ x 305
 y 5
 w 115
 h 25
-controlPv "$(P)$(R)POSBUS$(N):SCALEDVAL"
+controlPv "$(P)$(R)POSBUS$(N):VAL"
 fgColor index 16
 fgAlarm
 bgColor index 10

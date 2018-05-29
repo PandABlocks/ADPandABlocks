@@ -226,7 +226,7 @@ ADPandABlocks::ADPandABlocks(const char* portName, const char* cmdSerialPortName
 		initLookup(*it, "OFFSET", &ADPandABlocksOffset[posBusInd], posBusInd);
 		initLookup(*it, "UNITS", &ADPandABlocksUnits[posBusInd], posBusInd);
 		initLookup(*it, "CAPTURE", &ADPandABlocksCapture[posBusInd], posBusInd);
-		initLookup(*it, "SCALEDVAL", &ADPandABlocksPosScaledVals[posBusInd], posBusInd);
+		initLookup(*it, "UNSCALEDVAL", &ADPandABlocksPosUnscaledVals[posBusInd], posBusInd);
 		posBusInd++;
 	}
 
@@ -267,9 +267,18 @@ void ADPandABlocks::updatePandAParam<double>(std::string name, std::string field
 	{
 		if(posBusLookup[name].find(field) != posBusLookup[name].end())
 		{
-			setStringParam(*posBusLookup[name][field], doubleToString(value));
-			if (field == "VAL" || field == "SCALE" || field == "OFFSET") {
+			if (field == "VAL")
+			{
+				setStringParam(*posBusLookup[name]["UNSCALEDVAL"], doubleToString(value));
 				updateScaledPositionValue(name);
+			}
+			else if (field == "SCALE" || field == "OFFSET")
+			{
+				setStringParam(*posBusLookup[name][field], doubleToString(value));
+				updateScaledPositionValue(name);
+			}
+			else{
+				setStringParam(*posBusLookup[name][field], doubleToString(value));
 			}
 		}
 	}
@@ -281,9 +290,18 @@ void ADPandABlocks::updatePandAParam<std::string>(std::string name, std::string 
 	{
 		if(posBusLookup[name].find(field) != posBusLookup[name].end())
 		{
-			setStringParam(*posBusLookup[name][field], value);
-			if (field == "VAL" || field == "SCALE" || field == "OFFSET") {
+			if (field == "VAL")
+			{
+				setStringParam(*posBusLookup[name]["UNSCALEDVAL"], value);
 				updateScaledPositionValue(name);
+			}
+			else if (field == "SCALE" || field == "OFFSET")
+			{
+				setStringParam(*posBusLookup[name][field], value);
+				updateScaledPositionValue(name);
+			}
+			else{
+				setStringParam(*posBusLookup[name][field], value);
 			}
 		}
 	}
@@ -333,7 +351,7 @@ void ADPandABlocks::initLookup(std::string paramName, std::string paramNameEnd, 
 		createPosBusParam(paramNameEnd.c_str(), asynParamOctet, paramInd, posBusInd);
 		posBusLookup.insert(std::pair<std::string, std::map<std::string, int*> >(paramName, lpMap2));
 		posBusLookup[paramName].insert(std::pair<std::string, int*>(paramNameEnd, paramInd));
-		if(paramNameEnd != "VAL" && paramNameEnd != "SCALEDVAL"){
+		if(paramNameEnd != "VAL" && paramNameEnd != "UNSCALEDVAL"){
 			std::string paramVal = getPosBusField(paramName, paramNameEnd.c_str());
 			asynStatus status = setStringParam(*posBusLookup[paramName][paramNameEnd], paramVal.c_str());
 		}
@@ -481,13 +499,13 @@ void ADPandABlocks::updateScaledPositionValue(std::string posBusName)
 {
 	std::string countString, scaleString, offsetString;
 	double count, scale, offset;
-	getStringParam(*posBusLookup[posBusName]["VAL"], countString);
+	getStringParam(*posBusLookup[posBusName]["UNSCALEDVAL"], countString);
 	count = stringToDouble(countString);
 	getStringParam(*posBusLookup[posBusName]["SCALE"], scaleString);
 	scale = stringToDouble(scaleString);
 	getStringParam(*posBusLookup[posBusName]["OFFSET"], offsetString);
 	offset = stringToDouble(offsetString);
-	setStringParam(*posBusLookup[posBusName]["SCALEDVAL"], doubleToString(count*scale + offset));
+	setStringParam(*posBusLookup[posBusName]["VAL"], doubleToString(count*scale + offset));
 }
 
 double ADPandABlocks::stringToDouble(std::string str)

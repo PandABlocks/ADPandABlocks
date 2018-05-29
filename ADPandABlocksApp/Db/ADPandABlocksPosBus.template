@@ -77,3 +77,10 @@ record(stringout, "$(P)$(R)POSBUS$(POSBUS_IND):SCALEDVAL") {
   field(OUT, "@asyn($(PORT),$(POSBUS_IND))POSBUS$(POSBUS_IND):SCALEDVAL")
   info(asyn:READBACK, "1")
 }
+
+record(stringout, "$(P)$(R)POSBUS$(POSBUS_IND):UNSCALEDVAL") {
+  field(DESC, "INENC unscaled value")
+  field(DTYP, "asynOctetWrite")
+  field(OUT, "@asyn($(PORT),$(POSBUS_IND))POSBUS$(POSBUS_IND):UNSCALEDVAL")
+  info(asyn:READBACK, "1")
+}
