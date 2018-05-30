@@ -43,17 +43,19 @@ record(mbbo, "$(P)$(R)POSBUS$(POSBUS_IND):CAPTURE") {
   info(asyn:READBACK, "1")
 }
 
-record(stringout, "$(P)$(R)POSBUS$(POSBUS_IND):SCALE") {
+record(ao, "$(P)$(R)POSBUS$(POSBUS_IND):SCALE") {
   field(DESC, "INENC scale value")
-  field(DTYP, "asynOctetWrite")
+  field(DTYP, "asynFloat64")
   field(OUT, "@asyn($(PORT),$(POSBUS_IND))POSBUS$(POSBUS_IND):SCALE")
+  field(PREC, 4)
   info(asyn:READBACK, "1")
 }
 
-record(stringout, "$(P)$(R)POSBUS$(POSBUS_IND):OFFSET") {
+record(ao, "$(P)$(R)POSBUS$(POSBUS_IND):OFFSET") {
   field(DESC, "INENC offset value")
-  field(DTYP, "asynOctetWrite")
+  field(DTYP, "asynFloat64")
   field(OUT, "@asyn($(PORT),$(POSBUS_IND))POSBUS$(POSBUS_IND):OFFSET")
+  field(PREC, 4)
   info(asyn:READBACK, "1")
 }
 
@@ -64,16 +66,17 @@ record(stringout, "$(P)$(R)POSBUS$(POSBUS_IND):UNITS") {
   info(asyn:READBACK, "1")
 }
 
-record(stringout, "$(P)$(R)POSBUS$(POSBUS_IND):VAL") {
+record(ao, "$(P)$(R)POSBUS$(POSBUS_IND):VAL") {
   field(DESC, "INENC value")
-  field(DTYP, "asynOctetWrite")
+  field(DTYP, "asynFloat64")
   field(OUT, "@asyn($(PORT),$(POSBUS_IND))POSBUS$(POSBUS_IND):VAL")
+  field(PREC, 4)
   info(asyn:READBACK, "1")
 }
 
-record(stringout, "$(P)$(R)POSBUS$(POSBUS_IND):UNSCALEDVAL") {
+record(longout, "$(P)$(R)POSBUS$(POSBUS_IND):UNSCALEDVAL") {
   field(DESC, "INENC unscaled value")
-  field(DTYP, "asynOctetWrite")
+  field(DTYP, "asynInt32")
   field(OUT, "@asyn($(PORT),$(POSBUS_IND))POSBUS$(POSBUS_IND):UNSCALEDVAL")
   info(asyn:READBACK, "1")
 }

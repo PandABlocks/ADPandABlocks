@@ -274,18 +274,10 @@ void ADPandABlocks::updatePandAParam<double>(std::string name, std::string field
 	{
 		if(posBusLookup[name].find(field) != posBusLookup[name].end())
 		{
-			if (field == "VAL")
+			setDoubleParam(*posBusLookup[name][field], value);
+			if (field == "SCALE" || field == "OFFSET")
 			{
-				setStringParam(*posBusLookup[name]["UNSCALEDVAL"], doubleToString(value));
 				updateScaledPositionValue(name);
-			}
-			else if (field == "SCALE" || field == "OFFSET")
-			{
-				setStringParam(*posBusLookup[name][field], doubleToString(value));
-				updateScaledPositionValue(name);
-			}
-			else{
-				setStringParam(*posBusLookup[name][field], doubleToString(value));
 			}
 		}
 	}
@@ -297,19 +289,7 @@ void ADPandABlocks::updatePandAParam<std::string>(std::string name, std::string 
 	{
 		if(posBusLookup[name].find(field) != posBusLookup[name].end())
 		{
-			if (field == "VAL")
-			{
-				setStringParam(*posBusLookup[name]["UNSCALEDVAL"], value);
-				updateScaledPositionValue(name);
-			}
-			else if (field == "SCALE" || field == "OFFSET")
-			{
-				setStringParam(*posBusLookup[name][field], value);
-				updateScaledPositionValue(name);
-			}
-			else{
-				setStringParam(*posBusLookup[name][field], value);
-			}
+			setStringParam(*posBusLookup[name][field], value);
 		}
 	}
 }
@@ -320,7 +300,12 @@ void ADPandABlocks::updatePandAParam<int>(std::string name, std::string field, i
 	{
 		if(posBusLookup[name].find(field) != posBusLookup[name].end())
 		{
-			setIntegerParam(*posBusLookup[name][field], value);
+			if (field == "VAL")
+			{
+				setIntegerParam(*posBusLookup[name]["UNSCALEDVAL"], value);
+				updateScaledPositionValue(name);
+			}
+			else setIntegerParam(*posBusLookup[name][field], value);
 		}
 	}
 }
@@ -350,18 +335,67 @@ void ADPandABlocks::initLookup(std::string paramName, std::string paramNameEnd, 
 		createPosBusParam(paramNameEnd.c_str(), asynParamInt32, paramInd, posBusInd);
 		posBusLookup.insert(std::pair<std::string, std::map<std::string, int*> >(paramName, lpMap2));
 		posBusLookup[paramName].insert(std::pair<std::string, int*>(paramNameEnd, paramInd));
+		// Only initialised used positions
 		if (paramName.find("POSBUS") == std::string::npos)
 		{
 			std::string paramVal = getPosBusField(paramName, paramNameEnd.c_str());
 			asynStatus status = setIntegerParam(*posBusLookup[paramName][paramNameEnd], atoi(paramVal.c_str()));
 		}
+		else asynStatus status = setIntegerParam(*posBusLookup[paramName][paramNameEnd], 0);
 	}
+	else if(paramNameEnd == "UNITS")
+	{
+		createPosBusParam(paramNameEnd.c_str(), asynParamOctet, paramInd, posBusInd);
+		posBusLookup.insert(std::pair<std::string, std::map<std::string, int*> >(paramName, lpMap2));
+		posBusLookup[paramName].insert(std::pair<std::string, int*>(paramNameEnd, paramInd));
+		// Only initialised used positions
+		if(paramName.find("POSBUS") == std::string::npos)
+		{
+			std::string paramVal = getPosBusField(paramName, paramNameEnd.c_str());
+			asynStatus status = setStringParam(*posBusLookup[paramName][paramNameEnd], paramVal);
+		}
+		else asynStatus status = setStringParam(*posBusLookup[paramName][paramNameEnd], "");
+	}
+	else if(paramNameEnd == "UNSCALEDVAL")
+	{
+		createPosBusParam(paramNameEnd.c_str(), asynParamInt32, paramInd, posBusInd);
+		posBusLookup.insert(std::pair<std::string, std::map<std::string, int*> >(paramName, lpMap2));
+		posBusLookup[paramName].insert(std::pair<std::string, int*>(paramNameEnd, paramInd));
+		asynStatus status = setIntegerParam(*posBusLookup[paramName][paramNameEnd], 0);
+	}
+	else if (paramNameEnd == "VAL")
+	{
+		createPosBusParam(paramNameEnd.c_str(), asynParamFloat64, paramInd, posBusInd);
+		posBusLookup.insert(std::pair<std::string, std::map<std::string, int*> >(paramName, lpMap2));
+		posBusLookup[paramName].insert(std::pair<std::string, int*>(paramNameEnd, paramInd));
+		asynStatus status = setDoubleParam(*posBusLookup[paramName][paramNameEnd], 0.0);
+	}
+	// Scale and Offset
+	else
+	{
+		createPosBusParam(paramNameEnd.c_str(), asynParamFloat64, paramInd, posBusInd);
+		posBusLookup.insert(std::pair<std::string, std::map<std::string, int*> >(paramName, lpMap2));
+		posBusLookup[paramName].insert(std::pair<std::string, int*>(paramNameEnd, paramInd));
+		// Only initialised used positions
+		if(paramName.find("POSBUS") == std::string::npos)
+		{
+			std::string paramVal = getPosBusField(paramName, paramNameEnd.c_str());
+			std::stringstream paramValSS(paramVal);
+			double value;
+			paramValSS >> value;
+			asynStatus status = setDoubleParam(*posBusLookup[paramName][paramNameEnd], value);
+		}
+		else asynStatus status = setDoubleParam(*posBusLookup[paramName][paramNameEnd], 0.0);
+	}
+	/*
 	else{
 		createPosBusParam(paramNameEnd.c_str(), asynParamOctet, paramInd, posBusInd);
 		posBusLookup.insert(std::pair<std::string, std::map<std::string, int*> >(paramName, lpMap2));
 		posBusLookup[paramName].insert(std::pair<std::string, int*>(paramNameEnd, paramInd));
-		if (paramName.find("POSBUS") == std::string::npos)
+		// Only initialised used positions
+		if(paramName.find("POSBUS") == std::string::npos)
 		{
+			std::cout << "FIELD: " << paramNameEnd << std::endl;
 			if(paramNameEnd != "VAL" && paramNameEnd != "UNSCALEDVAL"){
 				std::string paramVal = getPosBusField(paramName, paramNameEnd.c_str());
 				asynStatus status = setStringParam(*posBusLookup[paramName][paramNameEnd], paramVal.c_str());
@@ -370,9 +404,8 @@ void ADPandABlocks::initLookup(std::string paramName, std::string paramNameEnd, 
 				asynStatus status = setStringParam(*posBusLookup[paramName][paramNameEnd], "");
 			}
 		}
-
 	}
-
+	*/
 }
 
 /* This is the function that will be run for the read thread */
@@ -495,11 +528,21 @@ void ADPandABlocks::processChanges(std::string cmd, bool posn)
 		}
 		posBusNameStr = posBusName.str();
 
+		// Update asyn parameter
 		if (fieldName == "CAPTURE")
 		{
 			updatePandAParam(posBusNameStr, fieldName, captureType[fieldVal.c_str()]);
 		}
-		else{
+		else if (fieldName == "VAL")
+		{
+			updatePandAParam(posBusNameStr, fieldName, stringToInteger(fieldVal));
+		}
+		else if (fieldName == "SCALE" || fieldName == "OFFSET")
+		{
+			updatePandAParam(posBusNameStr, fieldName, stringToDouble(fieldVal));
+		}
+		else
+		{
 			updatePandAParam(posBusNameStr, fieldName, fieldVal);
 		}
 
@@ -508,21 +551,26 @@ void ADPandABlocks::processChanges(std::string cmd, bool posn)
 
 void ADPandABlocks::updateScaledPositionValue(std::string posBusName)
 {
-	std::string countString, scaleString, offsetString;
-	double count, scale, offset;
-	getStringParam(*posBusLookup[posBusName]["UNSCALEDVAL"], countString);
-	count = stringToDouble(countString);
-	getStringParam(*posBusLookup[posBusName]["SCALE"], scaleString);
-	scale = stringToDouble(scaleString);
-	getStringParam(*posBusLookup[posBusName]["OFFSET"], offsetString);
-	offset = stringToDouble(offsetString);
-	setStringParam(*posBusLookup[posBusName]["VAL"], doubleToString(count*scale + offset));
+	double scale, offset;
+	int counts;
+	getDoubleParam(*posBusLookup[posBusName]["SCALE"], &scale);
+	getDoubleParam(*posBusLookup[posBusName]["OFFSET"], &offset);
+	getIntegerParam(*posBusLookup[posBusName]["UNSCALEDVAL"], &counts);
+	setDoubleParam(*posBusLookup[posBusName]["VAL"], counts*scale + offset);
 }
 
 double ADPandABlocks::stringToDouble(std::string str)
 {
 	std::stringstream strStream(str);
 	double value;
+	strStream >> value;
+	return value;
+}
+
+int ADPandABlocks::stringToInteger(std::string str)
+{
+	std::stringstream strStream(str);
+	int value;
 	strStream >> value;
 	return value;
 }
@@ -1012,8 +1060,8 @@ void ADPandABlocks::checkMotorParams(int reason, T value)
  */
 bool ADPandABlocks::asynReasonIsMotor(int reason, int &motorIndex)
 {
-	bool reasonIsMotor = false;
 	// Check each motor
+	bool reasonIsMotor = false;
 	for (int i=0; i<4; i++)
 	{
 		if (reason == ADPandABlocksMScale[i])
@@ -1036,10 +1084,10 @@ bool ADPandABlocks::asynReasonIsMotor(int reason, int &motorIndex)
 			updatedMotorField = setpos;
 			reasonIsMotor = true;
 		}
-		if (result)
+		if (reasonIsMotor)
 		{
 			motorIndex = i+1;
-			break;
+			return reasonIsMotor;
 		}
 	}
 	return reasonIsMotor;
@@ -1086,12 +1134,44 @@ asynStatus ADPandABlocks::writeFloat64(asynUser *pasynUser, epicsFloat64 value)
 {
 	const char *functionName = "writeFloat64";
 	asynStatus status = asynError;
+	this->lock();
 	/* Any work we need to do */
 	int param = pasynUser->reason;
 	status = setDoubleParam(param, value);
 
-	// Check if motor params have changed
+	// Check if update has originated from motor records
 	checkMotorParams(param, value);
+
+	// Before setting any param - send it to the Panda and make sure the
+	// response is OK
+	// find the correct param
+	if(posBusLookup.empty() == false)
+	{
+		// TODO: refactor this into separate function to be used for all asyn<Type>.write() functions
+		for(std::map<std::string, std::map<std::string, int*> >::iterator it = posBusLookup.begin();
+				it != posBusLookup.end(); ++it)
+		{
+			for(std::map<std::string, int*>::iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2)
+			{
+				if(param == *it2->second)
+				{
+					std::stringstream cmdStr;
+					cmdStr << it->first <<"."<< it2->first <<"="<<value;
+					sendCtrl(cmdStr.str());
+					std::string field;
+					status = readPosBusValues(&field);
+					if(status == asynError)
+					{
+						asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,"%s:%s: Error setting: %s '\n",
+								driverName, functionName, cmdStr.str());
+					}
+					this->unlock();
+					callParamCallbacks();
+					return status;
+				}
+			}
+		}
+	}
 
 	/* Do callbacks so higher layers see any changes */
 	if(status)
@@ -1100,8 +1180,10 @@ asynStatus ADPandABlocks::writeFloat64(asynUser *pasynUser, epicsFloat64 value)
 				driverName, functionName);
 	}
 
+	this->unlock();
 	callParamCallbacks();
 	return status;
+
 
 }
 
@@ -1150,7 +1232,7 @@ asynStatus ADPandABlocks::writeInt32(asynUser *pasynUser, epicsInt32 value)
 		for(std::map<std::string, std::map<std::string, int*> >::iterator it = posBusLookup.begin();
 				it != posBusLookup.end(); ++it)
 		{
-			for(std::map<std::string, int*>::iterator it2 = it->second.begin();it2 != it->second.end(); ++it2)
+			for(std::map<std::string, int*>::iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2)
 			{
 				if(param == *it2->second)
 				{
@@ -1159,13 +1241,15 @@ asynStatus ADPandABlocks::writeInt32(asynUser *pasynUser, epicsInt32 value)
 					this->lock();
 					sendCtrl(cmdStr.str());
 					std::string field;
-					asynStatus status = readPosBusValues(&field);
+					status = readPosBusValues(&field);
 					if(status == asynError)
 					{
 						asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,"%s:%s: Error setting: %s '\n",
 								driverName, functionName, cmdStr.str());
 					}
 					this->unlock();
+					callParamCallbacks();
+					return status;
 				}
 			}
 		}
@@ -1194,8 +1278,9 @@ asynStatus ADPandABlocks::writeOctet(asynUser *pasynUser, const char* value, siz
 	this->lock();
 	/* Any work we need to do */
 	int param = pasynUser->reason;
+	status = setStringParam(param, value);
 
-	// Check if motor params have changed
+	// Check if update has originated from motor records
 	std::stringstream valueStream;
 	valueStream << value;
 	checkMotorParams(param, valueStream.str());
@@ -1208,7 +1293,7 @@ asynStatus ADPandABlocks::writeOctet(asynUser *pasynUser, const char* value, siz
 		for(std::map<std::string, std::map<std::string, int*> >::iterator it = posBusLookup.begin();
 				it != posBusLookup.end(); ++it)
 		{
-			for(std::map<std::string, int*>::iterator it2 = it->second.begin();it2 != it->second.end(); ++it2)
+			for(std::map<std::string, int*>::iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2)
 			{
 				if(param == *it2->second)
 				{
@@ -1216,18 +1301,21 @@ asynStatus ADPandABlocks::writeOctet(asynUser *pasynUser, const char* value, siz
 					cmdStr << it->first <<"."<< it2->first <<"="<<value;
 					sendCtrl(cmdStr.str());
 					std::string field;
-					asynStatus status = readPosBusValues(&field);
+					status = readPosBusValues(&field);
 					if(status == asynError)
 					{
 						asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,"%s:%s: Error setting: %s '\n",
 								driverName, functionName, cmdStr.str());
 					}
+					this->unlock();
+					callParamCallbacks();
+					return status;
 				}
 			}
 		}
 	}
-	callParamCallbacks();
 	this->unlock();
+	callParamCallbacks();
 	return status;
 }
 

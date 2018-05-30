@@ -120,6 +120,7 @@ private:
     template<typename T>
     void updatePandAParam(std::string name, std::string field, T value);
     double stringToDouble(std::string str);
+    int stringToInteger(std::string str);
     std::string doubleToString(double value);
 private:
     NDArray *pArray;
