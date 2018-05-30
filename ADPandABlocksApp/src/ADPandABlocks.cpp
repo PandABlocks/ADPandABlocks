@@ -1035,75 +1035,75 @@ asynStatus ADPandABlocks::send(const std::string txBuffer, asynOctet *pasynOctet
 	return status;
 }
 
-/*
- * Called during relevant asyn write<type>() commands are called.
- *   This function checks whether motor record params have changed and updates
- *   the equivalent PandA parameters (offset, scale, units)
- *   \param[in] reason asynReason (index of parameter)
- *   \param[in] value New value
- */
-template<typename T>
-void ADPandABlocks::checkMotorParams(int reason, T value)
+// Check motor offset and scale
+bool ADPandABlocks::checkIfMotorFloatParams(int reason, double value)
 {
-	int motorIndex;
-	if (asynReasonIsMotor(reason, motorIndex))
+	bool motorParamChanged = false;
+	if (checkIfReasonIsMotorOffset(reason, value))
 	{
-		updatePandAMotorParam(motorIndex, value);
+		motorParamChanged = true;
 	}
+	else if (checkIfReasonIsMotorScale(reason, value))
+	{
+		motorParamChanged = true;
+	}
+	return motorParamChanged;
 }
 
-/*
- * Function to check if reason matches one of motor offset, units, scale or setpos
- *   \param[in] reason asyn index of changed parameter
- *   \param[in] motorIndex motor index of changed parameter
- *   \param[out] reasonIsMotor Whether the reason is due to motor-related parameter
- */
-bool ADPandABlocks::asynReasonIsMotor(int reason, int &motorIndex)
+// Check if motor offset has changed
+bool ADPandABlocks::checkIfReasonIsMotorOffset(int reason, double value)
 {
-	// Check each motor
-	bool reasonIsMotor = false;
+	for (int i=0; i<4; i++)
+	{
+		if (reason == ADPandABlocksMOffset[i])
+		{
+			updatePandAMotorParam(i+1, offset, value);
+			return true;
+		}
+	}
+	return false;
+}
+
+// Check if motor record scaling has changed
+bool ADPandABlocks::checkIfReasonIsMotorScale(int reason, double value)
+{
 	for (int i=0; i<4; i++)
 	{
 		if (reason == ADPandABlocksMScale[i])
 		{
-			updatedMotorField = scale;
-			reasonIsMotor = true;
-		}
-		else if (reason == ADPandABlocksMOffset[i])
-		{
-			updatedMotorField = offset;
-			reasonIsMotor = true;
-		}
-		else if (reason == ADPandABlocksMUnits[i])
-		{
-			updatedMotorField = units;
-			reasonIsMotor = true;
-		}
-		else if (reason == ADPandABlocksMSetpos[i])
-		{
-			updatedMotorField = setpos;
-			reasonIsMotor = true;
-		}
-		if (reasonIsMotor)
-		{
-			motorIndex = i+1;
-			return reasonIsMotor;
+			updatePandAMotorParam(i+1, scale, value);
+			return true;
 		}
 	}
-	return reasonIsMotor;
+	return false;
+}
+
+// Check if motor record units have changed
+bool ADPandABlocks::checkIfReasonIsMotorUnit(int reason, std::string value)
+{
+	for (int i=0; i<4; i++)
+	{
+		if (reason == ADPandABlocksMUnits[i])
+		{
+			updatePandAMotorParam(i+1, units, value);
+			return true;
+		}
+	}
+	return false;
 }
 
 /*
- * Update equivalent motor field parameter on PandA
+ * Update motor field params
  *   \param[in] motorIndex Index of motor whose field has changed (1..4)
+ *   \param[in] motorField Parameter to be updated
  *   \param[in] value New value of motor parameter
  */
 template<typename T>
-void ADPandABlocks::updatePandAMotorParam(int motorIndex, T value)
+void ADPandABlocks::updatePandAMotorParam(int motorIndex, motorField field, T value)
 {
 	std::stringstream posBusName, posBusField;
 	posBusName << "INENC" << motorIndex << ".VAL";
-	switch(updatedMotorField)
+	switch(field)
 	{
 	case offset: {
 		posBusField << "OFFSET";
@@ -1139,13 +1139,12 @@ asynStatus ADPandABlocks::writeFloat64(asynUser *pasynUser, epicsFloat64 value)
 	int param = pasynUser->reason;
 	status = setDoubleParam(param, value);
 
-	// Check if update has originated from motor records
-	checkMotorParams(param, value);
-
+	// Check if motor parameters have changed
+	if (checkIfMotorFloatParams(param, value));
 	// Before setting any param - send it to the Panda and make sure the
 	// response is OK
 	// find the correct param
-	if(posBusLookup.empty() == false)
+	else if(posBusLookup.empty() == false)
 	{
 		// TODO: refactor this into separate function to be used for all asyn<Type>.write() functions
 		for(std::map<std::string, std::map<std::string, int*> >::iterator it = posBusLookup.begin();
@@ -1280,15 +1279,14 @@ asynStatus ADPandABlocks::writeOctet(asynUser *pasynUser, const char* value, siz
 	int param = pasynUser->reason;
 	status = setStringParam(param, value);
 
-	// Check if update has originated from motor records
+	// Check if motor units have changed
 	std::stringstream valueStream;
 	valueStream << value;
-	checkMotorParams(param, valueStream.str());
-
+	if (checkIfReasonIsMotorUnit(param, valueStream.str()));
 	// Before setting any param - send it to the Panda and make sure the
 	// response is OK
 	// find the correct param
-	if(posBusLookup.empty() == false)
+	else if(posBusLookup.empty() == false)
 	{
 		for(std::map<std::string, std::map<std::string, int*> >::iterator it = posBusLookup.begin();
 				it != posBusLookup.end(); ++it)

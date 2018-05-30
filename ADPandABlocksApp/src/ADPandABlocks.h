@@ -54,6 +54,9 @@ private:
     //vector of maps to store header data. Each map is for an individual xml node
     typedef std::vector<std::map<std::string, std::string> > headerMap;
 
+    // Enum for tracking motor field updates
+    enum motorField {scale, offset, units, setpos};
+
 public:
     ADPandABlocks(const char *portName, const char* cmdSerialPortName,
             const char* dataSerialPortName, int maxPts, int maxBuffers, int maxMemory);
@@ -112,11 +115,14 @@ private:
     std::vector<std::string> stringSplit(const std::string& s, char delimiter);
     void processChanges(std::string cmd, bool posn);
     void updateScaledPositionValue(std::string posBusName);
+
+    bool checkIfMotorFloatParams(int reason, double value);
+    bool checkIfReasonIsMotorOffset(int reason, double value);
+    bool checkIfReasonIsMotorScale(int reason, double value);
+    bool checkIfReasonIsMotorUnit(int reason, std::string value);
     template<typename T>
-    void checkMotorParams(int reason, T value);
-    bool asynReasonIsMotor(int reason, int &motorIndex);
-    template<typename T>
-    void updatePandAMotorParam(int motorIndex, T value);
+    void updatePandAMotorParam(int motorIndex, motorField field, T value);
+
     template<typename T>
     void updatePandAParam(std::string name, std::string field, T value);
     double stringToDouble(std::string str);
@@ -133,10 +139,6 @@ private:
     asynOctet *pasynOctet_data;
     void *octetPvt_data;
     int arrayCounter, numImagesCounter, imgMode, imgNo;
-
-    // Enum for tracking motor field updates
-    enum motorField {scale, offset, units, setpos};
-    motorField updatedMotorField;
 
     //vector of maps for the header values
     headerMap headerValues;
