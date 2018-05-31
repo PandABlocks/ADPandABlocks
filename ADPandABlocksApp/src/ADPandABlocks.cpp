@@ -320,11 +320,9 @@ std::string ADPandABlocks::getPosBusField(std::string posbus, const char* paramN
 }
 
 void ADPandABlocks::createPosBusParam(const char* paramName, asynParamType paramType, int* paramIndex, int paramNo){
-	this->lock();
 	char str[NBUFF];
 	epicsSnprintf(str, NBUFF, "POSBUS%d:%s", paramNo, paramName);
 	createParam(str, paramType, paramIndex);
-	this->unlock();
 }
 
 void ADPandABlocks::initLookup(std::string paramName, std::string paramNameEnd, int* paramInd, int posBusInd)
@@ -387,30 +385,10 @@ void ADPandABlocks::initLookup(std::string paramName, std::string paramNameEnd, 
 		}
 		else asynStatus status = setDoubleParam(*posBusLookup[paramName][paramNameEnd], 0.0);
 	}
-	/*
-	else{
-		createPosBusParam(paramNameEnd.c_str(), asynParamOctet, paramInd, posBusInd);
-		posBusLookup.insert(std::pair<std::string, std::map<std::string, int*> >(paramName, lpMap2));
-		posBusLookup[paramName].insert(std::pair<std::string, int*>(paramNameEnd, paramInd));
-		// Only initialised used positions
-		if(paramName.find("POSBUS") == std::string::npos)
-		{
-			std::cout << "FIELD: " << paramNameEnd << std::endl;
-			if(paramNameEnd != "VAL" && paramNameEnd != "UNSCALEDVAL"){
-				std::string paramVal = getPosBusField(paramName, paramNameEnd.c_str());
-				asynStatus status = setStringParam(*posBusLookup[paramName][paramNameEnd], paramVal.c_str());
-			}
-			else{
-				asynStatus status = setStringParam(*posBusLookup[paramName][paramNameEnd], "");
-			}
-		}
-	}
-	*/
 }
 
 /* This is the function that will be run for the read thread */
 std::vector<std::string> ADPandABlocks::readFieldNames(int* numFields) {
-	this->lock();
 	const char *functionName = "readFieldNames";
 	char rxBuffer[N_BUFF_CTRL];
 	size_t nBytesIn;
@@ -445,7 +423,6 @@ std::vector<std::string> ADPandABlocks::readFieldNames(int* numFields) {
 				&nBytesIn, &eomReason);
 	}
 	*numFields = i;
-	this->unlock();
 	return fieldNameStrings;
 }
 
@@ -488,11 +465,13 @@ void ADPandABlocks::checkPosBusChanges(){
         Readback values */
 	while(true)
 	{
+		epicsTimeGetCurrent(&pollStartTime);
 		this->lock();
 		processChanges("*CHANGES.ATTR?", false);
 		processChanges("*CHANGES.POSN?", true);
 		this->unlock();
-		epicsThreadSleep(0.1);
+		epicsTimeGetCurrent(&pollEndTime);
+		epicsThreadSleep(0.1-epicsTimeDiffInSeconds(&pollEndTime, &pollStartTime));
 		callParamCallbacks();
 	}
 }
@@ -1134,7 +1113,6 @@ asynStatus ADPandABlocks::writeFloat64(asynUser *pasynUser, epicsFloat64 value)
 {
 	const char *functionName = "writeFloat64";
 	asynStatus status = asynError;
-	this->lock();
 	/* Any work we need to do */
 	int param = pasynUser->reason;
 	status = setDoubleParam(param, value);
@@ -1164,7 +1142,6 @@ asynStatus ADPandABlocks::writeFloat64(asynUser *pasynUser, epicsFloat64 value)
 						asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,"%s:%s: Error setting: %s '\n",
 								driverName, functionName, cmdStr.str());
 					}
-					this->unlock();
 					callParamCallbacks();
 					return status;
 				}
@@ -1179,10 +1156,8 @@ asynStatus ADPandABlocks::writeFloat64(asynUser *pasynUser, epicsFloat64 value)
 				driverName, functionName);
 	}
 
-	this->unlock();
 	callParamCallbacks();
 	return status;
-
 
 }
 
@@ -1237,7 +1212,6 @@ asynStatus ADPandABlocks::writeInt32(asynUser *pasynUser, epicsInt32 value)
 				{
 					std::stringstream cmdStr;
 					cmdStr << it->first <<"."<< it2->first <<"="<<captureStrings[value];
-					this->lock();
 					sendCtrl(cmdStr.str());
 					std::string field;
 					status = readPosBusValues(&field);
@@ -1246,7 +1220,6 @@ asynStatus ADPandABlocks::writeInt32(asynUser *pasynUser, epicsInt32 value)
 						asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,"%s:%s: Error setting: %s '\n",
 								driverName, functionName, cmdStr.str());
 					}
-					this->unlock();
 					callParamCallbacks();
 					return status;
 				}
@@ -1274,7 +1247,6 @@ asynStatus ADPandABlocks::writeOctet(asynUser *pasynUser, const char* value, siz
 	 * panda. It will also update the readback values */
 	const char *functionName = "writeOctet";
 	asynStatus status = asynError;
-	this->lock();
 	/* Any work we need to do */
 	int param = pasynUser->reason;
 	status = setStringParam(param, value);
@@ -1305,14 +1277,13 @@ asynStatus ADPandABlocks::writeOctet(asynUser *pasynUser, const char* value, siz
 						asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,"%s:%s: Error setting: %s '\n",
 								driverName, functionName, cmdStr.str());
 					}
-					this->unlock();
 					callParamCallbacks();
 					return status;
 				}
 			}
 		}
 	}
-	this->unlock();
+	*nActual = nChars;
 	callParamCallbacks();
 	return status;
 }

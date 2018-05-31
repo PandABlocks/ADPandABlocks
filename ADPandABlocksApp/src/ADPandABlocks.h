@@ -13,6 +13,7 @@
 #include "ADDriver.h"
 #include "drvAsynIPPort.h"
 #include "asynShellCommands.h"
+#include "epicsTime.h"
 
 /* This is the number of messages on our queue */
 #define NQUEUE 10000
@@ -85,9 +86,9 @@ protected:
 #define LAST_PARAM ADPandABlocksPCTime
     int ADPandABlocksPosFields[NPOSBUS]; // string read     - position field names
     int ADPandABlocksPosVals[NPOSBUS];   // string read     - position field scaled values
-    int ADPandABlocksPosUnscaledVals[NPOSBUS];     // string read    - position field unscaled values
-    int ADPandABlocksScale[NPOSBUS];     // string write    - motor scale
-    int ADPandABlocksOffset[NPOSBUS];    // string write    - motor offset
+    int ADPandABlocksPosUnscaledVals[NPOSBUS];     // int32 read    - position field unscaled values
+    int ADPandABlocksScale[NPOSBUS];     // float64 write   - motor scale
+    int ADPandABlocksOffset[NPOSBUS];    // float64 write    - motor offset
     int ADPandABlocksUnits[NPOSBUS];     // string write    - motor units
     int ADPandABlocksCapture[NPOSBUS];   // string write    - pcap capture type
     int ADPandABlocksMScale[NENC];       // float64 write   - motor scale
@@ -115,14 +116,12 @@ private:
     std::vector<std::string> stringSplit(const std::string& s, char delimiter);
     void processChanges(std::string cmd, bool posn);
     void updateScaledPositionValue(std::string posBusName);
-
     bool checkIfMotorFloatParams(int reason, double value);
     bool checkIfReasonIsMotorOffset(int reason, double value);
     bool checkIfReasonIsMotorScale(int reason, double value);
     bool checkIfReasonIsMotorUnit(int reason, std::string value);
     template<typename T>
     void updatePandAMotorParam(int motorIndex, motorField field, T value);
-
     template<typename T>
     void updatePandAParam(std::string name, std::string field, T value);
     double stringToDouble(std::string str);
@@ -159,6 +158,9 @@ private:
     //states for readDataTask state machine
     enum readState{waitHeaderStart, waitHeaderEnd, waitDataStart, receivingData, dataEnd,};
     readState state; //init state for the data read
+
+    // Polling times
+    epicsTimeStamp pollStartTime, pollEndTime;
 
 };
 #endif
