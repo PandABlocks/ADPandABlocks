@@ -221,7 +221,7 @@ ADPandABlocks::ADPandABlocks(const char* portName, const char* cmdSerialPortName
 		epicsSnprintf(str, NBUFF, "INENC%d:UNITS", a+1);
 		createParam(str, asynParamOctet, &ADPandABlocksMUnits[a]);
 		epicsSnprintf(str, NBUFF, "INENC%d:SETPOS", a+1);
-		createParam(str, asynParamFloat64, &ADPandABlocksMSetpos[a]);
+		createParam(str, asynParamInt32, &ADPandABlocksMSetpos[a]);
 	}
 
 	//Initialise the lookup table for posbus values
@@ -858,17 +858,18 @@ void ADPandABlocks::outputData(const int dataLen, const int dataNo, const std::v
 				//loop over each data point in the data set
 				for(int i = 0; i < dataNo; ++i)
 				{
-					idx = (j*dataNo + i);//current data point index in the float array
+
 					// NDAttributes are used to store the actual captured data
 					std::string desc("sample value");
 					//find out what type the individual point is
-					//from the header and assign the approperiate pointer.
+					//from the header and assign the appropriate pointer.
 					dataType = getHeaderValue(i+1, "type");
 					if(dataType == "double")
 					{
+
 						// Create the NDAttributes and initialise them with data value (headerValue[0] is the data info)
 						pArray->pAttributeList->add(
-								getHeaderValue(i+1, "name").c_str(),
+								(getHeaderValue(i+1, "name") + "." + getHeaderValue(i+1, "capture")).c_str(),
 								desc.c_str(),
 								NDAttrFloat64,
 								(double*)ptridx);
@@ -879,7 +880,7 @@ void ADPandABlocks::outputData(const int dataLen, const int dataNo, const std::v
 					{
 						// Create the NDAttributes and initialise them with data value (headerValue[0] is the data info)
 						pArray->pAttributeList->add(
-								getHeaderValue(i+1, "name").c_str(),
+								(getHeaderValue(i+1, "name") + "." + getHeaderValue(i+1, "capture")).c_str(),
 								desc.c_str(),
 								NDAttrUInt32,
 								(uint32_t*)ptridx);
@@ -1071,6 +1072,20 @@ bool ADPandABlocks::checkIfReasonIsMotorUnit(int reason, std::string value)
 	return false;
 }
 
+// Check if motor record setpos have changed
+bool ADPandABlocks::checkIfReasonIsMotorSetpos(int reason, int value)
+{
+	for (int i=0; i<4; i++)
+	{
+		if (reason == ADPandABlocksMSetpos[i])
+		{
+			updatePandAMotorParam(i+1, setpos, value);
+			return true;
+		}
+	}
+	return false;
+}
+
 /*
  * Update motor field params
  *   \param[in] motorIndex Index of motor whose field has changed (1..4)
@@ -1081,24 +1096,31 @@ template<typename T>
 void ADPandABlocks::updatePandAMotorParam(int motorIndex, motorField field, T value)
 {
 	std::stringstream posBusName, posBusField;
-	posBusName << "INENC" << motorIndex << ".VAL";
+	posBusName << "INENC" << motorIndex;
 	switch(field)
 	{
 	case offset: {
+		posBusName << ".VAL";
 		posBusField << "OFFSET";
 		break;
 	}
 	case units: {
+		posBusName << ".VAL";
 		posBusField << "UNITS";
 		break;
 	}
 	case scale: {
+		posBusName << ".VAL";
 		posBusField << "SCALE";
 		break;
 	}
 	case setpos: {
-		posBusField << "SETPOS";
-		break;
+		// Send command to PandA to calibrate motor position
+		posBusField << "SETP";
+		std::stringstream setPosCmd;
+		setPosCmd << posBusName.str() << "." << posBusField.str() << "=" << value;
+		sendCtrl(setPosCmd.str());
+		return;
 	}
 	}
 	updatePandAParam(posBusName.str(), posBusField.str(), value);
@@ -1179,12 +1201,12 @@ asynStatus ADPandABlocks::writeInt32(asynUser *pasynUser, epicsInt32 value)
 		imgMode = value;
 	}
 
-	if(param == ADNumImages)
+	else if(param == ADNumImages)
 	{
 		imgNo = value;
 	}
 
-	if(param == ADAcquire)
+	else if(param == ADAcquire)
 	{
 		if(value)
 		{
@@ -1201,6 +1223,10 @@ asynStatus ADPandABlocks::writeInt32(asynUser *pasynUser, epicsInt32 value)
 			sendCtrl("*PCAP.DISARM=");
 		}
 	}
+
+	// Check if setpos has been called
+	else if(checkIfReasonIsMotorSetpos(param, value));
+
 	else //handle the capture menu
 	{
 		for(std::map<std::string, std::map<std::string, int*> >::iterator it = posBusLookup.begin();

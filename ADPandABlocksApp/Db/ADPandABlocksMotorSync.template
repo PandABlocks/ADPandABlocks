@@ -44,7 +44,8 @@ record(calcout, "$(P)$(R)INENC$(ENC_IND):SDISTRANS") {
 record(seq, "$(P)$(R)INENC$(ENC_IND):ONENABLE") {
   field(DESC, "1s after motor enabled, call setpos")
   field(DOL1, "1")
-  field(LNK1, "$(P)$(R)INENC$(ENC_IND):SETPOS.PROC PP")
+  field(LNK1, "$(P)$(R)INENC$(ENC_IND):SETPOSCALC.PROC PP")
+  field(PINI, "YES")
   field(DLY1, "$(M1HOMESETTLE=5)")
 }
 
@@ -58,7 +59,7 @@ record(calcout, "$(P)$(R)INENC$(ENC_IND):SETPOSCALC") {
 
 record(ao, "$(P)$(R)INENC$(ENC_IND):SETPOS") {
   field(DESC, "INENC set current position")
-  field(DTYP, "asynFloat64")
+  field(DTYP, "asynInt32")
   field(OUT, "@asyn($(PORT),0)INENC$(ENC_IND):SETPOS")
 }
 record(ao, "$(P)$(R)INENC$(ENC_IND):SCALE") {

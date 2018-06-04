@@ -92,7 +92,7 @@ protected:
     int ADPandABlocksUnits[NPOSBUS];     // string write    - motor units
     int ADPandABlocksCapture[NPOSBUS];   // string write    - pcap capture type
     int ADPandABlocksMScale[NENC];       // float64 write   - motor scale
-    int ADPandABlocksMSetpos[NENC];      // float64 write   - motor setpos
+    int ADPandABlocksMSetpos[NENC];      // int32 write   - motor setpos
     int ADPandABlocksMOffset[NENC];      // float64 write   - motor offset
     int ADPandABlocksMUnits[NENC];       // string write    - motor units
 #define NUM_PARAMS (&LAST_PARAM - &FIRST_PARAM + 1 + NPOSBUS*8 + NENC*4)
@@ -120,6 +120,7 @@ private:
     bool checkIfReasonIsMotorOffset(int reason, double value);
     bool checkIfReasonIsMotorScale(int reason, double value);
     bool checkIfReasonIsMotorUnit(int reason, std::string value);
+    bool checkIfReasonIsMotorSetpos(int reason, int value);
     template<typename T>
     void updatePandAMotorParam(int motorIndex, motorField field, T value);
     template<typename T>
