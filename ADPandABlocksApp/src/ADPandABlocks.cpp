@@ -242,7 +242,7 @@ ADPandABlocks::ADPandABlocks(const char* portName, const char* cmdSerialPortName
 	processChanges("*CHANGES.POSN?", true);
 
 	/* Create thread to monitor command port for position bus changes */
-	if (epicsThreadCreate("ADPandABlockscheckPosBusChanges", epicsThreadPriorityMedium,
+	if (epicsThreadCreate("ADPandABlocksPollCommandPort", epicsThreadPriorityMedium,
 			epicsThreadGetStackSize(epicsThreadStackMedium),
 			(EPICSTHREADFUNC) pollCommandPortC, this) == NULL) {
 		asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
@@ -251,7 +251,7 @@ ADPandABlocks::ADPandABlocks(const char* portName, const char* cmdSerialPortName
 	}
 
 	/* Create thread to monitor data port  */
-	if (epicsThreadCreate("ADPandABlocksReadTask2", epicsThreadPriorityMedium,
+	if (epicsThreadCreate("ADPandABlocksPollDataPort", epicsThreadPriorityMedium,
 			epicsThreadGetStackSize(epicsThreadStackMedium),
 			(EPICSTHREADFUNC) pollDataPortC, this) == NULL) {
 		asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
