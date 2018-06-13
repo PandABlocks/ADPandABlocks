@@ -24,14 +24,14 @@
 #include <cstdlib>
 
 
-static void readTaskDataC(void *userPvt) {
+static void pollDataPortC(void *userPvt) {
 	ADPandABlocks *pPvt = (ADPandABlocks *) userPvt;
-	pPvt->readTaskData();
+	pPvt->readDataPort();
 }
 
-static void checkPosBusChangesC(void *userPvt) {
+static void pollCommandPortC(void *userPvt) {
 	ADPandABlocks *pPvt = (ADPandABlocks *) userPvt;
-	pPvt->checkPosBusChanges();
+	pPvt->pollCommandPort();
 }
 
 typedef int static_assert_endianness[EPICS_BYTE_ORDER != EPICS_ENDIAN_BIG ? 1 : -1];
@@ -224,33 +224,36 @@ ADPandABlocks::ADPandABlocks(const char* portName, const char* cmdSerialPortName
 		createParam(str, asynParamInt32, &ADPandABlocksMSetpos[a]);
 	}
 
-	//Initialise the lookup table for posbus values
+	// Create the lookup table parameters for the position bus
 	int posBusInd = 0;
 	for(std::vector<std::string>::iterator it = posFields[0].begin(); it != posFields[0].end(); ++it)
 	{
-		initLookup(*it, "VAL", &ADPandABlocksPosVals[posBusInd], posBusInd);
-		initLookup(*it, "SCALE", &ADPandABlocksScale[posBusInd], posBusInd);
-		initLookup(*it, "OFFSET", &ADPandABlocksOffset[posBusInd], posBusInd);
-		initLookup(*it, "UNITS", &ADPandABlocksUnits[posBusInd], posBusInd);
-		initLookup(*it, "CAPTURE", &ADPandABlocksCapture[posBusInd], posBusInd);
-		initLookup(*it, "UNSCALEDVAL", &ADPandABlocksPosUnscaledVals[posBusInd], posBusInd);
+		createLookup(*it, "VAL", &ADPandABlocksPosVals[posBusInd], posBusInd);
+		createLookup(*it, "SCALE", &ADPandABlocksScale[posBusInd], posBusInd);
+		createLookup(*it, "OFFSET", &ADPandABlocksOffset[posBusInd], posBusInd);
+		createLookup(*it, "UNITS", &ADPandABlocksUnits[posBusInd], posBusInd);
+		createLookup(*it, "CAPTURE", &ADPandABlocksCapture[posBusInd], posBusInd);
+		createLookup(*it, "UNSCALEDVAL", &ADPandABlocksPosUnscaledVals[posBusInd], posBusInd);
 		posBusInd++;
 	}
 
-	/* Create the thread to monitor posbus changes */
+	// Initialise position bus values
+	processChanges("*CHANGES.ATTR?", false);
+	processChanges("*CHANGES.POSN?", true);
 
+	/* Create thread to monitor command port for position bus changes */
 	if (epicsThreadCreate("ADPandABlockscheckPosBusChanges", epicsThreadPriorityMedium,
 			epicsThreadGetStackSize(epicsThreadStackMedium),
-			(EPICSTHREADFUNC) checkPosBusChangesC, this) == NULL) {
+			(EPICSTHREADFUNC) pollCommandPortC, this) == NULL) {
 		asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
 				"%s:%s: epicsThreadCreate failure for reading task\n", driverName, functionName);
 		return;
 	}
 
-	/* Create the thread that reads from the device  */
+	/* Create thread to monitor data port  */
 	if (epicsThreadCreate("ADPandABlocksReadTask2", epicsThreadPriorityMedium,
 			epicsThreadGetStackSize(epicsThreadStackMedium),
-			(EPICSTHREADFUNC) readTaskDataC, this) == NULL) {
+			(EPICSTHREADFUNC) pollDataPortC, this) == NULL) {
 		asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
 				"%s:%s: epicsThreadCreate failure for reading task\n", driverName, functionName);
 		return;
@@ -325,65 +328,26 @@ void ADPandABlocks::createPosBusParam(const char* paramName, asynParamType param
 	createParam(str, paramType, paramIndex);
 }
 
-void ADPandABlocks::initLookup(std::string paramName, std::string paramNameEnd, int* paramInd, int posBusInd)
+void ADPandABlocks::createLookup(std::string paramName, std::string paramNameEnd, int* paramInd, int posBusInd)
 {
 	std::map<std::string, int*> lpMap2;
-	// Create parameters and initialise used positions
-	if(paramNameEnd == "CAPTURE"){
+	if(paramNameEnd == "CAPTURE" || paramNameEnd == "UNSCALEDVAL"){
 		createPosBusParam(paramNameEnd.c_str(), asynParamInt32, paramInd, posBusInd);
 		posBusLookup.insert(std::pair<std::string, std::map<std::string, int*> >(paramName, lpMap2));
 		posBusLookup[paramName].insert(std::pair<std::string, int*>(paramNameEnd, paramInd));
-		// Only initialised used positions
-		if (paramName.find("POSBUS") == std::string::npos)
-		{
-			std::string paramVal = getPosBusField(paramName, paramNameEnd.c_str());
-			asynStatus status = setIntegerParam(*posBusLookup[paramName][paramNameEnd], atoi(paramVal.c_str()));
-		}
-		else asynStatus status = setIntegerParam(*posBusLookup[paramName][paramNameEnd], 0);
 	}
 	else if(paramNameEnd == "UNITS")
 	{
 		createPosBusParam(paramNameEnd.c_str(), asynParamOctet, paramInd, posBusInd);
 		posBusLookup.insert(std::pair<std::string, std::map<std::string, int*> >(paramName, lpMap2));
 		posBusLookup[paramName].insert(std::pair<std::string, int*>(paramNameEnd, paramInd));
-		// Only initialised used positions
-		if(paramName.find("POSBUS") == std::string::npos)
-		{
-			std::string paramVal = getPosBusField(paramName, paramNameEnd.c_str());
-			asynStatus status = setStringParam(*posBusLookup[paramName][paramNameEnd], paramVal);
-		}
-		else asynStatus status = setStringParam(*posBusLookup[paramName][paramNameEnd], "");
 	}
-	else if(paramNameEnd == "UNSCALEDVAL")
-	{
-		createPosBusParam(paramNameEnd.c_str(), asynParamInt32, paramInd, posBusInd);
-		posBusLookup.insert(std::pair<std::string, std::map<std::string, int*> >(paramName, lpMap2));
-		posBusLookup[paramName].insert(std::pair<std::string, int*>(paramNameEnd, paramInd));
-		asynStatus status = setIntegerParam(*posBusLookup[paramName][paramNameEnd], 0);
-	}
-	else if (paramNameEnd == "VAL")
-	{
-		createPosBusParam(paramNameEnd.c_str(), asynParamFloat64, paramInd, posBusInd);
-		posBusLookup.insert(std::pair<std::string, std::map<std::string, int*> >(paramName, lpMap2));
-		posBusLookup[paramName].insert(std::pair<std::string, int*>(paramNameEnd, paramInd));
-		asynStatus status = setDoubleParam(*posBusLookup[paramName][paramNameEnd], 0.0);
-	}
-	// Scale and Offset
+	// VAL, SCALE and OFFSET
 	else
 	{
 		createPosBusParam(paramNameEnd.c_str(), asynParamFloat64, paramInd, posBusInd);
 		posBusLookup.insert(std::pair<std::string, std::map<std::string, int*> >(paramName, lpMap2));
 		posBusLookup[paramName].insert(std::pair<std::string, int*>(paramNameEnd, paramInd));
-		// Only initialised used positions
-		if(paramName.find("POSBUS") == std::string::npos)
-		{
-			std::string paramVal = getPosBusField(paramName, paramNameEnd.c_str());
-			std::stringstream paramValSS(paramVal);
-			double value;
-			paramValSS >> value;
-			asynStatus status = setDoubleParam(*posBusLookup[paramName][paramNameEnd], value);
-		}
-		else asynStatus status = setDoubleParam(*posBusLookup[paramName][paramNameEnd], 0.0);
 	}
 }
 
@@ -460,7 +424,7 @@ asynStatus ADPandABlocks::readPosBusValues(std::string* posBusValue) {
 	return status;
 }
 
-void ADPandABlocks::checkPosBusChanges(){
+void ADPandABlocks::pollCommandPort(){
 	/*  This will check if anything has changed on the panda and update the
         Readback values */
 	while(true)
@@ -470,9 +434,9 @@ void ADPandABlocks::checkPosBusChanges(){
 		processChanges("*CHANGES.ATTR?", false);
 		processChanges("*CHANGES.POSN?", true);
 		this->unlock();
+		callParamCallbacks();
 		epicsTimeGetCurrent(&pollEndTime);
 		epicsThreadSleep(0.1-epicsTimeDiffInSeconds(&pollEndTime, &pollStartTime));
-		callParamCallbacks();
 	}
 }
 
@@ -614,14 +578,14 @@ asynStatus ADPandABlocks::readDataBytes(char* rxBuffer, const size_t nBytes) con
 	if(nBytes != nBytesIn) {
 		asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
 				"%s:%s: Only got %d bytes, not %d bytes with EOM reason %d\n",
-				driverName, functionName, (int)nBytesIn, nBytes, eomReason);
+				driverName, functionName, (int)nBytesIn, (int)nBytes, eomReason);
 	}
 	assert (nBytes == nBytesIn);
 	return status;
 }
 
 /*this function reads from the data port*/
-void ADPandABlocks::readTaskData() {
+void ADPandABlocks::readDataPort() {
 	asynStatus status = asynSuccess;
 	char rxBuffer[N_BUFF_DATA];
 	std::string header;
@@ -836,7 +800,6 @@ void ADPandABlocks::outputData(const int dataLen, const int dataNo, const std::v
 				setLen += sizeof(uint32_t);
 			}
 		}
-		int idx = 0;
 		const char* ptridx = &data.front();
 		int noDataSets = data.size() / setLen; //number of data sets in the received binary data
 		std::string dataType;
@@ -1276,6 +1239,7 @@ asynStatus ADPandABlocks::writeOctet(asynUser *pasynUser, const char* value, siz
 	/* Any work we need to do */
 	int param = pasynUser->reason;
 	status = setStringParam(param, value);
+	*nActual = nChars;
 
 	// Check if motor units have changed
 	std::stringstream valueStream;
@@ -1309,7 +1273,6 @@ asynStatus ADPandABlocks::writeOctet(asynUser *pasynUser, const char* value, siz
 			}
 		}
 	}
-	*nActual = nChars;
 	callParamCallbacks();
 	return status;
 }

@@ -63,8 +63,8 @@ public:
             const char* dataSerialPortName, int maxPts, int maxBuffers, int maxMemory);
 
     /** These should be private, but get called from C, so must be public */
-    void readTaskData();
-    void checkPosBusChanges();
+    void readDataPort();
+    void pollCommandPort();
 
     /** These functions are used in the tests, so they are public */
     asynStatus sendCtrl(const std::string txBuffer);
@@ -112,7 +112,7 @@ private:
     asynStatus readDataBytes(char* rxBuffer, const size_t nBytes)const;
     void createPosBusParam(const char* paramName, asynParamType paramType, int* paramIndex, int paramNo);
     std::string getPosBusField(std::string posbus, const char* paramName);
-    void initLookup(std::string paramName, std::string paramNameEnd, int* paramInd, int posBusInd);
+    void createLookup(std::string paramName, std::string paramNameEnd, int* paramInd, int posBusInd);
     std::vector<std::string> stringSplit(const std::string& s, char delimiter);
     void processChanges(std::string cmd, bool posn);
     void updateScaledPositionValue(std::string posBusName);
@@ -160,7 +160,7 @@ private:
     enum readState{waitHeaderStart, waitHeaderEnd, waitDataStart, receivingData, dataEnd,};
     readState state; //init state for the data read
 
-    // Polling times
+    // Polling
     epicsTimeStamp pollStartTime, pollEndTime;
 
 };
