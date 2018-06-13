@@ -34,18 +34,18 @@ record(stringout, "$(P)$(R)INENC$(ENC_IND):UNITSCALC") {
 }
 
 record(calcout, "$(P)$(R)INENC$(ENC_IND):SDISTRANS") {
-  field(DESC, "Trigger seq when SDIS trans to Zero")
-  field(CALC, "A")
-  field(INPA, "$(MOTOR):SDIS.A CP")
-  field(OOPT, "Transition To Zero")
+  field(DESC, "Trigger seq when SDIS trans to 1")
+  field(CALC, "(A>>14)&1")
+  field(INPA, "$(MOTOR).MSTA CP")
+  field(OOPT, "Transition To Non-zero")
   field(OUT, "$(P)$(R)INENC$(ENC_IND):ONENABLE.PROC")
+  field(VAL, "1")
 }
 
 record(seq, "$(P)$(R)INENC$(ENC_IND):ONENABLE") {
   field(DESC, "1s after motor enabled, call setpos")
   field(DOL1, "1")
   field(LNK1, "$(P)$(R)INENC$(ENC_IND):SETPOSCALC.PROC PP")
-  field(PINI, "YES")
   field(DLY1, "$(M1HOMESETTLE=5)")
 }
 
