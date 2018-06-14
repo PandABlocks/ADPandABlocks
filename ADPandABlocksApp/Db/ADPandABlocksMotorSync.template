@@ -79,3 +79,12 @@ record(stringout, "$(P)$(R)INENC$(ENC_IND):UNITS") {
   field(DTYP, "asynOctetWrite")
   field(OUT, "@asyn($(PORT),0)INENC$(ENC_IND):UNITS")
 }
+
+# Set embedded screen type to read-only
+record(longout, "$(P)$(R)INENC$(ENC_IND):SCREENTYPE") {
+  field(DESC, "INENC scale value")
+  field(DTYP, "asynInt32")
+  field(OUT, "@asyn($(PORT),0)INENC$(ENC_IND):SCREENTYPE")
+  field(VAL, 1)
+  field(PINI, "YES")
+}

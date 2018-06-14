@@ -55,8 +55,12 @@ private:
     //vector of maps to store header data. Each map is for an individual xml node
     typedef std::vector<std::map<std::string, std::string> > headerMap;
 
-    // Enum for tracking motor field updates
-    enum motorField {scale, offset, units, setpos};
+    // Enum for tracking updates to motor fields from GeoBrick
+    enum motorField {scale, offset, units, setpos, screen};
+
+public:
+    // Embedded screen type for position bus
+    enum embeddedScreenType {writeable, readOnly};
 
 public:
     ADPandABlocks(const char *portName, const char* cmdSerialPortName,
@@ -87,14 +91,16 @@ protected:
     int ADPandABlocksPosFields[NPOSBUS]; // string read     - position field names
     int ADPandABlocksPosVals[NPOSBUS];   // string read     - position field scaled values
     int ADPandABlocksPosUnscaledVals[NPOSBUS];     // int32 read    - position field unscaled values
-    int ADPandABlocksScale[NPOSBUS];     // float64 write   - motor scale
-    int ADPandABlocksOffset[NPOSBUS];    // float64 write    - motor offset
-    int ADPandABlocksUnits[NPOSBUS];     // string write    - motor units
+    int ADPandABlocksScale[NPOSBUS];     // float64 write  	- motor scale
+    int ADPandABlocksOffset[NPOSBUS];    // float64 write   - motor offset
+    int ADPandABlocksUnits[NPOSBUS];     // string write 	- motor units
     int ADPandABlocksCapture[NPOSBUS];   // string write    - pcap capture type
-    int ADPandABlocksMScale[NENC];       // float64 write   - motor scale
-    int ADPandABlocksMSetpos[NENC];      // int32 write   - motor setpos
-    int ADPandABlocksMOffset[NENC];      // float64 write   - motor offset
-    int ADPandABlocksMUnits[NENC];       // string write    - motor units
+    int ADPandABlocksScreenType[NPOSBUS];  // int32 write   	- embedded screen to use for each bus
+    int ADPandABlocksMScale[NENC];       // float64 write   - motor scale from GeoBrick
+    int ADPandABlocksMSetpos[NENC];      // int32 write   	- motor setpos from GeoBrick
+    int ADPandABlocksMOffset[NENC];      // float64 write   - motor offset from GeoBrick
+    int ADPandABlocksMUnits[NENC];       // string write    - motor units from GeoBrick
+    int ADPandABlocksMScreenType[NENC]; // int32 write 	- Applies writeOnly embedded screen if using MotorSync
 #define NUM_PARAMS (&LAST_PARAM - &FIRST_PARAM + 1 + NPOSBUS*8 + NENC*4)
 
 private:
@@ -121,6 +127,7 @@ private:
     bool checkIfReasonIsMotorScale(int reason, double value);
     bool checkIfReasonIsMotorUnit(int reason, std::string value);
     bool checkIfReasonIsMotorSetpos(int reason, int value);
+    bool checkIfReasonIsMotorScreenType(int reason);
     template<typename T>
     void updatePandAMotorParam(int motorIndex, motorField field, T value);
     template<typename T>

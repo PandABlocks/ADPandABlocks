@@ -222,6 +222,8 @@ ADPandABlocks::ADPandABlocks(const char* portName, const char* cmdSerialPortName
 		createParam(str, asynParamOctet, &ADPandABlocksMUnits[a]);
 		epicsSnprintf(str, NBUFF, "INENC%d:SETPOS", a+1);
 		createParam(str, asynParamInt32, &ADPandABlocksMSetpos[a]);
+		epicsSnprintf(str, NBUFF, "INENC%d:SCREENTYPE", a+1);
+		createParam(str, asynParamInt32, &ADPandABlocksMScreenType[a]);
 	}
 
 	// Create the lookup table parameters for the position bus
@@ -234,6 +236,7 @@ ADPandABlocks::ADPandABlocks(const char* portName, const char* cmdSerialPortName
 		createLookup(*it, "UNITS", &ADPandABlocksUnits[posBusInd], posBusInd);
 		createLookup(*it, "CAPTURE", &ADPandABlocksCapture[posBusInd], posBusInd);
 		createLookup(*it, "UNSCALEDVAL", &ADPandABlocksPosUnscaledVals[posBusInd], posBusInd);
+		createLookup(*it, "SCREENTYPE", &ADPandABlocksScreenType[posBusInd], posBusInd);
 		posBusInd++;
 	}
 
@@ -312,6 +315,18 @@ void ADPandABlocks::updatePandAParam<int>(std::string name, std::string field, i
 		}
 	}
 }
+template<>
+void ADPandABlocks::updatePandAParam<ADPandABlocks::embeddedScreenType>(std::string name, std::string field, ADPandABlocks::embeddedScreenType value)
+{
+	if(posBusLookup.find(name) != posBusLookup.end())
+	{
+		if(posBusLookup[name].find(field) != posBusLookup[name].end())
+		{
+			std::cout << "Setting screen type for " << name << ", " << field << ": " << value << " (" << static_cast<int>(value) << ")" << std::endl;
+			setIntegerParam(*posBusLookup[name]["SCREENTYPE"], static_cast<int>(value));
+		}
+	}
+}
 
 std::string ADPandABlocks::getPosBusField(std::string posbus, const char* paramName){
 	std::string field;
@@ -331,10 +346,17 @@ void ADPandABlocks::createPosBusParam(const char* paramName, asynParamType param
 void ADPandABlocks::createLookup(std::string paramName, std::string paramNameEnd, int* paramInd, int posBusInd)
 {
 	std::map<std::string, int*> lpMap2;
-	if(paramNameEnd == "CAPTURE" || paramNameEnd == "UNSCALEDVAL"){
+	if(paramNameEnd == "CAPTURE" || paramNameEnd == "UNSCALEDVAL" || paramNameEnd == "SCREENTYPE"){
 		createPosBusParam(paramNameEnd.c_str(), asynParamInt32, paramInd, posBusInd);
 		posBusLookup.insert(std::pair<std::string, std::map<std::string, int*> >(paramName, lpMap2));
 		posBusLookup[paramName].insert(std::pair<std::string, int*>(paramNameEnd, paramInd));
+		// Set default embedded screen type
+		if (paramNameEnd == "SCREENTYPE")
+		{
+			// TODO: delete print after testing
+			std::cout << "Changing " << paramNameEnd << " of " << paramName << " to: " << writeable << std::endl;
+			setIntegerParam(*posBusLookup[paramName][paramNameEnd], writeable);
+		}
 	}
 	else if(paramNameEnd == "UNITS")
 	{
@@ -1049,6 +1071,22 @@ bool ADPandABlocks::checkIfReasonIsMotorSetpos(int reason, int value)
 	return false;
 }
 
+// Change embedded window to readOnly if using motorSync template
+bool ADPandABlocks::checkIfReasonIsMotorScreenType(int reason)
+{
+	for (int i=0; i<4; i++)
+	{
+		if (reason == ADPandABlocksMScreenType[i])
+		{
+			// TODO: delete print after testing
+			std::cout << "Changing screen type of motor " << i+1 << " to: " << readOnly << std::endl;
+			updatePandAMotorParam(i+1, screen, readOnly);
+			return true;
+		}
+	}
+	return false;
+}
+
 /*
  * Update motor field params
  *   \param[in] motorIndex Index of motor whose field has changed (1..4)
@@ -1085,7 +1123,15 @@ void ADPandABlocks::updatePandAMotorParam(int motorIndex, motorField field, T va
 		sendCtrl(setPosCmd.str());
 		return;
 	}
+	case screen: {
+		// Change screen type to use writeOnly
+		posBusName << ".VAL";
+		posBusField << "SCREENTYPE";
+		break;
 	}
+	}
+	// TODO: delete print after testing
+	std::cout << "Setting " << posBusName.str() << ", " << posBusField.str() << ": " << value << std::endl;
 	updatePandAParam(posBusName.str(), posBusField.str(), value);
 }
 
@@ -1189,6 +1235,9 @@ asynStatus ADPandABlocks::writeInt32(asynUser *pasynUser, epicsInt32 value)
 
 	// Check if setpos has been called
 	else if(checkIfReasonIsMotorSetpos(param, value));
+
+	// Check if need to change embedded screen type if using motorsync
+	else if(checkIfReasonIsMotorScreenType(param));
 
 	else //handle the capture menu
 	{

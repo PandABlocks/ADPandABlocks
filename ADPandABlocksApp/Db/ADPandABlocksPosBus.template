@@ -80,3 +80,11 @@ record(longout, "$(P)$(R)POSBUS$(POSBUS_IND):UNSCALEDVAL") {
   field(OUT, "@asyn($(PORT),$(POSBUS_IND))POSBUS$(POSBUS_IND):UNSCALEDVAL")
   info(asyn:READBACK, "1")
 }
+
+# Embedded screen type
+record(longout, "$(P)$(R)POSBUS$(POSBUS_IND):SCREENTYPE") {
+  field(DESC, "INENC scale value")
+  field(DTYP, "asynInt32")
+  field(OUT, "@asyn($(PORT),$(POSBUS_IND))POSBUS$(POSBUS_IND):SCREENTYPE")
+  info(asyn:READBACK, "1")
+}
