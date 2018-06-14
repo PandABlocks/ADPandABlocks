@@ -13,10 +13,49 @@ class _MainDbFile (AutoSubstitution):
 class _PosBusTemplate (AutoSubstitution):
     TemplateFile = 'ADPandABlocksPosBus.template'
 
-class MotorSync (AutoSubstitution):
+class _MotorSyncTemplate (AutoSubstitution):
     """Synchronises motor record MRES, OFFSET, UNITS with PandABlocks INENC and
     sets position after home"""
     TemplateFile = 'ADPandABlocksMotorSync.template'
+
+class MotorSync (Device):
+
+    def __init__(   self, MOTOR, P, R, PORT, ENC_IND,
+                    DIR="+", MULT=1, READONLY=True, HOMESETTLE=5):
+        self.__super.__init__()
+        self.MOTOR = MOTOR
+        self.P = P
+        self.R = R
+        self.PORT = PORT
+        self.ENC_IND = ENC_IND
+        self.DIR = DIR
+        self.MULT = MULT
+        self.READONLY_VALUE = 0
+        if READONLY is True:
+            self.READONLY_VALUE = 1
+        self.HOMESETTLE = HOMESETTLE
+        _MotorSyncTemplate(
+            MOTOR=self.MOTOR,
+            P=self.P,
+            R=self.R,
+            PORT=self.PORT,
+            ENC_IND=self.ENC_IND,
+            DIR = self.DIR,
+            MULT = self.MULT,
+            READONLY = self.READONLY_VALUE,
+            HOMESETTLE = self.HOMESETTLE
+        )
+
+    ArgInfo = _MotorSyncTemplate.ArgInfo + makeArgInfo(__init__,
+        MOTOR = Simple("PV of motor to sync with", str),
+        P = Simple("Device prefix", str),
+        R = Simple("Device suffix", str),
+        PORT = Simple("Asyn port", str),
+        ENC_IND = Choice("Motor encoder index", [1, 2, 3, 4]),
+        DIR = Choice("Motor direction", ["+", "-"]),
+        MULT = Simple("Scale factor multiplier", float),
+        READONLY = Simple("Should embedded screen be read-only", bool),
+        HOMESETTLE = Simple("Calibration delay after homing", int))
 
 
 # Main class for the ADPandABlocks device

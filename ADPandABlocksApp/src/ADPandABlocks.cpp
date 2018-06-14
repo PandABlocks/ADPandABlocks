@@ -237,6 +237,7 @@ ADPandABlocks::ADPandABlocks(const char* portName, const char* cmdSerialPortName
 		createLookup(*it, "CAPTURE", &ADPandABlocksCapture[posBusInd], posBusInd);
 		createLookup(*it, "UNSCALEDVAL", &ADPandABlocksPosUnscaledVals[posBusInd], posBusInd);
 		createLookup(*it, "SCREENTYPE", &ADPandABlocksScreenType[posBusInd], posBusInd);
+		createLookup(*it, "CALIBRATE", &ADPandABlocksCalibrate[posBusInd], posBusInd);
 		posBusInd++;
 	}
 
@@ -322,7 +323,6 @@ void ADPandABlocks::updatePandAParam<ADPandABlocks::embeddedScreenType>(std::str
 	{
 		if(posBusLookup[name].find(field) != posBusLookup[name].end())
 		{
-			std::cout << "Setting screen type for " << name << ", " << field << ": " << value << " (" << static_cast<int>(value) << ")" << std::endl;
 			setIntegerParam(*posBusLookup[name]["SCREENTYPE"], static_cast<int>(value));
 		}
 	}
@@ -346,15 +346,13 @@ void ADPandABlocks::createPosBusParam(const char* paramName, asynParamType param
 void ADPandABlocks::createLookup(std::string paramName, std::string paramNameEnd, int* paramInd, int posBusInd)
 {
 	std::map<std::string, int*> lpMap2;
-	if(paramNameEnd == "CAPTURE" || paramNameEnd == "UNSCALEDVAL" || paramNameEnd == "SCREENTYPE"){
+	if(paramNameEnd == "CAPTURE" || paramNameEnd == "UNSCALEDVAL" || paramNameEnd == "SCREENTYPE" || paramNameEnd == "CALIBRATE"){
 		createPosBusParam(paramNameEnd.c_str(), asynParamInt32, paramInd, posBusInd);
 		posBusLookup.insert(std::pair<std::string, std::map<std::string, int*> >(paramName, lpMap2));
 		posBusLookup[paramName].insert(std::pair<std::string, int*>(paramNameEnd, paramInd));
 		// Set default embedded screen type
 		if (paramNameEnd == "SCREENTYPE")
 		{
-			// TODO: delete print after testing
-			std::cout << "Changing " << paramNameEnd << " of " << paramName << " to: " << writeable << std::endl;
 			setIntegerParam(*posBusLookup[paramName][paramNameEnd], writeable);
 		}
 	}
@@ -1078,8 +1076,6 @@ bool ADPandABlocks::checkIfReasonIsMotorScreenType(int reason)
 	{
 		if (reason == ADPandABlocksMScreenType[i])
 		{
-			// TODO: delete print after testing
-			std::cout << "Changing screen type of motor " << i+1 << " to: " << readOnly << std::endl;
 			updatePandAMotorParam(i+1, screen, readOnly);
 			return true;
 		}
@@ -1130,8 +1126,6 @@ void ADPandABlocks::updatePandAMotorParam(int motorIndex, motorField field, T va
 		break;
 	}
 	}
-	// TODO: delete print after testing
-	std::cout << "Setting " << posBusName.str() << ", " << posBusField.str() << ": " << value << std::endl;
 	updatePandAParam(posBusName.str(), posBusField.str(), value);
 }
 
@@ -1239,7 +1233,8 @@ asynStatus ADPandABlocks::writeInt32(asynUser *pasynUser, epicsInt32 value)
 	// Check if need to change embedded screen type if using motorsync
 	else if(checkIfReasonIsMotorScreenType(param));
 
-	else //handle the capture menu
+	// Check lookup table
+	else
 	{
 		for(std::map<std::string, std::map<std::string, int*> >::iterator it = posBusLookup.begin();
 				it != posBusLookup.end(); ++it)
@@ -1248,15 +1243,36 @@ asynStatus ADPandABlocks::writeInt32(asynUser *pasynUser, epicsInt32 value)
 			{
 				if(param == *it2->second)
 				{
-					std::stringstream cmdStr;
-					cmdStr << it->first <<"."<< it2->first <<"="<<captureStrings[value];
-					sendCtrl(cmdStr.str());
-					std::string field;
-					status = readPosBusValues(&field);
-					if(status == asynError)
+					if(it2->first == "CAPTURE")
 					{
-						asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,"%s:%s: Error setting: %s '\n",
-								driverName, functionName, cmdStr.str());
+						std::stringstream cmdStr;
+						cmdStr << it->first <<"."<< it2->first <<"="<<captureStrings[value];
+						sendCtrl(cmdStr.str());
+						std::string field;
+						status = readPosBusValues(&field);
+						if(status == asynError)
+						{
+							asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,"%s:%s: Error setting: %s '\n",
+									driverName, functionName, cmdStr.str());
+						}
+					}
+					else if(it2->first == "CALIBRATE")
+					{
+						// Todo: write function to set correct "$(P)$(R)INENC$(ENC_IND):ONENABLE", based on it->first label, to 0 (or otherwise do nothing)
+						std::cout << "CALIBRATING " << it->first << std::endl;
+					}
+					else
+					{
+						std::stringstream cmdStr;
+						cmdStr << it->first <<"."<< it2->first <<"="<<value;
+						sendCtrl(cmdStr.str());
+						std::string field;
+						status = readPosBusValues(&field);
+						if(status == asynError)
+						{
+							asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,"%s:%s: Error setting: %s '\n",
+									driverName, functionName, cmdStr.str());
+						}
 					}
 					callParamCallbacks();
 					return status;

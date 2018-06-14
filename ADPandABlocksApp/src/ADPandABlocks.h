@@ -90,17 +90,18 @@ protected:
 #define LAST_PARAM ADPandABlocksPCTime
     int ADPandABlocksPosFields[NPOSBUS]; // string read     - position field names
     int ADPandABlocksPosVals[NPOSBUS];   // string read     - position field scaled values
-    int ADPandABlocksPosUnscaledVals[NPOSBUS];     // int32 read    - position field unscaled values
+    int ADPandABlocksPosUnscaledVals[NPOSBUS];// int32 read - position field unscaled values
     int ADPandABlocksScale[NPOSBUS];     // float64 write  	- motor scale
     int ADPandABlocksOffset[NPOSBUS];    // float64 write   - motor offset
     int ADPandABlocksUnits[NPOSBUS];     // string write 	- motor units
     int ADPandABlocksCapture[NPOSBUS];   // string write    - pcap capture type
-    int ADPandABlocksScreenType[NPOSBUS];  // int32 write   	- embedded screen to use for each bus
+    int ADPandABlocksScreenType[NPOSBUS];// int32 write   	- embedded screen to use for each bus
+    int ADPandABlocksCalibrate[NPOSBUS]; // int32 write 	- Used to proc MotorSync calibration
     int ADPandABlocksMScale[NENC];       // float64 write   - motor scale from GeoBrick
     int ADPandABlocksMSetpos[NENC];      // int32 write   	- motor setpos from GeoBrick
     int ADPandABlocksMOffset[NENC];      // float64 write   - motor offset from GeoBrick
     int ADPandABlocksMUnits[NENC];       // string write    - motor units from GeoBrick
-    int ADPandABlocksMScreenType[NENC]; // int32 write 	- Applies writeOnly embedded screen if using MotorSync
+    int ADPandABlocksMScreenType[NENC];  // int32 write 	- Applies writeOnly embedded screen if using MotorSync
 #define NUM_PARAMS (&LAST_PARAM - &FIRST_PARAM + 1 + NPOSBUS*8 + NENC*4)
 
 private:

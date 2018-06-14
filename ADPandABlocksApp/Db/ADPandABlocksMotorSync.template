@@ -4,9 +4,12 @@
 # % macro, MOTOR, pv of motor record
 # % macro, P, Device prefix
 # % macro, R, Device suffix
+# % macro, PORT, asyn port
 # % macro, ENC_IND, index for motor
 # % macro, DIR, motor direction + for positive - for negative
 # % macro, MULT, scale factor multiply
+# % macro, READONLY, Should screen be read-only
+# % macro, HOMESETTLE, Delay after home for calibrating motor position
 #------
 
 
@@ -33,8 +36,8 @@ record(stringout, "$(P)$(R)INENC$(ENC_IND):UNITSCALC") {
   field(OMSL, "closed_loop")
 }
 
-record(calcout, "$(P)$(R)INENC$(ENC_IND):SDISTRANS") {
-  field(DESC, "Trigger seq when SDIS trans to 1")
+record(calcout, "$(P)$(R)INENC$(ENC_IND):ONHOMED") {
+  field(DESC, "Trigger seq when motor has been homed")
   field(CALC, "(A>>14)&1")
   field(INPA, "$(MOTOR).MSTA CP")
   field(OOPT, "Transition To Non-zero")
@@ -43,10 +46,10 @@ record(calcout, "$(P)$(R)INENC$(ENC_IND):SDISTRANS") {
 }
 
 record(seq, "$(P)$(R)INENC$(ENC_IND):ONENABLE") {
-  field(DESC, "1s after motor enabled, call setpos")
+  field(DESC, "Calibrate pos after home with delay")
   field(DOL1, "1")
   field(LNK1, "$(P)$(R)INENC$(ENC_IND):SETPOSCALC.PROC PP")
-  field(DLY1, "$(M1HOMESETTLE=5)")
+  field(DLY1, "$(HOMESETTLE=5)")
 }
 
 # % archiver 10 Monitor
@@ -85,6 +88,6 @@ record(longout, "$(P)$(R)INENC$(ENC_IND):SCREENTYPE") {
   field(DESC, "INENC scale value")
   field(DTYP, "asynInt32")
   field(OUT, "@asyn($(PORT),0)INENC$(ENC_IND):SCREENTYPE")
-  field(VAL, 1)
+  field(VAL, "$(READONLY=1)")
   field(PINI, "YES")
 }

@@ -88,3 +88,13 @@ record(longout, "$(P)$(R)POSBUS$(POSBUS_IND):SCREENTYPE") {
   field(OUT, "@asyn($(PORT),$(POSBUS_IND))POSBUS$(POSBUS_IND):SCREENTYPE")
   info(asyn:READBACK, "1")
 }
+
+# Calibrate motor position
+record(bo, "$(P)$(R)POSBUS$(POSBUS_IND):CALIBRATE") {
+  field(DESC, "Manually sync motor with motorsync")
+  field(ZNAM, "Done")
+  field(ONAM, "Calibrating")
+  field(DTYP, "asynInt32")
+  field(OUT, "@asyn($(PORT),$(POSBUS_IND))POSBUS$(POSBUS_IND):CALIBRATE")
+  info(asyn:READBACK, "1")
+}
