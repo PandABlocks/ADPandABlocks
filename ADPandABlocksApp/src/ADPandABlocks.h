@@ -136,6 +136,8 @@ private:
     void updatePandAMotorParam(int motorIndex, motorField field, T value);
     template<typename T>
     void updatePandAParam(std::string name, std::string field, T value);
+    template<typename T>
+    asynStatus UpdateLookupTableParamFromWrite(int param, T value);
     double stringToDouble(std::string str);
     int stringToInteger(std::string str);
     std::string doubleToString(double value);

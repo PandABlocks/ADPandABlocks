@@ -1164,6 +1164,126 @@ void ADPandABlocks::updatePandAMotorParam(int motorIndex, motorField field, T va
 	updatePandAParam(posBusName.str(), posBusField.str(), value);
 }
 
+// Search and update lookup table parameter, sending command to PandA if required
+template<typename T>
+asynStatus ADPandABlocks::UpdateLookupTableParamFromWrite(int param, T value)
+{
+	return asynSuccess;
+}
+template<>
+asynStatus ADPandABlocks::UpdateLookupTableParamFromWrite<int>(int param, int value)
+{
+	const char *functionName = "UpdateLookupTableParamFromWrite<int>";
+	if(posBusLookup.empty() == true) return asynSuccess;
+	for(std::map<std::string, std::map<std::string, int*> >::iterator it = posBusLookup.begin();
+			it != posBusLookup.end(); ++it)
+	{
+		for(std::map<std::string, int*>::iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2)
+		{
+			if(param == *it2->second)
+			{
+				// Update Capture enum
+				if(it2->first == "CAPTURE")
+				{
+					std::stringstream cmdStr;
+					cmdStr << it->first <<"."<< it2->first <<"="<<captureStrings[value];
+					sendCtrl(cmdStr.str());
+					std::string field;
+					asynStatus status = readPosBusValues(&field);
+					if(status == asynError)
+					{
+						asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,"%s:%s: Error setting: %s '\n",
+								driverName, functionName, cmdStr.str());
+					}
+					return status;
+				}
+				// Trigger manual calibration
+				else if(it2->first == "CALIBRATE")
+				{
+					// Only calibrate once per button press
+					if(value == 1)
+					{
+						int encoderNumber = getEncoderNumberFromName(it->first);
+						calibrateEncoderPosition(encoderNumber);
+					}
+					return asynSuccess;
+				}
+				// Regular parameter update
+				else
+				{
+					std::stringstream cmdStr;
+					cmdStr << it->first <<"."<< it2->first <<"="<<value;
+					sendCtrl(cmdStr.str());
+					std::string field;
+					asynStatus status = readPosBusValues(&field);
+					if(status == asynError)
+					{
+						asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,"%s:%s: Error setting: %s '\n",
+								driverName, functionName, cmdStr.str());
+					}
+					return status;
+				}
+			}
+		}
+	}
+}
+template<>
+asynStatus ADPandABlocks::UpdateLookupTableParamFromWrite<float>(int param, float value)
+{
+	const char *functionName = "UpdateLookupTableParamFromWrite<float>";
+	if(posBusLookup.empty() == true) return asynSuccess;
+	for(std::map<std::string, std::map<std::string, int*> >::iterator it = posBusLookup.begin();
+			it != posBusLookup.end(); ++it)
+	{
+		for(std::map<std::string, int*>::iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2)
+		{
+			if(param == *it2->second)
+			{
+				std::stringstream cmdStr;
+				cmdStr << it->first <<"."<< it2->first <<"="<<value;
+				sendCtrl(cmdStr.str());
+				std::string field;
+				asynStatus status = readPosBusValues(&field);
+				if(status == asynError)
+				{
+					asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,"%s:%s: Error setting: %s '\n",
+							driverName, functionName, cmdStr.str());
+				}
+				callParamCallbacks();
+				return status;
+			}
+		}
+	}
+}
+template<>
+asynStatus ADPandABlocks::UpdateLookupTableParamFromWrite<std::string>(int param, std::string value)
+{
+	const char *functionName = "UpdateLookupTableParamFromWrite<std::string>";
+	if(posBusLookup.empty() == true) return asynSuccess;
+	for(std::map<std::string, std::map<std::string, int*> >::iterator it = posBusLookup.begin();
+			it != posBusLookup.end(); ++it)
+	{
+		for(std::map<std::string, int*>::iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2)
+		{
+			if(param == *it2->second)
+			{
+				std::stringstream cmdStr;
+				cmdStr << it->first <<"."<< it2->first <<"="<<value;
+				sendCtrl(cmdStr.str());
+				std::string field;
+				asynStatus status = readPosBusValues(&field);
+				if(status == asynError)
+				{
+					asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,"%s:%s: Error setting: %s '\n",
+							driverName, functionName, cmdStr.str());
+				}
+				callParamCallbacks();
+				return status;
+			}
+		}
+	}
+}
+
 /** Called when asyn clients call pasynFloat64->write().
  * This function performs actions for some parameters
  * For all parameters it sets the value in the parameter library and calls any registered callbacks..
@@ -1179,43 +1299,16 @@ asynStatus ADPandABlocks::writeFloat64(asynUser *pasynUser, epicsFloat64 value)
 
 	// Check if motor parameters have changed
 	if (checkIfMotorFloatParams(param, value));
-	// Before setting any param - send it to the Panda and make sure the
-	// response is OK
-	// find the correct param
-	else if(posBusLookup.empty() == false)
-	{
-		// TODO: refactor this into separate function to be used for all asyn<Type>.write() functions
-		for(std::map<std::string, std::map<std::string, int*> >::iterator it = posBusLookup.begin();
-				it != posBusLookup.end(); ++it)
-		{
-			for(std::map<std::string, int*>::iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2)
-			{
-				if(param == *it2->second)
-				{
-					std::stringstream cmdStr;
-					cmdStr << it->first <<"."<< it2->first <<"="<<value;
-					sendCtrl(cmdStr.str());
-					std::string field;
-					status = readPosBusValues(&field);
-					if(status == asynError)
-					{
-						asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,"%s:%s: Error setting: %s '\n",
-								driverName, functionName, cmdStr.str());
-					}
-					callParamCallbacks();
-					return status;
-				}
-			}
-		}
-	}
+	// Otherwise check lookup table
+	else status = UpdateLookupTableParamFromWrite(param, value);
 
-	/* Do callbacks so higher layers see any changes */
 	if(status)
 	{
 		asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,"%s:%s: Error setting values'\n",
 				driverName, functionName);
 	}
 
+	/* Do callbacks so higher layers see any changes */
 	callParamCallbacks();
 	return status;
 
@@ -1230,20 +1323,20 @@ asynStatus ADPandABlocks::writeInt32(asynUser *pasynUser, epicsInt32 value)
 {
 	const char *functionName = "writeInt32";
 	asynStatus status = asynError;
-	/* Any work we need to do */
+
+	// Update parameter value
 	int param = pasynUser->reason;
 	status = setIntegerParam(param, value);
-	//change writing depending on imagemode
+
+	// Check if image configuration has been updated
 	if(param == ADImageMode)
 	{
 		imgMode = value;
 	}
-
 	else if(param == ADNumImages)
 	{
 		imgNo = value;
 	}
-
 	else if(param == ADAcquire)
 	{
 		if(value)
@@ -1261,65 +1354,12 @@ asynStatus ADPandABlocks::writeInt32(asynUser *pasynUser, epicsInt32 value)
 			sendCtrl("*PCAP.DISARM=");
 		}
 	}
-
 	// Check if setpos has been called due to homing motor
 	else if(checkIfReasonIsMotorSetpos(param, value));
-
 	// Check if need to change embedded screen type if using motorsync
 	else if(checkIfReasonIsMotorScreenType(param));
-
-	// Check lookup table
-	else
-	{
-		for(std::map<std::string, std::map<std::string, int*> >::iterator it = posBusLookup.begin();
-				it != posBusLookup.end(); ++it)
-		{
-			for(std::map<std::string, int*>::iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2)
-			{
-				if(param == *it2->second)
-				{
-					if(it2->first == "CAPTURE")
-					{
-						std::stringstream cmdStr;
-						cmdStr << it->first <<"."<< it2->first <<"="<<captureStrings[value];
-						sendCtrl(cmdStr.str());
-						std::string field;
-						status = readPosBusValues(&field);
-						if(status == asynError)
-						{
-							asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,"%s:%s: Error setting: %s '\n",
-									driverName, functionName, cmdStr.str());
-						}
-					}
-					// Manual calibration triggered
-					else if(it2->first == "CALIBRATE")
-					{
-						// Only calibrate once per button press
-						if(value == 1)
-						{
-							int encoderNumber = getEncoderNumberFromName(it->first);
-							calibrateEncoderPosition(encoderNumber);
-						}
-					}
-					else
-					{
-						std::stringstream cmdStr;
-						cmdStr << it->first <<"."<< it2->first <<"="<<value;
-						sendCtrl(cmdStr.str());
-						std::string field;
-						status = readPosBusValues(&field);
-						if(status == asynError)
-						{
-							asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,"%s:%s: Error setting: %s '\n",
-									driverName, functionName, cmdStr.str());
-						}
-					}
-					callParamCallbacks();
-					return status;
-				}
-			}
-		}
-	}
+	// Update lookup table
+	else status = UpdateLookupTableParamFromWrite(param, value);
 
 	if(status)
 	{
@@ -1346,38 +1386,21 @@ asynStatus ADPandABlocks::writeOctet(asynUser *pasynUser, const char* value, siz
 	status = setStringParam(param, value);
 	*nActual = nChars;
 
-	// Check if motor units have changed
+	// Parse to stringStream for string conversion
 	std::stringstream valueStream;
 	valueStream << value;
+
+	// Check if motor units have changed
 	if (checkIfReasonIsMotorUnit(param, valueStream.str()));
-	// Before setting any param - send it to the Panda and make sure the
-	// response is OK
-	// find the correct param
-	else if(posBusLookup.empty() == false)
+	// Otherwise check lookup table
+	else status = UpdateLookupTableParamFromWrite(param, valueStream.str());
+
+	if(status)
 	{
-		for(std::map<std::string, std::map<std::string, int*> >::iterator it = posBusLookup.begin();
-				it != posBusLookup.end(); ++it)
-		{
-			for(std::map<std::string, int*>::iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2)
-			{
-				if(param == *it2->second)
-				{
-					std::stringstream cmdStr;
-					cmdStr << it->first <<"."<< it2->first <<"="<<value;
-					sendCtrl(cmdStr.str());
-					std::string field;
-					status = readPosBusValues(&field);
-					if(status == asynError)
-					{
-						asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,"%s:%s: Error setting: %s '\n",
-								driverName, functionName, cmdStr.str());
-					}
-					callParamCallbacks();
-					return status;
-				}
-			}
-		}
+		asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,"%s:%s: Error setting values'\n",
+				driverName, functionName);
 	}
+
 	callParamCallbacks();
 	return status;
 }
