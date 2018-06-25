@@ -3,9 +3,9 @@ beginScreenProperties
 major 4
 minor 0
 release 1
-x 925
-y 307
-w 810
+x 2605
+y 217
+w 900
 h 31
 font "arial-medium-r-18.0"
 ctlFont "arial-medium-r-18.0"

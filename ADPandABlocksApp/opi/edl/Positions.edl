@@ -3,9 +3,9 @@ beginScreenProperties
 major 4
 minor 0
 release 1
-x 996
-y 77
-w 820
+x 780
+y 75
+w 915
 h 1055
 font "arial-medium-r-18.0"
 ctlFont "arial-medium-r-18.0"
@@ -52,7 +52,7 @@ minor 1
 release 0
 x 5
 y 55
-w 810
+w 900
 h 30
 fgColor index 14
 bgColor index 0
@@ -194,7 +194,7 @@ minor 1
 release 0
 x 5
 y 85
-w 810
+w 900
 h 30
 fgColor index 14
 bgColor index 0
@@ -236,7 +236,7 @@ minor 1
 release 0
 x 5
 y 115
-w 810
+w 900
 h 30
 fgColor index 14
 bgColor index 0
@@ -278,7 +278,7 @@ minor 1
 release 0
 x 5
 y 145
-w 810
+w 900
 h 30
 fgColor index 14
 bgColor index 0
@@ -320,7 +320,7 @@ minor 1
 release 0
 x 5
 y 175
-w 810
+w 900
 h 30
 fgColor index 14
 bgColor index 0
@@ -362,7 +362,7 @@ minor 1
 release 0
 x 5
 y 205
-w 810
+w 900
 h 30
 fgColor index 14
 bgColor index 0
@@ -404,7 +404,7 @@ minor 1
 release 0
 x 5
 y 265
-w 810
+w 900
 h 30
 fgColor index 14
 bgColor index 0
@@ -446,7 +446,7 @@ minor 1
 release 0
 x 5
 y 235
-w 810
+w 900
 h 30
 fgColor index 14
 bgColor index 0
@@ -488,7 +488,7 @@ minor 1
 release 0
 x 5
 y 295
-w 810
+w 900
 h 30
 fgColor index 14
 bgColor index 0
@@ -530,7 +530,7 @@ minor 1
 release 0
 x 5
 y 325
-w 810
+w 900
 h 30
 fgColor index 14
 bgColor index 0
@@ -572,7 +572,7 @@ minor 1
 release 0
 x 5
 y 355
-w 810
+w 900
 h 30
 fgColor index 14
 bgColor index 0
@@ -614,7 +614,7 @@ minor 1
 release 0
 x 5
 y 385
-w 810
+w 900
 h 30
 fgColor index 14
 bgColor index 0
@@ -656,7 +656,7 @@ minor 1
 release 0
 x 5
 y 475
-w 810
+w 900
 h 30
 fgColor index 14
 bgColor index 0
@@ -698,7 +698,7 @@ minor 1
 release 0
 x 5
 y 505
-w 810
+w 900
 h 30
 fgColor index 14
 bgColor index 0
@@ -740,7 +740,7 @@ minor 1
 release 0
 x 5
 y 445
-w 810
+w 900
 h 30
 fgColor index 14
 bgColor index 0
@@ -782,7 +782,7 @@ minor 1
 release 0
 x 5
 y 415
-w 810
+w 900
 h 30
 fgColor index 14
 bgColor index 0
@@ -824,7 +824,7 @@ minor 1
 release 0
 x 5
 y 985
-w 810
+w 900
 h 30
 fgColor index 14
 bgColor index 0
@@ -866,7 +866,7 @@ minor 1
 release 0
 x 5
 y 955
-w 810
+w 900
 h 30
 fgColor index 14
 bgColor index 0
@@ -908,7 +908,7 @@ minor 1
 release 0
 x 5
 y 925
-w 810
+w 900
 h 30
 fgColor index 14
 bgColor index 0
@@ -950,7 +950,7 @@ minor 1
 release 0
 x 5
 y 895
-w 810
+w 900
 h 30
 fgColor index 14
 bgColor index 0
@@ -992,7 +992,7 @@ minor 1
 release 0
 x 5
 y 865
-w 810
+w 900
 h 30
 fgColor index 14
 bgColor index 0
@@ -1034,7 +1034,7 @@ minor 1
 release 0
 x 5
 y 835
-w 810
+w 900
 h 30
 fgColor index 14
 bgColor index 0
@@ -1076,7 +1076,7 @@ minor 1
 release 0
 x 5
 y 805
-w 810
+w 900
 h 30
 fgColor index 14
 bgColor index 0
@@ -1118,7 +1118,7 @@ minor 1
 release 0
 x 5
 y 775
-w 810
+w 900
 h 30
 fgColor index 14
 bgColor index 0
@@ -1160,7 +1160,7 @@ minor 1
 release 0
 x 5
 y 745
-w 810
+w 900
 h 30
 fgColor index 14
 bgColor index 0
@@ -1202,7 +1202,7 @@ minor 1
 release 0
 x 5
 y 715
-w 810
+w 900
 h 30
 fgColor index 14
 bgColor index 0
@@ -1244,7 +1244,7 @@ minor 1
 release 0
 x 5
 y 685
-w 810
+w 900
 h 30
 fgColor index 14
 bgColor index 0
@@ -1286,7 +1286,7 @@ minor 1
 release 0
 x 5
 y 655
-w 810
+w 900
 h 30
 fgColor index 14
 bgColor index 0
@@ -1328,7 +1328,7 @@ minor 1
 release 0
 x 5
 y 625
-w 810
+w 900
 h 30
 fgColor index 14
 bgColor index 0
@@ -1370,7 +1370,7 @@ minor 1
 release 0
 x 5
 y 595
-w 810
+w 900
 h 30
 fgColor index 14
 bgColor index 0
@@ -1412,7 +1412,7 @@ minor 1
 release 0
 x 5
 y 565
-w 810
+w 900
 h 30
 fgColor index 14
 bgColor index 0
@@ -1454,7 +1454,7 @@ minor 1
 release 0
 x 5
 y 535
-w 810
+w 900
 h 30
 fgColor index 14
 bgColor index 0
@@ -1514,9 +1514,9 @@ beginObjectProperties
 major 4
 minor 1
 release 0
-x 725
-y 1020
-w 80
+x 810
+y 1025
+w 95
 h 25
 fgColor index 46
 bgColor index 3
@@ -1535,7 +1535,7 @@ minor 0
 release 0
 x 0
 y 0
-w 815
+w 910
 h 30
 
 beginGroup
@@ -1548,7 +1548,7 @@ minor 0
 release 0
 x 0
 y -4
-w 819
+w 914
 h 30
 lineColor index 3
 fill
@@ -1563,15 +1563,15 @@ minor 0
 release 1
 x 0
 y 0
-w 819
+w 914
 h 24
 lineColor index 11
 fillColor index 0
 numPoints 3
 xPoints {
   0 0
-  1 819
-  2 819
+  1 914
+  2 914
 }
 yPoints {
   0 24
@@ -1588,7 +1588,7 @@ minor 1
 release 1
 x 0
 y 0
-w 819
+w 914
 h 24
 font "arial-medium-r-16.0"
 fontAlign "center"
@@ -1607,7 +1607,7 @@ minor 0
 release 1
 x 0
 y 0
-w 819
+w 914
 h 24
 lineColor index 1
 fillColor index 0
@@ -1615,7 +1615,7 @@ numPoints 3
 xPoints {
   0 0
   1 0
-  2 819
+  2 914
 }
 yPoints {
   0 24

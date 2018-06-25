@@ -96,13 +96,14 @@ protected:
     int ADPandABlocksUnits[NPOSBUS];     // string write 	- motor units
     int ADPandABlocksCapture[NPOSBUS];   // string write    - pcap capture type
     int ADPandABlocksScreenType[NPOSBUS];// int32 write   	- embedded screen to use for each bus
-    int ADPandABlocksCalibrate[NPOSBUS]; // int32 write 	- Used to proc MotorSync calibration
+    int ADPandABlocksCalibrate[NPOSBUS]; // int32 write 	- Used for calibrating encoders via MCalibrate param
     int ADPandABlocksMScale[NENC];       // float64 write   - motor scale from GeoBrick
-    int ADPandABlocksMSetpos[NENC];      // int32 write   	- motor setpos from GeoBrick
+    int ADPandABlocksMSetpos[NENC];      // int32 write   	- motor setpos from GeoBrick (Calibrate encoder when homed)
     int ADPandABlocksMOffset[NENC];      // float64 write   - motor offset from GeoBrick
     int ADPandABlocksMUnits[NENC];       // string write    - motor units from GeoBrick
     int ADPandABlocksMScreenType[NENC];  // int32 write 	- Applies writeOnly embedded screen if using MotorSync
-#define NUM_PARAMS (&LAST_PARAM - &FIRST_PARAM + 1 + NPOSBUS*8 + NENC*4)
+    int ADPandABlocksMCalibrate[NENC];   // int32 read 		- Calibrates encoder position
+#define NUM_PARAMS (&LAST_PARAM - &FIRST_PARAM + 1 + NPOSBUS*9 + NENC*6)
 
 private:
     headerMap parseHeader(const std::string& headerString);
@@ -123,6 +124,8 @@ private:
     std::vector<std::string> stringSplit(const std::string& s, char delimiter);
     void processChanges(std::string cmd, bool posn);
     void updateScaledPositionValue(std::string posBusName);
+    int getEncoderNumberFromName(std::string posBusName);
+    void calibrateEncoderPosition(int encoderNumer);
     bool checkIfMotorFloatParams(int reason, double value);
     bool checkIfReasonIsMotorOffset(int reason, double value);
     bool checkIfReasonIsMotorScale(int reason, double value);

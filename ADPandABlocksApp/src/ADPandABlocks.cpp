@@ -224,6 +224,8 @@ ADPandABlocks::ADPandABlocks(const char* portName, const char* cmdSerialPortName
 		createParam(str, asynParamInt32, &ADPandABlocksMSetpos[a]);
 		epicsSnprintf(str, NBUFF, "INENC%d:SCREENTYPE", a+1);
 		createParam(str, asynParamInt32, &ADPandABlocksMScreenType[a]);
+		epicsSnprintf(str, NBUFF, "INENC%d:CALIBRATE", a+1);
+		createParam(str, asynParamInt32, &ADPandABlocksMCalibrate[a]);
 	}
 
 	// Create the lookup table parameters for the position bus
@@ -998,6 +1000,39 @@ asynStatus ADPandABlocks::send(const std::string txBuffer, asynOctet *pasynOctet
 	return status;
 }
 
+// Get encoder number from name of position bus
+int ADPandABlocks::getEncoderNumberFromName(std::string posBusName)
+{
+	// Check if encoder
+	std::string encoderStringName("INENC");
+	if (posBusName.find(encoderStringName) != std::string::npos)
+	{
+		// Parse and return encoder number
+		int encoderNumber;
+		std::stringstream encoderNumberSS;
+		encoderNumberSS << posBusName[5];
+		encoderNumberSS >> encoderNumber;
+		return encoderNumber;
+	}
+	else
+	{
+		return -1;
+	}
+
+}
+
+// Calibrate encoder position by number (1..4)
+void ADPandABlocks::calibrateEncoderPosition(int encoderNumber)
+{
+	if(encoderNumber > 0 && encoderNumber < NENC)
+	{
+		// Increment value to cause record to be processed
+		int currentValue;
+		getIntegerParam(ADPandABlocksMCalibrate[encoderNumber-1], &currentValue);
+		setIntegerParam(ADPandABlocksMCalibrate[encoderNumber-1], currentValue + 1);
+	}
+}
+
 // Check motor offset and scale
 bool ADPandABlocks::checkIfMotorFloatParams(int reason, double value)
 {
@@ -1227,7 +1262,7 @@ asynStatus ADPandABlocks::writeInt32(asynUser *pasynUser, epicsInt32 value)
 		}
 	}
 
-	// Check if setpos has been called
+	// Check if setpos has been called due to homing motor
 	else if(checkIfReasonIsMotorSetpos(param, value));
 
 	// Check if need to change embedded screen type if using motorsync
@@ -1256,10 +1291,15 @@ asynStatus ADPandABlocks::writeInt32(asynUser *pasynUser, epicsInt32 value)
 									driverName, functionName, cmdStr.str());
 						}
 					}
+					// Manual calibration triggered
 					else if(it2->first == "CALIBRATE")
 					{
-						// Todo: write function to set correct "$(P)$(R)INENC$(ENC_IND):ONENABLE", based on it->first label, to 0 (or otherwise do nothing)
-						std::cout << "CALIBRATING " << it->first << std::endl;
+						// Only calibrate once per button press
+						if(value == 1)
+						{
+							int encoderNumber = getEncoderNumberFromName(it->first);
+							calibrateEncoderPosition(encoderNumber);
+						}
 					}
 					else
 					{

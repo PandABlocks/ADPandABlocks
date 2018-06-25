@@ -91,3 +91,12 @@ record(longout, "$(P)$(R)INENC$(ENC_IND):SCREENTYPE") {
   field(VAL, "$(READONLY=1)")
   field(PINI, "YES")
 }
+
+# Trigger manual calibration of encoder position
+record(longout, "$(P)$(R)INENC$(ENC_IND):CALIBRATE") {
+  field(DESC, "Trigger encoder calibration")
+  field(DTYP, "asynInt32")
+  field(OUT, "@asyn($(PORT),0)INENC$(ENC_IND):CALIBRATE")
+  field(FLNK, "$(P)$(R)INENC$(ENC_IND):SETPOSCALC.PROC PP")
+  info(asyn:READBACK, "1")
+ }
