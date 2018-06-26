@@ -1182,9 +1182,9 @@ asynStatus ADPandABlocks::UpdateLookupTableParamFromWrite<int>(int param, int va
 		{
 			if(param == *it2->second)
 			{
-				// Update Capture enum
 				if(it2->first == "CAPTURE")
 				{
+					// Update Capture enum
 					std::stringstream cmdStr;
 					cmdStr << it->first <<"."<< it2->first <<"="<<captureStrings[value];
 					sendCtrl(cmdStr.str());
@@ -1197,9 +1197,9 @@ asynStatus ADPandABlocks::UpdateLookupTableParamFromWrite<int>(int param, int va
 					}
 					return status;
 				}
-				// Trigger manual calibration
 				else if(it2->first == "CALIBRATE")
 				{
+					// Trigger manual encoder position calibration
 					// Only calibrate once per button press
 					if(value == 1)
 					{
@@ -1226,6 +1226,7 @@ asynStatus ADPandABlocks::UpdateLookupTableParamFromWrite<int>(int param, int va
 			}
 		}
 	}
+	return asynSuccess;
 }
 template<>
 asynStatus ADPandABlocks::UpdateLookupTableParamFromWrite<float>(int param, float value)
@@ -1254,6 +1255,7 @@ asynStatus ADPandABlocks::UpdateLookupTableParamFromWrite<float>(int param, floa
 			}
 		}
 	}
+	return asynSuccess;
 }
 template<>
 asynStatus ADPandABlocks::UpdateLookupTableParamFromWrite<std::string>(int param, std::string value)
@@ -1282,6 +1284,7 @@ asynStatus ADPandABlocks::UpdateLookupTableParamFromWrite<std::string>(int param
 			}
 		}
 	}
+	return asynSuccess;
 }
 
 /** Called when asyn clients call pasynFloat64->write().
