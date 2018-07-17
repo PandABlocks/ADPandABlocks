@@ -38,8 +38,8 @@ record(stringout, "$(P)$(R)INENC$(ENC_IND):UNITSCALC") {
 
 record(calcout, "$(P)$(R)INENC$(ENC_IND):ONHOMED") {
   field(DESC, "Trigger seq when motor has been homed")
-  field(CALC, "(A>>14)&1")
-  field(INPA, "$(MOTOR).MSTA CP")
+  field(CALC, "A=0")
+  field(INPA, "$(MOTOR):HOMING CP")
   field(OOPT, "Transition To Non-zero")
   field(OUT, "$(P)$(R)INENC$(ENC_IND):ONENABLE.PROC")
   field(VAL, "1")
