@@ -1253,7 +1253,6 @@ bool ADPandABlocks::checkIfReasonIsMotorName(int reason, std::string name)
 	{
 		if (reason == ADPandABlocksMMotorName[i])
 		{
-			std::cout << "Motor name for " << i << ": " << name << std::endl;
 			updatePandAMotorParam(i+1, motorName, name);
 			return true;
 		}
@@ -1307,10 +1306,8 @@ asynStatus ADPandABlocks::UpdateLookupTableParamFromWrite<int>(int param, int va
 				}
 				else if(it2->first == "SETPOS")
 				{
-					// Write a value to the PandA setpos parameter
-					std::cout << "SETPOS called for " << it->first << ", VALUE: " << value << std::endl;
+					// Update PandA setpos to new value
 					setPandASetPos(it->first, value);
-
 				}
 				// Regular parameter update
 				else
