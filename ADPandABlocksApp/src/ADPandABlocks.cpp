@@ -226,6 +226,8 @@ ADPandABlocks::ADPandABlocks(const char* portName, const char* cmdSerialPortName
 		createParam(str, asynParamInt32, &ADPandABlocksMScreenType[a]);
 		epicsSnprintf(str, NBUFF, "INENC%d:CALIBRATE", a+1);
 		createParam(str, asynParamInt32, &ADPandABlocksMCalibrate[a]);
+		epicsSnprintf(str, NBUFF, "INENC%d:MOTORNAME", a+1);
+		createParam(str, asynParamOctet, &ADPandABlocksMMotorName[a]);
 	}
 
 	// Create the lookup table parameters for the position bus
@@ -240,6 +242,8 @@ ADPandABlocks::ADPandABlocks(const char* portName, const char* cmdSerialPortName
 		createLookup(*it, "UNSCALEDVAL", &ADPandABlocksPosUnscaledVals[posBusInd], posBusInd);
 		createLookup(*it, "SCREENTYPE", &ADPandABlocksScreenType[posBusInd], posBusInd);
 		createLookup(*it, "CALIBRATE", &ADPandABlocksCalibrate[posBusInd], posBusInd);
+		createLookup(*it, "SETPOS", &ADPandABlocksSetpos[posBusInd], posBusInd);
+		createLookup(*it, "MOTORNAME", &ADPandABlocksMotorName[posBusInd], posBusInd);
 		posBusInd++;
 	}
 
@@ -330,6 +334,84 @@ void ADPandABlocks::updatePandAParam<ADPandABlocks::embeddedScreenType>(std::str
 	}
 }
 
+/*
+ * Update motor field params
+ *   \param[in] motorIndex Index of motor whose field has changed (1..4)
+ *   \param[in] motorField Parameter to be updated
+ *   \param[in] value New value of motor parameter
+ */
+template<typename T>
+void ADPandABlocks::updatePandAMotorParam(int motorIndex, motorField field, T value)
+{
+}
+template<>
+void ADPandABlocks::updatePandAMotorParam<int>(int motorIndex, motorField field, int value)
+{
+	std::stringstream posBusName, posBusField;
+	posBusName << "INENC" << motorIndex << ".VAL";
+	switch(field)
+	{
+	case setpos: {
+		// Send command to PandA to calibrate motor position
+		posBusField << "SETPOS";
+		setPandASetPos(posBusName.str(), value);
+		break;
+	}
+	}
+	updatePandAParam(posBusName.str(), posBusField.str(), value);
+}
+template<>
+void ADPandABlocks::updatePandAMotorParam<ADPandABlocks::embeddedScreenType>(int motorIndex, motorField field, ADPandABlocks::embeddedScreenType value)
+{
+	std::stringstream posBusName, posBusField;
+	posBusName << "INENC" << motorIndex << ".VAL";
+	switch(field)
+	{
+	case screen: {
+		// Change screen type to use readOnly
+		posBusField << "SCREENTYPE";
+		break;
+	}
+	}
+	updatePandAParam(posBusName.str(), posBusField.str(), value);
+}
+template<>
+void ADPandABlocks::updatePandAMotorParam<float>(int motorIndex, motorField field, float value)
+{
+	std::stringstream posBusName, posBusField;
+	posBusName << "INENC" << motorIndex << ".VAL";
+	switch(field)
+	{
+	case offset: {
+		posBusField << "OFFSET";
+		break;
+	}
+	case scale: {
+		posBusField << "SCALE";
+		break;
+	}
+	}
+	updatePandAParam(posBusName.str(), posBusField.str(), value);
+}
+template<>
+void ADPandABlocks::updatePandAMotorParam<std::string>(int motorIndex, motorField field, std::string value)
+{
+	std::stringstream posBusName, posBusField;
+	posBusName << "INENC" << motorIndex << ".VAL";
+	switch(field)
+	{
+	case units: {
+		posBusField << "UNITS";
+		break;
+	}
+	case motorName: {
+		posBusField << "MOTORNAME";
+		break;
+	}
+	}
+	updatePandAParam(posBusName.str(), posBusField.str(), value);
+}
+
 std::string ADPandABlocks::getPosBusField(std::string posbus, const char* paramName){
 	std::string field;
 	std::stringstream cmdStr;
@@ -345,20 +427,31 @@ void ADPandABlocks::createPosBusParam(const char* paramName, asynParamType param
 	createParam(str, paramType, paramIndex);
 }
 
+bool ADPandABlocks::posBusInUse(std::string posBusName) {
+	// Unused position buses will have the name POSBUS<N>
+	std::size_t found = posBusName.find("POSBUS");
+	if (found == std::string::npos) return true;
+	else return false;
+}
+
+// TODO: consider renaming paramName to position bus name
 void ADPandABlocks::createLookup(std::string paramName, std::string paramNameEnd, int* paramInd, int posBusInd)
 {
 	std::map<std::string, int*> lpMap2;
-	if(paramNameEnd == "CAPTURE" || paramNameEnd == "UNSCALEDVAL" || paramNameEnd == "SCREENTYPE" || paramNameEnd == "CALIBRATE"){
+	if(paramNameEnd == "CAPTURE" || paramNameEnd == "UNSCALEDVAL" || paramNameEnd == "SCREENTYPE" || paramNameEnd == "CALIBRATE" || paramNameEnd == "SETPOS"){
 		createPosBusParam(paramNameEnd.c_str(), asynParamInt32, paramInd, posBusInd);
 		posBusLookup.insert(std::pair<std::string, std::map<std::string, int*> >(paramName, lpMap2));
 		posBusLookup[paramName].insert(std::pair<std::string, int*>(paramNameEnd, paramInd));
-		// Set default embedded screen type
+		// Set screen type based on whether PosBus is in use
 		if (paramNameEnd == "SCREENTYPE")
 		{
-			setIntegerParam(*posBusLookup[paramName][paramNameEnd], writeable);
+			if (posBusInUse(paramName)){
+				setIntegerParam(*posBusLookup[paramName][paramNameEnd], writeable);
+			}
+			else setIntegerParam(*posBusLookup[paramName][paramNameEnd], empty);
 		}
 	}
-	else if(paramNameEnd == "UNITS")
+	else if(paramNameEnd == "UNITS" || paramNameEnd == "MOTORNAME")
 	{
 		createPosBusParam(paramNameEnd.c_str(), asynParamOctet, paramInd, posBusInd);
 		posBusLookup.insert(std::pair<std::string, std::map<std::string, int*> >(paramName, lpMap2));
@@ -1033,6 +1126,40 @@ void ADPandABlocks::calibrateEncoderPosition(int encoderNumber)
 	}
 }
 
+// Set position of encoder (1..4) to custom value
+void ADPandABlocks::setEncoderPosition(int encoderNumber, int value)
+{
+	if(encoderNumber > 0 && encoderNumber < NENC)
+	{
+		setIntegerParam(ADPandABlocksMSetpos[encoderNumber-1], value);
+	}
+}
+
+// Erase substring from string in place
+void ADPandABlocks::removeSubString(std::string &string, std::string &subString)
+{
+	// Search and only remove if it exists in string
+	size_t pos = string.find(subString);
+	if (pos != std::string::npos)
+	{
+		string.erase(pos, subString.length());
+	}
+}
+
+
+// Send setpos (SETP) command to PandA for homing a position bus
+void ADPandABlocks::setPandASetPos(std::string posBusName, int value){
+
+	// Remove .VAL from posBusName for correct command
+	std::string valSuffix(".VAL");
+	removeSubString(posBusName, valSuffix);
+
+	// Build and send command
+	std::stringstream setPosCmd;
+	setPosCmd << posBusName << ".SETP=" << value;
+	sendCtrl(setPosCmd.str());
+}
+
 // Check motor offset and scale
 bool ADPandABlocks::checkIfMotorFloatParams(int reason, double value)
 {
@@ -1105,63 +1232,33 @@ bool ADPandABlocks::checkIfReasonIsMotorSetpos(int reason, int value)
 }
 
 // Change embedded window to readOnly if using motorSync template
-bool ADPandABlocks::checkIfReasonIsMotorScreenType(int reason)
+bool ADPandABlocks::checkIfReasonIsMotorScreenType(int reason, int value)
 {
 	for (int i=0; i<4; i++)
 	{
 		if (reason == ADPandABlocksMScreenType[i])
 		{
-			updatePandAMotorParam(i+1, screen, readOnly);
+			embeddedScreenType screenType = static_cast<embeddedScreenType>(value);
+			updatePandAMotorParam(i+1, screen, screenType);
 			return true;
 		}
 	}
 	return false;
 }
 
-/*
- * Update motor field params
- *   \param[in] motorIndex Index of motor whose field has changed (1..4)
- *   \param[in] motorField Parameter to be updated
- *   \param[in] value New value of motor parameter
- */
-template<typename T>
-void ADPandABlocks::updatePandAMotorParam(int motorIndex, motorField field, T value)
+// Set motor name param
+bool ADPandABlocks::checkIfReasonIsMotorName(int reason, std::string name)
 {
-	std::stringstream posBusName, posBusField;
-	posBusName << "INENC" << motorIndex;
-	switch(field)
+	for (int i=0; i<4; i++)
 	{
-	case offset: {
-		posBusName << ".VAL";
-		posBusField << "OFFSET";
-		break;
+		if (reason == ADPandABlocksMMotorName[i])
+		{
+			std::cout << "Motor name for " << i << ": " << name << std::endl;
+			updatePandAMotorParam(i+1, motorName, name);
+			return true;
+		}
 	}
-	case units: {
-		posBusName << ".VAL";
-		posBusField << "UNITS";
-		break;
-	}
-	case scale: {
-		posBusName << ".VAL";
-		posBusField << "SCALE";
-		break;
-	}
-	case setpos: {
-		// Send command to PandA to calibrate motor position
-		posBusField << "SETP";
-		std::stringstream setPosCmd;
-		setPosCmd << posBusName.str() << "." << posBusField.str() << "=" << value;
-		sendCtrl(setPosCmd.str());
-		return;
-	}
-	case screen: {
-		// Change screen type to use writeOnly
-		posBusName << ".VAL";
-		posBusField << "SCREENTYPE";
-		break;
-	}
-	}
-	updatePandAParam(posBusName.str(), posBusField.str(), value);
+	return false;
 }
 
 // Search and update lookup table parameter, sending command to PandA if required
@@ -1199,7 +1296,7 @@ asynStatus ADPandABlocks::UpdateLookupTableParamFromWrite<int>(int param, int va
 				}
 				else if(it2->first == "CALIBRATE")
 				{
-					// Trigger manual encoder position calibration
+					// Trigger manual copy of motor encoder position to PandA position
 					// Only calibrate once per button press
 					if(value == 1)
 					{
@@ -1207,6 +1304,13 @@ asynStatus ADPandABlocks::UpdateLookupTableParamFromWrite<int>(int param, int va
 						calibrateEncoderPosition(encoderNumber);
 					}
 					return asynSuccess;
+				}
+				else if(it2->first == "SETPOS")
+				{
+					// Write a value to the PandA setpos parameter
+					std::cout << "SETPOS called for " << it->first << ", VALUE: " << value << std::endl;
+					setPandASetPos(it->first, value);
+
 				}
 				// Regular parameter update
 				else
@@ -1360,8 +1464,8 @@ asynStatus ADPandABlocks::writeInt32(asynUser *pasynUser, epicsInt32 value)
 	// Check if setpos has been called due to homing motor
 	else if(checkIfReasonIsMotorSetpos(param, value));
 	// Check if need to change embedded screen type if using motorsync
-	else if(checkIfReasonIsMotorScreenType(param));
-	// Update lookup table
+	else if(checkIfReasonIsMotorScreenType(param, value));
+	// Otherwise update lookup table
 	else status = UpdateLookupTableParamFromWrite(param, value);
 
 	if(status)
@@ -1395,6 +1499,8 @@ asynStatus ADPandABlocks::writeOctet(asynUser *pasynUser, const char* value, siz
 
 	// Check if motor units have changed
 	if (checkIfReasonIsMotorUnit(param, valueStream.str()));
+	// Check if motor name is being set
+	else if (checkIfReasonIsMotorName(param, valueStream.str()));
 	// Otherwise check lookup table
 	else status = UpdateLookupTableParamFromWrite(param, valueStream.str());
 

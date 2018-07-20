@@ -3,8 +3,8 @@ beginScreenProperties
 major 4
 minor 0
 release 1
-x 2610
-y 149
+x 2618
+y 197
 w 900
 h 31
 font "arial-medium-r-18.0"
@@ -70,7 +70,7 @@ fgColor index 16
 fgAlarm
 bgColor index 10
 fill
-font "helvetica-bold-r-14.0"
+font "arial-bold-r-14.0"
 endObjectProperties
 
 # (Menu Button)
@@ -123,7 +123,7 @@ fgColor index 16
 fgAlarm
 bgColor index 10
 fill
-font "helvetica-bold-r-14.0"
+font "arial-bold-r-14.0"
 endObjectProperties
 
 # (Textupdate)
@@ -141,7 +141,7 @@ fgColor index 16
 fgAlarm
 bgColor index 10
 fill
-font "helvetica-bold-r-14.0"
+font "arial-bold-r-14.0"
 endObjectProperties
 
 # (Textupdate)
@@ -159,7 +159,7 @@ fgColor index 16
 fgAlarm
 bgColor index 10
 fill
-font "helvetica-bold-r-14.0"
+font "arial-bold-r-14.0"
 endObjectProperties
 
 # (Textupdate)
@@ -177,31 +177,32 @@ fgColor index 16
 fgAlarm
 bgColor index 10
 fill
-font "helvetica-bold-r-14.0"
+font "arial-bold-r-14.0"
 endObjectProperties
 
-# (Message Button)
-object activeMessageButtonClass
+# (Extended Related Display)
+object ExtendedRelatedDisplayClass
 beginObjectProperties
 major 4
-minor 1
+minor 0
 release 0
-x 810
+x 815
 y 5
-w 85
-h 24
-fgColor index 25
-onColor index 4
-offColor index 3
+w 80
+h 25
+fgColor index 43
+bgColor index 3
 topShadowColor index 1
 botShadowColor index 11
-controlPv "$(P)$(R)POSBUS$(N):CALIBRATE"
-pressValue "1"
-releaseValue "0"
-onLabel "Calibrate"
-offLabel "Calibrate"
-3d
-useEnumNumeric
-font "arial-bold-r-12.0"
+font "arial-bold-r-14.0"
+buttonLabel "Home"
+numPvs 4
+numDsps 1
+displayFileName {
+  0 "motorHoming.edl"
+}
+symbols {
+  0 "P=$(P), R=$(R), N=$(N)"
+}
 endObjectProperties
 

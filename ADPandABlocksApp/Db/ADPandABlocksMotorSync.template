@@ -60,11 +60,13 @@ record(calcout, "$(P)$(R)INENC$(ENC_IND):SETPOSCALC") {
   field(OUT, "$(P)$(R)INENC$(ENC_IND):SETPOS PP")
 }
 
-record(ao, "$(P)$(R)INENC$(ENC_IND):SETPOS") {
+record(longout, "$(P)$(R)INENC$(ENC_IND):SETPOS") {
   field(DESC, "INENC set current position")
   field(DTYP, "asynInt32")
   field(OUT, "@asyn($(PORT),0)INENC$(ENC_IND):SETPOS")
+  info(asyn:READBACK, "1")
 }
+
 record(ao, "$(P)$(R)INENC$(ENC_IND):SCALE") {
   field(DESC, "INENC scale value")
   field(DTYP, "asynFloat64")
@@ -72,20 +74,20 @@ record(ao, "$(P)$(R)INENC$(ENC_IND):SCALE") {
 }
 
 record(ao, "$(P)$(R)INENC$(ENC_IND):OFF") {
-  field(DESC, "INENC scale value")
+  field(DESC, "INENC offset value")
   field(DTYP, "asynFloat64")
   field(OUT, "@asyn($(PORT),0)INENC$(ENC_IND):OFF")
 }
 
 record(stringout, "$(P)$(R)INENC$(ENC_IND):UNITS") {
-  field(DESC, "INENC scale value")
+  field(DESC, "INENC units")
   field(DTYP, "asynOctetWrite")
   field(OUT, "@asyn($(PORT),0)INENC$(ENC_IND):UNITS")
 }
 
 # Set embedded screen type to read-only
 record(longout, "$(P)$(R)INENC$(ENC_IND):SCREENTYPE") {
-  field(DESC, "INENC scale value")
+  field(DESC, "INENC screen type")
   field(DTYP, "asynInt32")
   field(OUT, "@asyn($(PORT),0)INENC$(ENC_IND):SCREENTYPE")
   field(VAL, "$(READONLY=1)")
@@ -100,3 +102,12 @@ record(longout, "$(P)$(R)INENC$(ENC_IND):CALIBRATE") {
   field(FLNK, "$(P)$(R)INENC$(ENC_IND):SETPOSCALC.PROC PP")
   info(asyn:READBACK, "1")
  }
+
+ # Underlying motor name
+record (stringout, "$(P)$(R)INENC$(ENC_IND):MOTORNAME") {
+  field(DESC, "Name of motor")
+  field(DTYP, "asynOctetWrite")
+  field(OUT, "@asyn($(PORT),0)INENC$(ENC_IND):MOTORNAME")
+  field(VAL, "$(MOTOR)")
+  field(PINI, "YES")
+}

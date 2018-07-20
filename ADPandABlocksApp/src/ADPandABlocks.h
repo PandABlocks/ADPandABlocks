@@ -55,12 +55,12 @@ private:
     //vector of maps to store header data. Each map is for an individual xml node
     typedef std::vector<std::map<std::string, std::string> > headerMap;
 
-    // Enum for tracking updates to motor fields from GeoBrick
-    enum motorField {scale, offset, units, setpos, screen};
-
 public:
     // Embedded screen type for position bus
-    enum embeddedScreenType {writeable, readOnly};
+    enum embeddedScreenType {writeable, readOnly, empty};
+
+    // Enum for tracking updates to motor fields from GeoBrick
+    enum motorField {scale, offset, units, setpos, screen, motorName};
 
 public:
     ADPandABlocks(const char *portName, const char* cmdSerialPortName,
@@ -92,17 +92,20 @@ protected:
     int ADPandABlocksPosVals[NPOSBUS];   // string read     - position field scaled values
     int ADPandABlocksPosUnscaledVals[NPOSBUS];// int32 read - position field unscaled values
     int ADPandABlocksScale[NPOSBUS];     // float64 write  	- motor scale
+    int ADPandABlocksSetpos[NPOSBUS];     // float64 write  - motor setpos
     int ADPandABlocksOffset[NPOSBUS];    // float64 write   - motor offset
     int ADPandABlocksUnits[NPOSBUS];     // string write 	- motor units
     int ADPandABlocksCapture[NPOSBUS];   // string write    - pcap capture type
     int ADPandABlocksScreenType[NPOSBUS];// int32 write   	- embedded screen to use for each bus
     int ADPandABlocksCalibrate[NPOSBUS]; // int32 write 	- Used for calibrating encoders via MCalibrate param
+    int ADPandABlocksMotorName[NPOSBUS]; // string write 	- motor name
     int ADPandABlocksMScale[NENC];       // float64 write   - motor scale from GeoBrick
     int ADPandABlocksMSetpos[NENC];      // int32 write   	- motor setpos from GeoBrick (Calibrate encoder when homed)
     int ADPandABlocksMOffset[NENC];      // float64 write   - motor offset from GeoBrick
     int ADPandABlocksMUnits[NENC];       // string write    - motor units from GeoBrick
     int ADPandABlocksMScreenType[NENC];  // int32 write 	- Applies writeOnly embedded screen if using MotorSync
     int ADPandABlocksMCalibrate[NENC];   // int32 read 		- Calibrates encoder position
+    int ADPandABlocksMMotorName[NENC]; // string write 	- motor name from GeoBrick
 #define NUM_PARAMS (&LAST_PARAM - &FIRST_PARAM + 1 + NPOSBUS*9 + NENC*6)
 
 private:
@@ -120,27 +123,32 @@ private:
     asynStatus readDataBytes(char* rxBuffer, const size_t nBytes)const;
     void createPosBusParam(const char* paramName, asynParamType paramType, int* paramIndex, int paramNo);
     std::string getPosBusField(std::string posbus, const char* paramName);
+    bool posBusInUse(std::string posBusName);
     void createLookup(std::string paramName, std::string paramNameEnd, int* paramInd, int posBusInd);
     std::vector<std::string> stringSplit(const std::string& s, char delimiter);
     void processChanges(std::string cmd, bool posn);
     void updateScaledPositionValue(std::string posBusName);
     int getEncoderNumberFromName(std::string posBusName);
     void calibrateEncoderPosition(int encoderNumer);
+    void setEncoderPosition(int encoderNumer, int value);
+    void setPandASetPos(std::string posBusName, int value);
     bool checkIfMotorFloatParams(int reason, double value);
     bool checkIfReasonIsMotorOffset(int reason, double value);
     bool checkIfReasonIsMotorScale(int reason, double value);
     bool checkIfReasonIsMotorUnit(int reason, std::string value);
     bool checkIfReasonIsMotorSetpos(int reason, int value);
-    bool checkIfReasonIsMotorScreenType(int reason);
-    template<typename T>
-    void updatePandAMotorParam(int motorIndex, motorField field, T value);
+    bool checkIfReasonIsMotorScreenType(int reason, int value);
+    bool checkIfReasonIsMotorName(int reason, std::string name);
     template<typename T>
     void updatePandAParam(std::string name, std::string field, T value);
+    template<typename T>
+    void updatePandAMotorParam(int motorIndex, motorField field, T value);
     template<typename T>
     asynStatus UpdateLookupTableParamFromWrite(int param, T value);
     double stringToDouble(std::string str);
     int stringToInteger(std::string str);
     std::string doubleToString(double value);
+    void removeSubString(std::string &string, std::string &subString);
 private:
     NDArray *pArray;
     asynUser *pasynUser_ctrl;

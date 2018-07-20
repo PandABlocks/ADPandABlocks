@@ -89,12 +89,28 @@ record(longout, "$(P)$(R)POSBUS$(POSBUS_IND):SCREENTYPE") {
   info(asyn:READBACK, "1")
 }
 
-# Calibrate motor position
+# Calibrate motor position (Requires  MotorSync template)
 record(bo, "$(P)$(R)POSBUS$(POSBUS_IND):CALIBRATE") {
   field(DESC, "Manually sync motor with motorsync")
   field(ZNAM, "Done")
   field(ONAM, "Calibrating")
   field(DTYP, "asynInt32")
   field(OUT, "@asyn($(PORT),$(POSBUS_IND))POSBUS$(POSBUS_IND):CALIBRATE")
+  info(asyn:READBACK, "1")
+}
+
+# Reads setpos from the MotorSync template (if it exists)
+record(longout, "$(P)$(R)POSBUS$(POSBUS_IND):SETPOS") {
+  field(DESC, "INENC set current position")
+  field(DTYP, "asynInt32")
+  field(OUT, "@asyn($(PORT),$(POSBUS_IND))POSBUS$(POSBUS_IND):SETPOS")
+  info(asyn:READBACK, "1")
+}
+
+# Underlying motor name from MotorSync template (if it exists)
+record (stringout, "$(P)$(R)POSBUS$(POSBUS_IND):MOTORNAME") {
+  field(DESC, "Name of motor")
+  field(DTYP, "asynOctetWrite")
+  field(OUT, "@asyn($(PORT),$(POSBUS_IND))POSBUS$(POSBUS_IND):MOTORNAME")
   info(asyn:READBACK, "1")
 }

@@ -3,8 +3,8 @@ beginScreenProperties
 major 4
 minor 0
 release 1
-x 2609
-y 241
+x 2613
+y 265
 w 900
 h 31
 font "arial-medium-r-18.0"
@@ -70,7 +70,7 @@ fgColor index 16
 fgAlarm
 bgColor index 10
 fill
-font "helvetica-bold-r-14.0"
+font "arial-bold-r-14.0"
 endObjectProperties
 
 # (Menu Button)
@@ -178,6 +178,6 @@ fgColor index 16
 fgAlarm
 bgColor index 10
 fill
-font "helvetica-bold-r-14.0"
+font "arial-bold-r-14.0"
 endObjectProperties
 

@@ -3,8 +3,8 @@ beginScreenProperties
 major 4
 minor 0
 release 1
-x 780
-y 75
+x 784
+y 99
 w 915
 h 1055
 font "arial-medium-r-18.0"
@@ -62,14 +62,16 @@ displaySource "menu"
 filePv "$(P)$(R)POSBUS0:SCREENTYPE"
 file "PosBusWriteable.edl"
 sizeOfs 5
-numDsps 2
+numDsps 3
 displayFileName {
   0 "PosBusWriteable.edl"
   1 "PosBusReadOnly.edl"
+  2 "PosBusEmpty.edl"
 }
 menuLabel {
   0 "POSBUS0"
   1 "POSBUS0"
+  2 "POSBUS0"
 }
 symbols {
   0 "N=0,P=$(P),R=$(R)"
@@ -208,10 +210,12 @@ numDsps 2
 displayFileName {
   0 "PosBusWriteable.edl"
   1 "PosBusReadOnly.edl"
+  2 "PosBusEmpty.edl"
 }
 menuLabel {
   0 "POSBUS1"
   1 "POSBUS1"
+  2 "POSBUS1"
 }
 symbols {
   0 "N=1,P=$(P),R=$(R)"
@@ -250,10 +254,12 @@ numDsps 2
 displayFileName {
   0 "PosBusWriteable.edl"
   1 "PosBusReadOnly.edl"
+  2 "PosBusEmpty.edl"
 }
 menuLabel {
   0 "POSBUS2"
   1 "POSBUS2"
+  2 "POSBUS2"
 }
 symbols {
   0 "N=2,P=$(P),R=$(R)"
@@ -292,10 +298,12 @@ numDsps 2
 displayFileName {
   0 "PosBusWriteable.edl"
   1 "PosBusReadOnly.edl"
+  2 "PosBusEmpty.edl"
 }
 menuLabel {
   0 "POSBUS3"
   1 "POSBUS3"
+  2 "POSBUS3"
 }
 symbols {
   0 "N=3,P=$(P),R=$(R)"
@@ -334,10 +342,12 @@ numDsps 2
 displayFileName {
   0 "PosBusWriteable.edl"
   1 "PosBusReadOnly.edl"
+  2 "PosBusEmpty.edl"
 }
 menuLabel {
   0 "POSBUS4"
   1 "POSBUS4"
+  2 "POSBUS4"
 }
 symbols {
   0 "N=4,P=$(P),R=$(R)"
@@ -376,10 +386,12 @@ numDsps 2
 displayFileName {
   0 "PosBusWriteable.edl"
   1 "PosBusReadOnly.edl"
+  2 "PosBusEmpty.edl"
 }
 menuLabel {
   0 "POSBUS5"
   1 "POSBUS5"
+  2 "POSBUS5"
 }
 symbols {
   0 "N=5,P=$(P),R=$(R)"
@@ -418,10 +430,12 @@ numDsps 2
 displayFileName {
   0 "PosBusWriteable.edl"
   1 "PosBusReadOnly.edl"
+  2 "PosBusEmpty.edl"
 }
 menuLabel {
   0 "POSBUS7"
   1 "POSBUS7"
+  2 "POSBUS7"
 }
 symbols {
   0 "N=7,P=$(P),R=$(R)"
@@ -460,10 +474,12 @@ numDsps 2
 displayFileName {
   0 "PosBusWriteable.edl"
   1 "PosBusReadOnly.edl"
+  2 "PosBusEmpty.edl"
 }
 menuLabel {
   0 "POSBUS6"
   1 "POSBUS6"
+  2 "POSBUS6"
 }
 symbols {
   0 "N=6,P=$(P),R=$(R)"
@@ -502,10 +518,12 @@ numDsps 2
 displayFileName {
   0 "PosBusWriteable.edl"
   1 "PosBusReadOnly.edl"
+  2 "PosBusEmpty.edl"
 }
 menuLabel {
   0 "POSBUS8"
   1 "POSBUS8"
+  2 "POSBUS8"
 }
 symbols {
   0 "N=8,P=$(P),R=$(R)"
@@ -544,10 +562,12 @@ numDsps 2
 displayFileName {
   0 "PosBusWriteable.edl"
   1 "PosBusReadOnly.edl"
+  2 "PosBusEmpty.edl"
 }
 menuLabel {
   0 "POSBUS9"
   1 "POSBUS9"
+  2 "POSBUS9"
 }
 symbols {
   0 "N=9,P=$(P),R=$(R)"
@@ -586,10 +606,12 @@ numDsps 2
 displayFileName {
   0 "PosBusWriteable.edl"
   1 "PosBusReadOnly.edl"
+  2 "PosBusEmpty.edl"
 }
 menuLabel {
   0 "POSBUS10"
   1 "POSBUS10"
+  2 "POSBUS10"
 }
 symbols {
   0 "N=10,P=$(P),R=$(R)"
@@ -628,10 +650,12 @@ numDsps 2
 displayFileName {
   0 "PosBusWriteable.edl"
   1 "PosBusReadOnly.edl"
+  2 "PosBusEmpty.edl"
 }
 menuLabel {
   0 "POSBUS11"
   1 "POSBUS11"
+  2 "POSBUS11"
 }
 symbols {
   0 "N=11,P=$(P),R=$(R)"
@@ -670,10 +694,12 @@ numDsps 2
 displayFileName {
   0 "PosBusWriteable.edl"
   1 "PosBusReadOnly.edl"
+  2 "PosBusEmpty.edl"
 }
 menuLabel {
   0 "POSBUS14"
   1 "POSBUS14"
+  2 "POSBUS14"
 }
 symbols {
   0 "N=14,P=$(P),R=$(R)"
@@ -712,10 +738,12 @@ numDsps 2
 displayFileName {
   0 "PosBusWriteable.edl"
   1 "PosBusReadOnly.edl"
+  2 "PosBusEmpty.edl"
 }
 menuLabel {
   0 "POSBUS15"
   1 "POSBUS15"
+  2 "POSBUS15"
 }
 symbols {
   0 "N=15,P=$(P),R=$(R)"
@@ -754,10 +782,12 @@ numDsps 2
 displayFileName {
   0 "PosBusWriteable.edl"
   1 "PosBusReadOnly.edl"
+  2 "PosBusEmpty.edl"
 }
 menuLabel {
   0 "POSBUS13"
   1 "POSBUS13"
+  2 "POSBUS13"
 }
 symbols {
   0 "N=13,P=$(P),R=$(R)"
@@ -796,10 +826,12 @@ numDsps 2
 displayFileName {
   0 "PosBusWriteable.edl"
   1 "PosBusReadOnly.edl"
+  2 "PosBusEmpty.edl"
 }
 menuLabel {
   0 "POSBUS12"
   1 "POSBUS12"
+  2 "POSBUS12"
 }
 symbols {
   0 "N=12,P=$(P),R=$(R)"
@@ -838,10 +870,12 @@ numDsps 2
 displayFileName {
   0 "PosBusWriteable.edl"
   1 "PosBusReadOnly.edl"
+  2 "PosBusEmpty.edl"
 }
 menuLabel {
   0 "POSBUS31"
   1 "POSBUS31"
+  2 "POSBUS31"
 }
 symbols {
   0 "N=31,P=$(P),R=$(R)"
@@ -880,10 +914,12 @@ numDsps 2
 displayFileName {
   0 "PosBusWriteable.edl"
   1 "PosBusReadOnly.edl"
+  2 "PosBusEmpty.edl"
 }
 menuLabel {
   0 "POSBUS30"
   1 "POSBUS30"
+  2 "POSBUS30"
 }
 symbols {
   0 "N=30,P=$(P),R=$(R)"
@@ -922,10 +958,12 @@ numDsps 2
 displayFileName {
   0 "PosBusWriteable.edl"
   1 "PosBusReadOnly.edl"
+  2 "PosBusEmpty.edl"
 }
 menuLabel {
   0 "POSBUS29"
   1 "POSBUS29"
+  2 "POSBUS29"
 }
 symbols {
   0 "N=29,P=$(P),R=$(R)"
@@ -964,10 +1002,12 @@ numDsps 2
 displayFileName {
   0 "PosBusWriteable.edl"
   1 "PosBusReadOnly.edl"
+  2 "PosBusEmpty.edl"
 }
 menuLabel {
   0 "POSBUS28"
   1 "POSBUS28"
+  2 "POSBUS28"
 }
 symbols {
   0 "N=28,P=$(P),R=$(R)"
@@ -1006,10 +1046,12 @@ numDsps 2
 displayFileName {
   0 "PosBusWriteable.edl"
   1 "PosBusReadOnly.edl"
+  2 "PosBusEmpty.edl"
 }
 menuLabel {
   0 "POSBUS27"
   1 "POSBUS27"
+  2 "POSBUS27"
 }
 symbols {
   0 "N=27,P=$(P),R=$(R)"
@@ -1048,10 +1090,12 @@ numDsps 2
 displayFileName {
   0 "PosBusWriteable.edl"
   1 "PosBusReadOnly.edl"
+  2 "PosBusEmpty.edl"
 }
 menuLabel {
   0 "POSBUS26"
   1 "POSBUS26"
+  2 "POSBUS26"
 }
 symbols {
   0 "N=26,P=$(P),R=$(R)"
@@ -1090,10 +1134,12 @@ numDsps 2
 displayFileName {
   0 "PosBusWriteable.edl"
   1 "PosBusReadOnly.edl"
+  2 "PosBusEmpty.edl"
 }
 menuLabel {
   0 "POSBUS25"
   1 "POSBUS25"
+  2 "POSBUS25"
 }
 symbols {
   0 "N=25,P=$(P),R=$(R)"
@@ -1132,10 +1178,12 @@ numDsps 2
 displayFileName {
   0 "PosBusWriteable.edl"
   1 "PosBusReadOnly.edl"
+  2 "PosBusEmpty.edl"
 }
 menuLabel {
   0 "POSBUS24"
   1 "POSBUS24"
+  2 "POSBUS24"
 }
 symbols {
   0 "N=24,P=$(P),R=$(R)"
@@ -1174,10 +1222,12 @@ numDsps 2
 displayFileName {
   0 "PosBusWriteable.edl"
   1 "PosBusReadOnly.edl"
+  2 "PosBusEmpty.edl"
 }
 menuLabel {
   0 "POSBUS23"
   1 "POSBUS23"
+  2 "POSBUS23"
 }
 symbols {
   0 "N=23,P=$(P),R=$(R)"
@@ -1216,10 +1266,12 @@ numDsps 2
 displayFileName {
   0 "PosBusWriteable.edl"
   1 "PosBusReadOnly.edl"
+  2 "PosBusEmpty.edl"
 }
 menuLabel {
   0 "POSBUS22"
   1 "POSBUS22"
+  2 "POSBUS22"
 }
 symbols {
   0 "N=22,P=$(P),R=$(R)"
@@ -1258,10 +1310,12 @@ numDsps 2
 displayFileName {
   0 "PosBusWriteable.edl"
   1 "PosBusReadOnly.edl"
+  2 "PosBusEmpty.edl"
 }
 menuLabel {
   0 "POSBUS21"
   1 "POSBUS21"
+  2 "POSBUS21"
 }
 symbols {
   0 "N=21,P=$(P),R=$(R)"
@@ -1300,10 +1354,12 @@ numDsps 2
 displayFileName {
   0 "PosBusWriteable.edl"
   1 "PosBusReadOnly.edl"
+  2 "PosBusEmpty.edl"
 }
 menuLabel {
   0 "POSBUS20"
   1 "POSBUS20"
+  2 "POSBUS20"
 }
 symbols {
   0 "N=20,P=$(P),R=$(R)"
@@ -1342,10 +1398,12 @@ numDsps 2
 displayFileName {
   0 "PosBusWriteable.edl"
   1 "PosBusReadOnly.edl"
+  2 "PosBusEmpty.edl"
 }
 menuLabel {
   0 "POSBUS19"
   1 "POSBUS19"
+  2 "POSBUS19"
 }
 symbols {
   0 "N=19,P=$(P),R=$(R)"
@@ -1384,10 +1442,12 @@ numDsps 2
 displayFileName {
   0 "PosBusWriteable.edl"
   1 "PosBusReadOnly.edl"
+  2 "PosBusEmpty.edl"
 }
 menuLabel {
   0 "POSBUS18"
   1 "POSBUS18"
+  2 "POSBUS18"
 }
 symbols {
   0 "N=18,P=$(P),R=$(R)"
@@ -1426,10 +1486,12 @@ numDsps 2
 displayFileName {
   0 "PosBusWriteable.edl"
   1 "PosBusReadOnly.edl"
+  2 "PosBusEmpty.edl"
 }
 menuLabel {
   0 "POSBUS17"
   1 "POSBUS17"
+  2 "POSBUS17"
 }
 symbols {
   0 "N=17,P=$(P),R=$(R)"
@@ -1468,10 +1530,12 @@ numDsps 2
 displayFileName {
   0 "PosBusWriteable.edl"
   1 "PosBusReadOnly.edl"
+  2 "PosBusEmpty.edl"
 }
 menuLabel {
   0 "POSBUS16"
   1 "POSBUS16"
+  2 "POSBUS16"
 }
 symbols {
   0 "N=16,P=$(P),R=$(R)"
