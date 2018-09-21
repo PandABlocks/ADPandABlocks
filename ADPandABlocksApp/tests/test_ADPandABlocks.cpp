@@ -218,7 +218,7 @@ BOOST_AUTO_TEST_CASE(sequence_test_short_slow)
         timer += timer_step;
     }
 
-    BOOST_REQUIRE_EQUAL((size_t)frames, ds->arrays.size()); // BK if this is nto true the test hangs before this test, so this will always be true
+    BOOST_REQUIRE_EQUAL((size_t)frames, ds->arrays.size()); // BK if this is not true the test hangs before this test, so this will always be true
 
     //wait to give a chance to send the next set of data
     unsigned int waitTime = 2e6;
