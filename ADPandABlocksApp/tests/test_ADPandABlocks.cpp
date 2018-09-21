@@ -11,6 +11,8 @@
 #include "testingutilities.h"
 
 #include "NDArray.h"
+#include "asynNDArrayDriver.h"
+#include "NDAttributeList.h"
 
 //#include <libxml/xmlreader.h>
 
@@ -150,13 +152,13 @@ struct ADPandABlocksFixture
 {
     NDArrayPool *arrayPool;
     asynPortDriver *dummy_driver;
+    asynNDArrayDriver *dummy_NDArrayDriver;
     TestingPlugin *ds;
 
     ADPandABlocksFixture()
     {
-        arrayPool = new NDArrayPool(100, 0);
 
-        std::string dummy_port("simPort"), testport("testPort");
+        std::string dummy_port("simPort"), testport("testPort"), dummy_NDArrayport("testNDArrayPort");
 
         // Asyn manager doesn't like it if we try to reuse the same port name for multiple drivers (even if only one is ever instantiated at once), so
         // change it slightly for each test case.
@@ -168,6 +170,11 @@ struct ADPandABlocksFixture
         // Thus we instansiate a basic asynPortDriver object which is never used.
         dummy_driver = new asynPortDriver(dummy_port.c_str(), 0, 1, asynGenericPointerMask, asynGenericPointerMask, 0, 0, 0, 2000000);
 
+
+        dummy_NDArrayDriver = new asynNDArrayDriver(dummy_NDArrayport.c_str(), 0, 1, 0, asynGenericPointerMask, asynGenericPointerMask, 0, 0, 0, 2000000);
+
+        arrayPool = new NDArrayPool(dummy_NDArrayDriver, 0);
+
         // This is the mock downstream plugin
         ds = new TestingPlugin("ADPandABlocks", 0);
 
@@ -176,6 +183,7 @@ struct ADPandABlocksFixture
     {
         delete dummy_driver;
         delete arrayPool;
+        delete dummy_NDArrayDriver;
         // BK are we leaking ds?
     }
 };
