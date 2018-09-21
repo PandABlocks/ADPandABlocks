@@ -1,4 +1,2 @@
-BOOST=/dls_sw/prod/tools/RHEL6-x86_64/boost/1-48-0/prefix
-BOOST_LIB=$(BOOST)/lib
-BOOST_INCLUDE=$(BOOST)/include
+BOOST=/usr
 XML2_INCLUDE=-I/usr/include/libxml2

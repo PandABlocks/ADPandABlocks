@@ -13,10 +13,14 @@ tests_SRCS += tests.cpp
 tests_SRCS += test_ADPandABlocks.cpp
 tests_SRCS += testingutilities.cpp
 
-tests_LIBS += boost_unit_test_framework
-boost_unit_test_framework_DIR=$(BOOST_LIB)
+ifdef BOOST_LIB
+	boost_unit_test_framework_DIR=$(BOOST_LIB)
+	tests_LIBS += boost_unit_test_framework
+else
+	tests_SYS_LIBS += boost_unit_test_framework
+endif
 
-PROD_LIBS += NDPlugin asyn ADPandABlocks
+PROD_LIBS += ADBase asyn ADPandABlocks
 
 CXXFLAGS += -std=c++0x -pthread
 
