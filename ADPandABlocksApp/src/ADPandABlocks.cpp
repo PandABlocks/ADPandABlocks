@@ -1338,7 +1338,7 @@ asynStatus ADPandABlocks::UpdateLookupTableParamFromWrite<int>(int param, int va
 					if(status == asynError)
 					{
 						asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,"%s:%s: Error setting: %s '\n",
-								driverName, functionName, cmdStr.str());
+								driverName, functionName, cmdStr.str().c_str());
 					}
 					return status;
 				}
@@ -1369,7 +1369,7 @@ asynStatus ADPandABlocks::UpdateLookupTableParamFromWrite<int>(int param, int va
 					if(status == asynError)
 					{
 						asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,"%s:%s: Error setting: %s '\n",
-								driverName, functionName, cmdStr.str());
+								driverName, functionName, cmdStr.str().c_str());
 					}
 					return status;
 				}
@@ -1398,7 +1398,7 @@ asynStatus ADPandABlocks::UpdateLookupTableParamFromWrite<float>(int param, floa
 				if(status == asynError)
 				{
 					asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,"%s:%s: Error setting: %s '\n",
-							driverName, functionName, cmdStr.str());
+							driverName, functionName, cmdStr.str().c_str());
 				}
 				callParamCallbacks();
 				return status;
@@ -1427,7 +1427,7 @@ asynStatus ADPandABlocks::UpdateLookupTableParamFromWrite<std::string>(int param
 				if(status == asynError)
 				{
 					asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,"%s:%s: Error setting: %s '\n",
-							driverName, functionName, cmdStr.str());
+							driverName, functionName, cmdStr.str().c_str());
 				}
 				callParamCallbacks();
 				return status;
