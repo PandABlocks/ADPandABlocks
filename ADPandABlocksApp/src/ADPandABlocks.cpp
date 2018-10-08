@@ -34,6 +34,17 @@ static void pollCommandPortC(void *userPvt) {
 	pPvt->pollCommandPort();
 }
 
+static void callbackC(asynUser *pasynUser, asynException exception){
+	ADPandABlocks *pPvt = (ADPandABlocks *) pasynUser->drvUser;
+	pPvt->exceptionCallback(pasynUser, exception);
+}
+
+void ADPandABlocks::exceptionCallback(asynUser *pasynUser, asynException exception){
+	int port_connected = 0;
+	pasynManager->isConnected(pasynUser, &port_connected);
+	if(port_connected) sendReceivingFormat();
+}
+
 typedef int static_assert_endianness[EPICS_BYTE_ORDER != EPICS_ENDIAN_BIG ? 1 : -1];
 
 static const char *driverName = "ADPandABlocks";
@@ -109,7 +120,6 @@ ADPandABlocks::ADPandABlocks(const char* portName, const char* cmdSerialPortName
 	/* Connect to the device port */
 	/* Copied from asynOctecSyncIO->connect */
 	pasynUser_ctrl = pasynManager->createAsynUser(0, 0);
-	//pasynInterface = connectToDevicePort(pasynUser_ctrl, cmdSerialPortName);
 	status = pasynManager->connectDevice(pasynUser_ctrl, cmdSerialPortName, 0);
 	if (status != asynSuccess) {
 		asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
@@ -129,9 +139,12 @@ ADPandABlocks::ADPandABlocks(const char* portName, const char* cmdSerialPortName
 		return;
 	}
 
-	pasynOctet_ctrl = (asynOctet *) pasynInterface->pinterface;
+	pasynOctet_ctrl = (asynOctet *) pasynInterface->pinterface;		
 	octetPvt_ctrl = pasynInterface->drvPvt;
-
+	asynSetOption(cmdSerialPortName, 0, "disconnectOnReadTimeout", "Y");
+	pasynUser_ctrl->drvUser = (void *) this;
+	pasynManager->exceptionCallbackAdd(pasynUser_ctrl, callbackC); 										
+	
 	/* Set EOS and flush */
 	pasynOctet_ctrl->flush(octetPvt_ctrl, pasynUser_ctrl);
 	pasynOctet_ctrl->setInputEos(octetPvt_ctrl, pasynUser_ctrl, "\n", 1);
@@ -151,7 +164,7 @@ ADPandABlocks::ADPandABlocks(const char* portName, const char* cmdSerialPortName
 		asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
 				"%s:%s: %s interface not supported", driverName, functionName, asynCommonType);
 		return;
-	}
+	}	
 	pasynCommon_data = (asynCommon *) pasynInterface->pinterface;
 	pcommonPvt_data = pasynInterface->drvPvt;
 	pasynInterface = pasynManager->findInterface(pasynUser_data, asynOctetType, 1);
@@ -170,7 +183,7 @@ ADPandABlocks::ADPandABlocks(const char* portName, const char* cmdSerialPortName
 	pasynUser_data->timeout = LONGWAIT;
 
 	/*set the receiving format on the data channel*/
-	sendData("XML FRAMED SCALED\n");
+	sendReceivingFormat();
 	/*Get the labels for the bitmask*/
 	int numBitMasks = 0;
 	for(int n=0; n<4; n++)
@@ -652,6 +665,11 @@ std::vector<std::string> ADPandABlocks::stringSplit(const std::string& s, char d
 	return tokens;
 }
 
+asynStatus ADPandABlocks::sendReceivingFormat() {
+
+	return sendData("XML FRAMED SCALED\n");
+}
+
 asynStatus ADPandABlocks::readHeaderLine(char* rxBuffer, const size_t buffSize) const {
 	/*buffSize is the size fo rxBuffer*/
 	const char *functionName = "readHeaderLine";
@@ -661,7 +679,7 @@ asynStatus ADPandABlocks::readHeaderLine(char* rxBuffer, const size_t buffSize) 
 	//check to see if rxBuffer is
 	while (status == asynTimeout) {
 		status = pasynOctet_data->read(octetPvt_data, pasynUser_data, rxBuffer,
-				buffSize, &nBytesIn, &eomReason);
+				buffSize, &nBytesIn, &eomReason);	
 	}
 	if(status) {
 		asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,"%s:%s: Error reading data: %s'\n",
@@ -670,8 +688,8 @@ asynStatus ADPandABlocks::readHeaderLine(char* rxBuffer, const size_t buffSize) 
 	if (eomReason != ASYN_EOM_EOS) {
 		asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
 				"%s:%s: failed on 'bt%.*s'\n", driverName, functionName, (int)nBytesIn, rxBuffer);
-	}
-	assert (eomReason == ASYN_EOM_EOS);
+		return asynError;
+	}	
 	return status;
 }
 
@@ -681,10 +699,10 @@ asynStatus ADPandABlocks::readDataBytes(char* rxBuffer, const size_t nBytes) con
 	size_t nBytesIn = 0;
 	asynStatus status = asynTimeout;
 
-	while (status == asynTimeout) {
+	while (status == asynTimeout) {		
 		status = pasynOctet_data->read(octetPvt_data, pasynUser_data, rxBuffer,
-				nBytes, &nBytesIn, &eomReason);
-	}
+				nBytes, &nBytesIn, &eomReason);			
+	}	
 
 	if(status) {
 		asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,"%s:%s: Error reading data: %s'\n",
@@ -694,8 +712,8 @@ asynStatus ADPandABlocks::readDataBytes(char* rxBuffer, const size_t nBytes) con
 		asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
 				"%s:%s: Only got %d bytes, not %d bytes with EOM reason %d\n",
 				driverName, functionName, (int)nBytesIn, (int)nBytes, eomReason);
+		return asynError;
 	}
-	assert (nBytes == nBytesIn);
 	return status;
 }
 
@@ -708,7 +726,11 @@ void ADPandABlocks::readDataPort() {
 		while (true) {
 			switch(state) {
 			case waitHeaderStart:
-				readHeaderLine(rxBuffer, N_BUFF_DATA);
+				status = readHeaderLine(rxBuffer, N_BUFF_DATA);
+				if(status == asynError){
+					state = waitHeaderStart;
+					break;
+				} 
 				if (strcmp(rxBuffer, "<header>\0") == 0) {
 					//we have a header so we have started acquiring
 					setIntegerParam(ADAcquire, 1);
@@ -720,15 +742,24 @@ void ADPandABlocks::readDataPort() {
 				break;
 
 			case waitHeaderEnd:
-				readHeaderLine(rxBuffer, N_BUFF_DATA);
+				status = readHeaderLine(rxBuffer, N_BUFF_DATA);
+				if(status == asynError){
+					header.clear();
+					state = dataEnd;
+					break;
+				} 
 				/*accumulate the header until we reach the end, then process*/
 				header.append(rxBuffer);
 				header.append("\n");
 				if (strcmp(rxBuffer, "</header>\0") == 0) {
 					headerValues = parseHeader(header);
 					// Read the last line of the header
-					readHeaderLine(rxBuffer, N_BUFF_DATA);
-
+					status = readHeaderLine(rxBuffer, N_BUFF_DATA);
+					if(status == asynError){
+						header.clear();
+						state = dataEnd;
+						break;
+					} 
 					//change the input eos as the data isn't terminated with a newline
 					pasynOctet_data->setInputEos(octetPvt_data, pasynUser_data, "", 0);
 					state = waitDataStart;
@@ -737,7 +768,12 @@ void ADPandABlocks::readDataPort() {
 
 			case waitDataStart:
 				// read "BIN " or "END "
-				readDataBytes(rxBuffer, 4);
+				status = readDataBytes(rxBuffer, 4);
+				if(status == asynError){
+					state = dataEnd;
+					break;
+				} 
+
 				if (strncmp(rxBuffer, "BIN ", 4) == 0) {
 					state = receivingData;
 				}
@@ -750,10 +786,19 @@ void ADPandABlocks::readDataPort() {
 				// read next four bytes to get the packet size
 			{
 				uint32_t message_length;
-				readDataBytes(reinterpret_cast<char *>(&message_length), 4);
+				status = readDataBytes(reinterpret_cast<char *>(&message_length), 4);
+				if(status == asynError){
+					state = dataEnd;
+					break;
+				} 				
 				uint32_t dataLength = message_length - 8; // size of the packet prefix information is 8
 				// read the rest of the packet
-				readDataBytes(rxBuffer, dataLength);
+				status = readDataBytes(rxBuffer, dataLength);
+				if(status == asynError){
+					state = dataEnd;
+					break;
+				} 
+
 				std::vector<char> dataPacket;
 				dataPacket.insert(dataPacket.begin(), rxBuffer, rxBuffer + dataLength);
 				parseData(dataPacket, dataLength);
@@ -768,7 +813,7 @@ void ADPandABlocks::readDataPort() {
 				pasynOctet_data->setInputEos(octetPvt_data, pasynUser_data, "\n", 1);
 				//set the acquire light to 0
 				setIntegerParam(ADAcquire, 0);
-				readHeaderLine(rxBuffer, N_BUFF_DATA);
+				status = readHeaderLine(rxBuffer, N_BUFF_DATA);
 				setStringParam(ADPandABlocksDataEnd, rxBuffer);
 				callParamCallbacks();
 				state = waitHeaderStart;
@@ -1082,14 +1127,14 @@ asynStatus ADPandABlocks::send(const std::string txBuffer, asynOctet *pasynOctet
 	asynPrint(pasynUserSelf, ASYN_TRACE_FLOW,
 			"%s:%s: Send: '%.*s'\n", driverName, functionName, (int)txBuffer.length(), txBuffer.c_str());
 	if (status != asynSuccess) {
-		// Can't write, port probably not connected
+		// Can't write, port probably not connected		
 		getIntegerParam(ADPandABlocksIsConnected, &connected);
 		if (connected) {
 			setIntegerParam(ADPandABlocksIsConnected, 0);
 			asynPrint(pasynUserSelf, ASYN_TRACE_FLOW,
 					"%s:%s: Can't write to ADPandABlocks: '%.*s'\n", driverName, functionName, (int)txBuffer.length(), txBuffer.c_str());
 		}
-	}
+	}	
 	return status;
 }
 

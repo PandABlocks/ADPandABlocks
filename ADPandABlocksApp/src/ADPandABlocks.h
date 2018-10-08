@@ -80,6 +80,7 @@ public:
     virtual asynStatus writeFloat64(asynUser *pasynUser, epicsFloat64 value);
     virtual asynStatus writeOctet(asynUser *pasynUser, const char* value, size_t nChars, size_t* nActual);
 
+    void exceptionCallback(asynUser *pasynUser, asynException exception);
 protected:
 
 #define FIRST_PARAM ADPandABlocksIsConnected
@@ -148,7 +149,7 @@ private:
     double stringToDouble(std::string str);
     int stringToInteger(std::string str);
     std::string doubleToString(double value);
-    void removeSubString(std::string &string, std::string &subString);
+    void removeSubString(std::string &string, std::string &subString);    
 private:
     NDArray *pArray;
     asynUser *pasynUser_ctrl;
@@ -180,6 +181,7 @@ private:
     //states for readDataTask state machine
     enum readState{waitHeaderStart, waitHeaderEnd, waitDataStart, receivingData, dataEnd,};
     readState state; //init state for the data read
+    asynStatus sendReceivingFormat() ;
 
     // Polling
     epicsTimeStamp pollStartTime, pollEndTime;
