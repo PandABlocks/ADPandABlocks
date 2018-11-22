@@ -23,8 +23,7 @@
 /*---------------
  *COMS CONSTANTS*/
 #define PORTNAME "ADPandABlocks"
-#define CMDIP "127.0.0.1:8888"
-#define DATAIP "127.0.0.1:8889"
+#define CMDIP "127.0.0.1"
 #define MAXPTS 10000
 #define MAXBUFFERS 10000
 #define MAXMEMORY 0
@@ -68,15 +67,9 @@ void closeSim(FILE* simProcess){
 
 void connectToADPandABlocks(){
     unsigned int microseconds = 3e6;
-    drvAsynIPPortConfigure("ADPandABlocks_cmd_ip", CMDIP, 100, 0, 0);
-    drvAsynIPPortConfigure("ADPandABlocks_data_ip", DATAIP, 100, 0, 0);
-//    asynSetTraceMask("ADPandABlocks_cmd_ip", 0, 20);
-//    asynSetTraceIOMask("ADPandABlocks_cmd_ip",0,2);
-//    asynSetTraceMask("ADPandABlocks_data_ip", 0, 20);
-//    asynSetTraceIOMask("ADPandABlocks_data_ip",0,2);
     //need a better way to do this wait - if it isn't here we don't connect
     usleep(microseconds);
-    z2 = new ADPandABlocks("ADPandABlocks", "ADPandABlocks_cmd_ip", "ADPandABlocks_data_ip", MAXPTS, MAXBUFFERS, MAXMEMORY);
+    z2 = new ADPandABlocks("ADPandABlocks", CMDIP, MAXPTS, MAXBUFFERS, MAXMEMORY);
     cout << "NEW PANDABOX" << endl;
 }
 

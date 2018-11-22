@@ -50,7 +50,7 @@ typedef int static_assert_endianness[EPICS_BYTE_ORDER != EPICS_ENDIAN_BIG ? 1 : 
 static const char *driverName = "ADPandABlocks";
 static std::map<asynStatus, std::string> errorMsg;
 
-ADPandABlocks::ADPandABlocks(const char* portName, const char* cmdSerialPortName, const char* dataSerialPortName, int maxPts, int maxBuffers, int maxMemory) :
+ADPandABlocks::ADPandABlocks(const char* portName, const char* pandaAddress, int maxPts, int maxBuffers, int maxMemory) :
         				ADDriver(portName, 1 /*maxAddr*/, NUM_PARAMS, maxBuffers, maxMemory,
         						asynInt8ArrayMask | asynFloat64ArrayMask | asynInt32Mask | asynFloat64Mask | asynOctetMask | asynDrvUserMask,
         						asynInt8ArrayMask | asynFloat64ArrayMask | asynInt32Mask | asynFloat64Mask | asynOctetMask,
@@ -118,12 +118,14 @@ ADPandABlocks::ADPandABlocks(const char* portName, const char* cmdSerialPortName
 	setStringParam(ADStatusMessage, "Idle");
 
 	/* Connect to the device port */
+	ctrlPort = std::string(portName).append("_CTRL").c_str();
+	drvAsynIPPortConfigure(ctrlPort, std::string(pandaAddress).append(":").append(CTRL_PORT).c_str(), 100, 0, 0);
 	/* Copied from asynOctecSyncIO->connect */
 	pasynUser_ctrl = pasynManager->createAsynUser(0, 0);
-	status = pasynManager->connectDevice(pasynUser_ctrl, cmdSerialPortName, 0);
+	status = pasynManager->connectDevice(pasynUser_ctrl, ctrlPort, 0);
 	if (status != asynSuccess) {
 		asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
-				"%s:%s: Connect failed, port=%s, error=%d\n", driverName, functionName, cmdSerialPortName, status);
+				"%s:%s: Connect failed, port=%s, error=%d\n", driverName, functionName, ctrlPort, status);
 		return;
 	}
 	pasynInterface = pasynManager->findInterface(pasynUser_ctrl, asynCommonType, 1);
@@ -141,7 +143,7 @@ ADPandABlocks::ADPandABlocks(const char* portName, const char* cmdSerialPortName
 
 	pasynOctet_ctrl = (asynOctet *) pasynInterface->pinterface;		
 	octetPvt_ctrl = pasynInterface->drvPvt;
-	asynSetOption(cmdSerialPortName, 0, "disconnectOnReadTimeout", "Y");
+	asynSetOption(ctrlPort, 0, "disconnectOnReadTimeout", "Y");
 	pasynUser_ctrl->drvUser = (void *) this;
 	pasynManager->exceptionCallbackAdd(pasynUser_ctrl, callbackC); 										
 	
@@ -151,12 +153,14 @@ ADPandABlocks::ADPandABlocks(const char* portName, const char* cmdSerialPortName
 	pasynOctet_ctrl->setOutputEos(octetPvt_ctrl, pasynUser_ctrl, "\n", 1);
 
 	/* Connect to the data port */
+	dataPort = std::string(portName).append("_DATA").c_str();
+	drvAsynIPPortConfigure(dataPort, std::string(pandaAddress).append(":").append(DATA_PORT).c_str(), 100, 0, 0);
 	/* Copied from asynOctecSyncIO->connect */
 	pasynUser_data = pasynManager->createAsynUser(0, 0);
-	status = pasynManager->connectDevice(pasynUser_data, dataSerialPortName, 0);
+	status = pasynManager->connectDevice(pasynUser_data, dataPort, 0);
 	if (status != asynSuccess) {
 		asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
-				"%s:%s: Connect failed, port=%s, error=%d\n", driverName, functionName, dataSerialPortName, status);
+				"%s:%s: Connect failed, port=%s, error=%d\n", driverName, functionName, dataPort, status);
 		return;
 	}
 	pasynInterface = pasynManager->findInterface(pasynUser_data, asynCommonType, 1);
@@ -1557,24 +1561,22 @@ asynStatus ADPandABlocks::writeOctet(asynUser *pasynUser, const char* value, siz
 }
 
 
-extern "C" int ADPandABlocksConfig(const char *portName, const char* cmdSerialPortName,
-		const char* dataSerialPortName, int maxPts, int maxBuffers, int maxMemory) {
-	new ADPandABlocks(portName, cmdSerialPortName, dataSerialPortName, maxPts, maxBuffers, maxMemory);
+extern "C" int ADPandABlocksConfig(const char *portName, const char* pandaAddress, int maxPts, int maxBuffers, int maxMemory) {
+	new ADPandABlocks(portName, pandaAddress, maxPts, maxBuffers, maxMemory);
 	return (asynSuccess);
 }
 
 /** Code for iocsh registration */
 static const iocshArg ADPandABlocksConfigArg0 = { "Port name", iocshArgString };
-static const iocshArg ADPandABlocksConfigArg1 = { "Cmd Serial port name", iocshArgString };
-static const iocshArg ADPandABlocksConfigArg2 = { "Data Serial port name", iocshArgString };
-static const iocshArg ADPandABlocksConfigArg3 = { "Max number of points to capture in position compare", iocshArgInt };
-static const iocshArg ADPandABlocksConfigArg4 = { "maxBuffers for areaDetector", iocshArgInt };
-static const iocshArg ADPandABlocksConfigArg5 = { "maxMemory for areaDetector", iocshArgInt };
+static const iocshArg ADPandABlocksConfigArg1 = { "Panda address", iocshArgString };
+static const iocshArg ADPandABlocksConfigArg2 = { "Max number of points to capture in position compare", iocshArgInt };
+static const iocshArg ADPandABlocksConfigArg3 = { "maxBuffers for areaDetector", iocshArgInt };
+static const iocshArg ADPandABlocksConfigArg4 = { "maxMemory for areaDetector", iocshArgInt };
 static const iocshArg* const ADPandABlocksConfigArgs[] = { &ADPandABlocksConfigArg0,
-		&ADPandABlocksConfigArg1, &ADPandABlocksConfigArg2, &ADPandABlocksConfigArg3, &ADPandABlocksConfigArg4, &ADPandABlocksConfigArg5  };
-static const iocshFuncDef configADPandABlocks = { "ADPandABlocksConfig", 6, ADPandABlocksConfigArgs };
+		&ADPandABlocksConfigArg1, &ADPandABlocksConfigArg2, &ADPandABlocksConfigArg3, &ADPandABlocksConfigArg4 };
+static const iocshFuncDef configADPandABlocks = { "ADPandABlocksConfig", 5, ADPandABlocksConfigArgs };
 static void configADPandABlocksCallFunc(const iocshArgBuf *args) {
-	ADPandABlocksConfig(args[0].sval, args[1].sval, args[2].sval, args[3].ival, args[4].ival, args[5].ival);
+	ADPandABlocksConfig(args[0].sval, args[1].sval, args[2].ival, args[3].ival, args[4].ival);
 }
 
 static void ADPandABlocksRegister(void) {

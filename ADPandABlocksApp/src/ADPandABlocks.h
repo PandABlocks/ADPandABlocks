@@ -15,6 +15,10 @@
 #include "asynShellCommands.h"
 #include "epicsTime.h"
 
+/*Port numbers for connection*/
+#define CTRL_PORT "8888"
+#define DATA_PORT "8889"
+
 /* This is the number of messages on our queue */
 #define NQUEUE 10000
 
@@ -63,12 +67,14 @@ public:
     enum motorField {scale, offset, units, setpos, screen, motorName};
 
 public:
-    ADPandABlocks(const char *portName, const char* cmdSerialPortName,
-            const char* dataSerialPortName, int maxPts, int maxBuffers, int maxMemory);
+    ADPandABlocks(const char *portName, const char* pandaAddress, int maxPts, int maxBuffers, int maxMemory);
 
     /** These should be private, but get called from C, so must be public */
     void readDataPort();
     void pollCommandPort();
+
+    const char *ctrlPort;
+    const char *dataPort;
 
     /** These functions are used in the tests, so they are public */
     asynStatus sendCtrl(const std::string txBuffer);
