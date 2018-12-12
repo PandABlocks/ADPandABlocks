@@ -1,5 +1,5 @@
 from iocbuilder import AutoSubstitution, Device
-from iocbuilder.modules.asyn import Asyn, AsynPort
+from iocbuilder.modules.asyn import Asyn, AsynPort, AsynIP
 from iocbuilder.modules.ADCore import ADCore, ADBaseTemplate, includesTemplates, \
     makeTemplateInstance
 from iocbuilder.arginfo import *
@@ -62,7 +62,7 @@ class MotorSync (Device):
 class ADPandABlocks(AsynPort):
 
     # We depend upon Asyn
-    Dependencies = (ADCore,)
+    Dependencies = (ADCore, Asyn)
 
     # Make sure our DBD file gets used or created
     DbdFileList = ['ADPandABlocks']
@@ -74,6 +74,9 @@ class ADPandABlocks(AsynPort):
     N_POSBUS = 32
 
     def __init__(self, PORT, ADDRESS, MAXBUF=1000, MAXMEM=0, **args):
+        
+        self.control_port = AsynIP('%s:8888' % ADDRESS, '%s_CTRL' % PORT)
+        self.data_port = AsynIP('%s:8889' % ADDRESS, '%s_DATA' % PORT)
 
         # Call init on Device superclass
         self.__super.__init__(PORT)
@@ -83,8 +86,8 @@ class ADPandABlocks(AsynPort):
         self.ADDRESS = ADDRESS
         self.MAXBUF = MAXBUF
         self.MAXMEM = MAXMEM
-        self.NELM = 100000
-
+        self.NELM = 100000       
+        
         # Perform template subsitutions to create our DB file
         makeTemplateInstance(_MainDbFile, locals(), args)
         locals().update(args)
@@ -95,6 +98,9 @@ class ADPandABlocks(AsynPort):
 
     def Initialise(self):
         # Print the command to create the device in the startup script
+        #print "# Create AsynIP ports for PandA"
+        #print 'drvAsynIPPortConfigure("%(PORT)s_CTRL", "%(ADDRESS)s:8888", 100, 0, 0)'  % self.__dict__
+        #print 'drvAsynIPPortConfigure("%(PORT)s_DATA", "%(ADDRESS)s:8889", 100, 0, 0)'  % self.__dict__
         print "# Create driver"
         print 'ADPandABlocksConfig("%(PORT)s", "%(ADDRESS)s", ' \
             '%(NELM)d, %(MAXBUF)d, %(MAXMEM)d, 0)' % self.__dict__

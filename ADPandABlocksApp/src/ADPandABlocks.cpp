@@ -119,8 +119,6 @@ ADPandABlocks::ADPandABlocks(const char* portName, const char* pandaAddress, int
 
 	/* Connect to the device port */
 	ctrlPort = std::string(portName).append("_CTRL").c_str();
-	std::cout << std::string(pandaAddress).append(":").append(CTRL_PORT).c_str() << "\n"
-	drvAsynIPPortConfigure(ctrlPort, std::string(pandaAddress).append(":").append(CTRL_PORT).c_str(), 100, 0, 0);
 	/* Copied from asynOctecSyncIO->connect */
 	pasynUser_ctrl = pasynManager->createAsynUser(0, 0);
 	status = pasynManager->connectDevice(pasynUser_ctrl, ctrlPort, 0);
@@ -142,12 +140,12 @@ ADPandABlocks::ADPandABlocks(const char* portName, const char* pandaAddress, int
 		return;
 	}
 
-	pasynOctet_ctrl = (asynOctet *) pasynInterface->pinterface;		
+	pasynOctet_ctrl = (asynOctet *) pasynInterface->pinterface;
 	octetPvt_ctrl = pasynInterface->drvPvt;
 	asynSetOption(ctrlPort, 0, "disconnectOnReadTimeout", "Y");
 	pasynUser_ctrl->drvUser = (void *) this;
-	pasynManager->exceptionCallbackAdd(pasynUser_ctrl, callbackC); 										
-	
+	pasynManager->exceptionCallbackAdd(pasynUser_ctrl, callbackC);
+
 	/* Set EOS and flush */
 	pasynOctet_ctrl->flush(octetPvt_ctrl, pasynUser_ctrl);
 	pasynOctet_ctrl->setInputEos(octetPvt_ctrl, pasynUser_ctrl, "\n", 1);
@@ -155,7 +153,6 @@ ADPandABlocks::ADPandABlocks(const char* portName, const char* pandaAddress, int
 
 	/* Connect to the data port */
 	dataPort = std::string(portName).append("_DATA").c_str();
-	drvAsynIPPortConfigure(dataPort, std::string(pandaAddress).append(":").append(DATA_PORT).c_str(), 100, 0, 0);
 	/* Copied from asynOctecSyncIO->connect */
 	pasynUser_data = pasynManager->createAsynUser(0, 0);
 	status = pasynManager->connectDevice(pasynUser_data, dataPort, 0);
@@ -169,7 +166,7 @@ ADPandABlocks::ADPandABlocks(const char* portName, const char* pandaAddress, int
 		asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
 				"%s:%s: %s interface not supported", driverName, functionName, asynCommonType);
 		return;
-	}	
+	}
 	pasynCommon_data = (asynCommon *) pasynInterface->pinterface;
 	pcommonPvt_data = pasynInterface->drvPvt;
 	pasynInterface = pasynManager->findInterface(pasynUser_data, asynOctetType, 1);
@@ -684,7 +681,7 @@ asynStatus ADPandABlocks::readHeaderLine(char* rxBuffer, const size_t buffSize) 
 	//check to see if rxBuffer is
 	while (status == asynTimeout) {
 		status = pasynOctet_data->read(octetPvt_data, pasynUser_data, rxBuffer,
-				buffSize, &nBytesIn, &eomReason);	
+				buffSize, &nBytesIn, &eomReason);
 	}
 	if(status) {
 		asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,"%s:%s: Error reading data: %s'\n",
@@ -694,7 +691,7 @@ asynStatus ADPandABlocks::readHeaderLine(char* rxBuffer, const size_t buffSize) 
 		asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
 				"%s:%s: failed on 'bt%.*s'\n", driverName, functionName, (int)nBytesIn, rxBuffer);
 		return asynError;
-	}	
+	}
 	return status;
 }
 
@@ -704,10 +701,10 @@ asynStatus ADPandABlocks::readDataBytes(char* rxBuffer, const size_t nBytes) con
 	size_t nBytesIn = 0;
 	asynStatus status = asynTimeout;
 
-	while (status == asynTimeout) {		
+	while (status == asynTimeout) {
 		status = pasynOctet_data->read(octetPvt_data, pasynUser_data, rxBuffer,
-				nBytes, &nBytesIn, &eomReason);			
-	}	
+				nBytes, &nBytesIn, &eomReason);
+	}
 
 	if(status) {
 		asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,"%s:%s: Error reading data: %s'\n",
@@ -735,7 +732,7 @@ void ADPandABlocks::readDataPort() {
 				if(status == asynError){
 					state = waitHeaderStart;
 					break;
-				} 
+				}
 				if (strcmp(rxBuffer, "<header>\0") == 0) {
 					//we have a header so we have started acquiring
 					setIntegerParam(ADAcquire, 1);
@@ -752,7 +749,7 @@ void ADPandABlocks::readDataPort() {
 					header.clear();
 					state = dataEnd;
 					break;
-				} 
+				}
 				/*accumulate the header until we reach the end, then process*/
 				header.append(rxBuffer);
 				header.append("\n");
@@ -764,7 +761,7 @@ void ADPandABlocks::readDataPort() {
 						header.clear();
 						state = dataEnd;
 						break;
-					} 
+					}
 					//change the input eos as the data isn't terminated with a newline
 					pasynOctet_data->setInputEos(octetPvt_data, pasynUser_data, "", 0);
 					state = waitDataStart;
@@ -777,7 +774,7 @@ void ADPandABlocks::readDataPort() {
 				if(status == asynError){
 					state = dataEnd;
 					break;
-				} 
+				}
 
 				if (strncmp(rxBuffer, "BIN ", 4) == 0) {
 					state = receivingData;
@@ -795,14 +792,14 @@ void ADPandABlocks::readDataPort() {
 				if(status == asynError){
 					state = dataEnd;
 					break;
-				} 				
+				}
 				uint32_t dataLength = message_length - 8; // size of the packet prefix information is 8
 				// read the rest of the packet
 				status = readDataBytes(rxBuffer, dataLength);
 				if(status == asynError){
 					state = dataEnd;
 					break;
-				} 
+				}
 
 				std::vector<char> dataPacket;
 				dataPacket.insert(dataPacket.begin(), rxBuffer, rxBuffer + dataLength);
@@ -1132,14 +1129,14 @@ asynStatus ADPandABlocks::send(const std::string txBuffer, asynOctet *pasynOctet
 	asynPrint(pasynUserSelf, ASYN_TRACE_FLOW,
 			"%s:%s: Send: '%.*s'\n", driverName, functionName, (int)txBuffer.length(), txBuffer.c_str());
 	if (status != asynSuccess) {
-		// Can't write, port probably not connected		
+		// Can't write, port probably not connected
 		getIntegerParam(ADPandABlocksIsConnected, &connected);
 		if (connected) {
 			setIntegerParam(ADPandABlocksIsConnected, 0);
 			asynPrint(pasynUserSelf, ASYN_TRACE_FLOW,
 					"%s:%s: Can't write to ADPandABlocks: '%.*s'\n", driverName, functionName, (int)txBuffer.length(), txBuffer.c_str());
 		}
-	}	
+	}
 	return status;
 }
 
