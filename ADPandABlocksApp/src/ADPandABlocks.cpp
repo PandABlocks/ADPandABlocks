@@ -119,6 +119,7 @@ ADPandABlocks::ADPandABlocks(const char* portName, const char* pandaAddress, int
 
 	/* Connect to the device port */
 	ctrlPort = std::string(portName).append("_CTRL").c_str();
+	std::cout << std::string(pandaAddress).append(":").append(CTRL_PORT).c_str() << "\n"
 	drvAsynIPPortConfigure(ctrlPort, std::string(pandaAddress).append(":").append(CTRL_PORT).c_str(), 100, 0, 0);
 	/* Copied from asynOctecSyncIO->connect */
 	pasynUser_ctrl = pasynManager->createAsynUser(0, 0);
