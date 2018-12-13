@@ -45,6 +45,8 @@ void ADPandABlocks::exceptionCallback(asynUser *pasynUser, asynException excepti
 	setIntegerParam(ADPandABlocksIsResponsive, 0);
 	pasynManager->isConnected(pasynUser, &port_connected);
 	if(port_connected) {
+		// It seems that the PandA doesn't successfuly receive/respond to messages
+		// straight away after the AsynPort reconnects; keep trying until it does
 		while (!pandaResponsive) {
 			sendReceivingFormat();
 			epicsThreadSleep(5.0);
@@ -759,6 +761,8 @@ void ADPandABlocks::readDataPort() {
 					if (strcmp(rxBuffer, "<header>\0") == 0) {
 						//we have a header so we have started acquiring
 						setIntegerParam(ADAcquire, 1);
+                        setIntegerParam(ADStatus, ADStatusAcquire);
+                        setStringParam(ADStatusMessage, "Acquiring");
 						header.append(rxBuffer);
 						header.append("\n");
 						callParamCallbacks();
@@ -853,6 +857,8 @@ void ADPandABlocks::readDataPort() {
 					pasynOctet_data->setInputEos(octetPvt_data, pasynUser_data, "\n", 1);
 					//set the acquire light to 0
 					setIntegerParam(ADAcquire, 0);
+                    setIntegerParam(ADStatus, ADStatusIdle);
+                    setStringParam(ADStatusMessage, "Idle");
 					status = readHeaderLine(rxBuffer, N_BUFF_DATA);
 					setStringParam(ADPandABlocksDataEnd, rxBuffer);
 					callParamCallbacks();
@@ -1170,10 +1176,14 @@ asynStatus ADPandABlocks::send(const std::string txBuffer, asynOctet *pasynOctet
 	if (status != asynSuccess && connected) {
 		// Can't write, port probably not connected
 		setIntegerParam(ADPandABlocksIsConnected, 0);
+        setIntegerParam(ADStatus, ADStatusDisconnected);
+        setStringParam(ADStatusMessage, "Disconnected");
 		asynPrint(pasynUserSelf, ASYN_TRACE_FLOW,
 				  "%s:%s: Can't write to ADPandABlocks: '%.*s'\n", driverName, functionName, (int)txBuffer.length(), txBuffer.c_str());
 	} else if (status == asynSuccess && !connected) {
 		setIntegerParam(ADPandABlocksIsConnected, 1);
+        setIntegerParam(ADStatus, ADStatusIdle);
+        setStringParam(ADStatusMessage, "Idle");
 		asynPrint(pasynUserSelf, ASYN_TRACE_FLOW,
 				  "Reconnected to ADPandABlocks'\n");
 	}
