@@ -41,9 +41,10 @@ static void callbackC(asynUser *pasynUser, asynException exception){
 
 void ADPandABlocks::exceptionCallback(asynUser *pasynUser, asynException exception){
 	int port_connected = 0;
+	pandaResponsive = false;
+	setIntegerParam(ADPandABlocksIsResponsive, 0);
 	pasynManager->isConnected(pasynUser, &port_connected);
 	if(port_connected) {
-		pandaResponsive = false;
 		while (!pandaResponsive) {
 			sendReceivingFormat();
 			epicsThreadSleep(5.0);
@@ -57,11 +58,11 @@ static const char *driverName = "ADPandABlocks";
 static std::map<asynStatus, std::string> errorMsg;
 
 ADPandABlocks::ADPandABlocks(const char* portName, const char* pandaAddress, int maxPts, int maxBuffers, int maxMemory) :
-        				ADDriver(portName, 1 /*maxAddr*/, NUM_PARAMS, maxBuffers, maxMemory,
-        						asynInt8ArrayMask | asynFloat64ArrayMask | asynInt32Mask | asynFloat64Mask | asynOctetMask | asynDrvUserMask,
-        						asynInt8ArrayMask | asynFloat64ArrayMask | asynInt32Mask | asynFloat64Mask | asynOctetMask,
-        						ASYN_CANBLOCK, /*ASYN_CANBLOCK=1, ASYN_MULTIDEVICE=0 */
-        						1, /*autoConnect*/ 0, /*default priority */ 0 /*default stack size*/) {
+		ADDriver(portName, 1 /*maxAddr*/, NUM_PARAMS, maxBuffers, maxMemory,
+				 asynInt8ArrayMask | asynFloat64ArrayMask | asynInt32Mask | asynFloat64Mask | asynOctetMask | asynDrvUserMask,
+				 asynInt8ArrayMask | asynFloat64ArrayMask | asynInt32Mask | asynFloat64Mask | asynOctetMask,
+				 ASYN_CANBLOCK, /*ASYN_CANBLOCK=1, ASYN_MULTIDEVICE=0 */
+				 1, /*autoConnect*/ 0, /*default priority */ 0 /*default stack size*/) {
 
 	//private variables
 	state = waitHeaderStart; //init state for the data read
@@ -106,6 +107,8 @@ ADPandABlocks::ADPandABlocks(const char* portName, const char* pandaAddress, int
 	/* Connection status */
 	createParam("ISCONNECTED", asynParamInt32, &ADPandABlocksIsConnected);
 	setIntegerParam(ADPandABlocksIsConnected, 0);
+	createParam("ISRESPONSIVE", asynParamInt32, &ADPandABlocksIsResponsive);
+	setIntegerParam(ADPandABlocksIsResponsive, 0);
 
 	/*Create a parameter to store the header value /*/
 	createParam("HEADER", asynParamOctet, &ADPandABlocksHeader);
@@ -131,19 +134,19 @@ ADPandABlocks::ADPandABlocks(const char* portName, const char* pandaAddress, int
 	status = pasynManager->connectDevice(pasynUser_ctrl, ctrlPort, 0);
 	if (status != asynSuccess) {
 		asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
-				"%s:%s: Connect failed, port=%s, error=%d\n", driverName, functionName, ctrlPort, status);
+				  "%s:%s: Connect failed, port=%s, error=%d\n", driverName, functionName, ctrlPort, status);
 		return;
 	}
 	pasynInterface = pasynManager->findInterface(pasynUser_ctrl, asynCommonType, 1);
 	if (!pasynInterface) {
 		asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
-				"%s:%s: %s interface not supported", driverName, functionName, asynCommonType);
+				  "%s:%s: %s interface not supported", driverName, functionName, asynCommonType);
 		return;
 	}
 	pasynInterface = pasynManager->findInterface(pasynUser_ctrl, asynOctetType, 1);
 	if (!pasynInterface) {
 		asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
-				"%s:%s: %s interface not supported", driverName, functionName, asynOctetType);
+				  "%s:%s: %s interface not supported", driverName, functionName, asynOctetType);
 		return;
 	}
 
@@ -166,13 +169,13 @@ ADPandABlocks::ADPandABlocks(const char* portName, const char* pandaAddress, int
 	status = pasynManager->connectDevice(pasynUser_data, dataPort, 0);
 	if (status != asynSuccess) {
 		asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
-				"%s:%s: Connect failed, port=%s, error=%d\n", driverName, functionName, dataPort, status);
+				  "%s:%s: Connect failed, port=%s, error=%d\n", driverName, functionName, dataPort, status);
 		return;
 	}
 	pasynInterface = pasynManager->findInterface(pasynUser_data, asynCommonType, 1);
 	if (!pasynInterface) {
 		asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
-				"%s:%s: %s interface not supported", driverName, functionName, asynCommonType);
+				  "%s:%s: %s interface not supported", driverName, functionName, asynCommonType);
 		return;
 	}
 	pasynCommon_data = (asynCommon *) pasynInterface->pinterface;
@@ -180,7 +183,7 @@ ADPandABlocks::ADPandABlocks(const char* portName, const char* pandaAddress, int
 	pasynInterface = pasynManager->findInterface(pasynUser_data, asynOctetType, 1);
 	if (!pasynInterface) {
 		asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
-				"%s:%s: %s interface not supported", driverName, functionName, asynOctetType);
+				  "%s:%s: %s interface not supported", driverName, functionName, asynOctetType);
 		return;
 	}
 	pasynOctet_data = (asynOctet *) pasynInterface->pinterface;
@@ -276,22 +279,28 @@ ADPandABlocks::ADPandABlocks(const char* portName, const char* pandaAddress, int
 
 	/* Create thread to monitor command port for position bus changes */
 	if (epicsThreadCreate("ADPandABlocksPollCommandPort", epicsThreadPriorityMedium,
-			epicsThreadGetStackSize(epicsThreadStackMedium),
-			(EPICSTHREADFUNC) pollCommandPortC, this) == NULL) {
+						  epicsThreadGetStackSize(epicsThreadStackMedium),
+						  (EPICSTHREADFUNC) pollCommandPortC, this) == NULL) {
 		asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
-				"%s:%s: epicsThreadCreate failure for reading task\n", driverName, functionName);
+				  "%s:%s: epicsThreadCreate failure for reading task\n", driverName, functionName);
 		return;
 	}
 
 	/* Create thread to monitor data port  */
 	if (epicsThreadCreate("ADPandABlocksPollDataPort", epicsThreadPriorityMedium,
-			epicsThreadGetStackSize(epicsThreadStackMedium),
-			(EPICSTHREADFUNC) pollDataPortC, this) == NULL) {
+						  epicsThreadGetStackSize(epicsThreadStackMedium),
+						  (EPICSTHREADFUNC) pollDataPortC, this) == NULL) {
 		asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
-				"%s:%s: epicsThreadCreate failure for reading task\n", driverName, functionName);
+				  "%s:%s: epicsThreadCreate failure for reading task\n", driverName, functionName);
 		return;
 	}
 };
+
+/*
+ADPandABlocks::~ADPandABlocks () {
+	pandaResponsive = false;
+}
+*/
 
 /*
  * Update PandA parameter using lookup table
@@ -374,12 +383,12 @@ void ADPandABlocks::updatePandAMotorParam<int>(int motorIndex, motorField field,
 	posBusName << "INENC" << motorIndex << ".VAL";
 	switch(field)
 	{
-	case setpos: {
-		// Send command to PandA to calibrate motor position
-		posBusField << "SETPOS";
-		setPandASetPos(posBusName.str(), value);
-		break;
-	}
+		case setpos: {
+			// Send command to PandA to calibrate motor position
+			posBusField << "SETPOS";
+			setPandASetPos(posBusName.str(), value);
+			break;
+		}
 	}
 	updatePandAParam(posBusName.str(), posBusField.str(), value);
 }
@@ -390,11 +399,11 @@ void ADPandABlocks::updatePandAMotorParam<ADPandABlocks::embeddedScreenType>(int
 	posBusName << "INENC" << motorIndex << ".VAL";
 	switch(field)
 	{
-	case screen: {
-		// Change screen type to use readOnly
-		posBusField << "SCREENTYPE";
-		break;
-	}
+		case screen: {
+			// Change screen type to use readOnly
+			posBusField << "SCREENTYPE";
+			break;
+		}
 	}
 	updatePandAParam(posBusName.str(), posBusField.str(), value);
 }
@@ -405,14 +414,14 @@ void ADPandABlocks::updatePandAMotorParam<float>(int motorIndex, motorField fiel
 	posBusName << "INENC" << motorIndex << ".VAL";
 	switch(field)
 	{
-	case offset: {
-		posBusField << "OFFSET";
-		break;
-	}
-	case scale: {
-		posBusField << "SCALE";
-		break;
-	}
+		case offset: {
+			posBusField << "OFFSET";
+			break;
+		}
+		case scale: {
+			posBusField << "SCALE";
+			break;
+		}
 	}
 	updatePandAParam(posBusName.str(), posBusField.str(), value);
 }
@@ -423,14 +432,14 @@ void ADPandABlocks::updatePandAMotorParam<std::string>(int motorIndex, motorFiel
 	posBusName << "INENC" << motorIndex << ".VAL";
 	switch(field)
 	{
-	case units: {
-		posBusField << "UNITS";
-		break;
-	}
-	case motorName: {
-		posBusField << "MOTORNAME";
-		break;
-	}
+		case units: {
+			posBusField << "UNITS";
+			break;
+		}
+		case motorName: {
+			posBusField << "MOTORNAME";
+			break;
+		}
 	}
 	updatePandAParam(posBusName.str(), posBusField.str(), value);
 }
@@ -480,7 +489,7 @@ void ADPandABlocks::createLookup(std::string paramName, std::string paramNameEnd
 		posBusLookup.insert(std::pair<std::string, std::map<std::string, int*> >(paramName, lpMap2));
 		posBusLookup[paramName].insert(std::pair<std::string, int*>(paramNameEnd, paramInd));
 	}
-	// VAL, SCALE and OFFSET
+		// VAL, SCALE and OFFSET
 	else
 	{
 		createPosBusParam(paramNameEnd.c_str(), asynParamFloat64, paramInd, posBusInd);
@@ -500,7 +509,7 @@ std::vector<std::string> ADPandABlocks::readFieldNames(int* numFields) {
 	std::vector<std::string> fieldNameStrings;
 	pasynUserRead->timeout = 3.0;
 	status = pasynOctet_ctrl->read(octetPvt_ctrl, pasynUserRead, rxBuffer, N_BUFF_CTRL - 1,
-			&nBytesIn, &eomReason);
+								   &nBytesIn, &eomReason);
 	int i = 0;
 	while(rxBuffer[0] != '.')
 	{
@@ -510,10 +519,10 @@ std::vector<std::string> ADPandABlocks::readFieldNames(int* numFields) {
 			// Replace the terminator with a null so we can use it as a string
 			rxBuffer[nBytesIn] = '\0';
 			asynPrint(pasynUserSelf, ASYN_TRACE_FLOW,
-					"%s:%s: Message: '%s'\n", driverName, functionName, rxBuffer);
+					  "%s:%s: Message: '%s'\n", driverName, functionName, rxBuffer);
 		} else {
 			asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
-					"%s:%s: Bad message 'bt%.*s'\n", driverName, functionName, (int)nBytesIn, rxBuffer);
+					  "%s:%s: Bad message 'bt%.*s'\n", driverName, functionName, (int)nBytesIn, rxBuffer);
 		}
 		if(rxBuffer[0] == '!')
 		{
@@ -522,7 +531,7 @@ std::vector<std::string> ADPandABlocks::readFieldNames(int* numFields) {
 		}
 		// Push the whole bitmask for 'n' to the vector of vectors
 		status = pasynOctet_ctrl->read(octetPvt_ctrl, pasynUserRead, rxBuffer, N_BUFF_CTRL - 1,
-				&nBytesIn, &eomReason);
+									   &nBytesIn, &eomReason);
 	}
 	*numFields = i;
 	return fieldNameStrings;
@@ -538,15 +547,15 @@ asynStatus ADPandABlocks::readPosBusValues(std::string* posBusValue) {
 	asynUser *pasynUserRead = pasynManager->duplicateAsynUser(pasynUser_ctrl, 0, 0);
 	pasynUserRead->timeout = 3.0;
 	status = pasynOctet_ctrl->read(octetPvt_ctrl, pasynUserRead, rxBuffer, N_BUFF_CTRL - 1,
-			&nBytesIn, &eomReason);
+								   &nBytesIn, &eomReason);
 	if (eomReason & ASYN_EOM_EOS) {
 		// Replace the terminator with a null so we can use it as a string
 		rxBuffer[nBytesIn] = '\0';
 		asynPrint(pasynUserSelf, ASYN_TRACE_FLOW,
-				"%s:%s: Message: '%s'\n", driverName, functionName, rxBuffer);
+				  "%s:%s: Message: '%s'\n", driverName, functionName, rxBuffer);
 	} else {
 		asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
-				"%s:%s: Bad message 'bt%.*s'\n", driverName, functionName, (int)nBytesIn, rxBuffer);
+				  "%s:%s: Bad message 'bt%.*s'\n", driverName, functionName, (int)nBytesIn, rxBuffer);
 	}
 
 	if(rxBuffer[0] == 'O' && rxBuffer[1] == 'K')
@@ -556,7 +565,7 @@ asynStatus ADPandABlocks::readPosBusValues(std::string* posBusValue) {
 	} else {
 		//we didn't recieve OK so something went wrong
 		asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
-				"%s:%s Bad response: %d, %s\n", driverName, functionName, (int)nBytesIn, rxBuffer);
+				  "%s:%s Bad response: %d, %s\n", driverName, functionName, (int)nBytesIn, rxBuffer);
 		status = asynError;
 	}
 	return status;
@@ -689,15 +698,15 @@ asynStatus ADPandABlocks::readHeaderLine(char* rxBuffer, const size_t buffSize) 
 	//check to see if rxBuffer is
 	while (status == asynTimeout) {
 		status = pasynOctet_data->read(octetPvt_data, pasynUser_data, rxBuffer,
-				buffSize, &nBytesIn, &eomReason);
+									   buffSize, &nBytesIn, &eomReason);
 	}
-	if(status) {
+	if(status && pandaResponsive) {
 		asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,"%s:%s: Error reading data: %s'\n",
-				driverName, functionName, errorMsg[status].c_str());
+				  driverName, functionName, errorMsg[status].c_str());
 	}
-	if (eomReason != ASYN_EOM_EOS) {
+	if (eomReason != ASYN_EOM_EOS && pandaResponsive) {
 		asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
-				"%s:%s: failed on 'bt%.*s'\n", driverName, functionName, (int)nBytesIn, rxBuffer);
+				  "%s:%s: failed on 'bt%.*s'\n", driverName, functionName, (int)nBytesIn, rxBuffer);
 		return asynError;
 	}
 	return status;
@@ -711,17 +720,17 @@ asynStatus ADPandABlocks::readDataBytes(char* rxBuffer, const size_t nBytes, boo
 
 	while (status == asynTimeout) {
 		status = pasynOctet_data->read(octetPvt_data, pasynUser_data, rxBuffer,
-				nBytes, &nBytesIn, &eomReason);
+									   nBytes, &nBytesIn, &eomReason);
 	}
 
 	if(status) {
 		asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,"%s:%s: Error reading data: %s'\n",
-				driverName, functionName, errorMsg[status].c_str());
+				  driverName, functionName, errorMsg[status].c_str());
 	}
 	if(nBytes != nBytesIn) {
 		asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
-				"%s:%s: Only got %d bytes, not %d bytes with EOM reason %d\n",
-				driverName, functionName, (int)nBytesIn, (int)nBytes, eomReason);
+				  "%s:%s: Only got %d bytes, not %d bytes with EOM reason %d\n",
+				  driverName, functionName, (int)nBytesIn, (int)nBytes, eomReason);
 		return asynError;
 	}
 	if (!responsive && nBytesIn != 0) {
@@ -738,99 +747,117 @@ void ADPandABlocks::readDataPort() {
 	try{
 		while (true) {
 			switch(state) {
-			case waitHeaderStart:
-				status = readHeaderLine(rxBuffer, N_BUFF_DATA);
-				if(status == asynError){
-					state = waitHeaderStart;
+				case waitHeaderStart:
+					status = readHeaderLine(rxBuffer, N_BUFF_DATA);
+					if(status == asynError){
+						state = waitHeaderStart;
+						setIntegerParam(ADPandABlocksIsResponsive, 0);
+						break;
+					} else {
+						setIntegerParam(ADPandABlocksIsResponsive, 1);
+					}
+					if (strcmp(rxBuffer, "<header>\0") == 0) {
+						//we have a header so we have started acquiring
+						setIntegerParam(ADAcquire, 1);
+						header.append(rxBuffer);
+						header.append("\n");
+						callParamCallbacks();
+						state = waitHeaderEnd;
+					}
 					break;
-				}
-				if (strcmp(rxBuffer, "<header>\0") == 0) {
-					//we have a header so we have started acquiring
-					setIntegerParam(ADAcquire, 1);
-					header.append(rxBuffer);
-					header.append("\n");
-					callParamCallbacks();
-					state = waitHeaderEnd;
-				}
-				break;
 
-			case waitHeaderEnd:
-				status = readHeaderLine(rxBuffer, N_BUFF_DATA);
-				if(status == asynError){
-					header.clear();
-					state = dataEnd;
-					break;
-				}
-				/*accumulate the header until we reach the end, then process*/
-				header.append(rxBuffer);
-				header.append("\n");
-				if (strcmp(rxBuffer, "</header>\0") == 0) {
-					headerValues = parseHeader(header);
-					// Read the last line of the header
+				case waitHeaderEnd:
 					status = readHeaderLine(rxBuffer, N_BUFF_DATA);
 					if(status == asynError){
 						header.clear();
 						state = dataEnd;
+						setIntegerParam(ADPandABlocksIsResponsive, 0);
 						break;
+					} else {
+						setIntegerParam(ADPandABlocksIsResponsive, 1);
 					}
-					//change the input eos as the data isn't terminated with a newline
-					pasynOctet_data->setInputEos(octetPvt_data, pasynUser_data, "", 0);
+					/*accumulate the header until we reach the end, then process*/
+					header.append(rxBuffer);
+					header.append("\n");
+					if (strcmp(rxBuffer, "</header>\0") == 0) {
+						headerValues = parseHeader(header);
+						// Read the last line of the header
+						status = readHeaderLine(rxBuffer, N_BUFF_DATA);
+						if(status == asynError){
+							header.clear();
+							state = dataEnd;
+							setIntegerParam(ADPandABlocksIsResponsive, 0);
+							break;
+						} else {
+							setIntegerParam(ADPandABlocksIsResponsive, 1);
+						}
+						//change the input eos as the data isn't terminated with a newline
+						pasynOctet_data->setInputEos(octetPvt_data, pasynUser_data, "", 0);
+						state = waitDataStart;
+					}
+					break;
+
+				case waitDataStart:
+					// read "BIN " or "END "
+					status = readDataBytes(rxBuffer, 4, pandaResponsive);
+					if(status == asynError){
+						setIntegerParam(ADPandABlocksIsResponsive, 0);
+						state = dataEnd;
+						break;
+					} else {
+						setIntegerParam(ADPandABlocksIsResponsive, 1);
+					}
+
+					if (strncmp(rxBuffer, "BIN ", 4) == 0) {
+						state = receivingData;
+					}
+					else if (strncmp(rxBuffer, "END ", 4) == 0) {
+						state = dataEnd;
+					}
+					break;
+
+				case receivingData:
+					// read next four bytes to get the packet size
+				{
+					uint32_t message_length;
+					status = readDataBytes(reinterpret_cast<char *>(&message_length), 4, pandaResponsive);
+					if(status == asynError){
+						setIntegerParam(ADPandABlocksIsResponsive, 0);
+						state = dataEnd;
+						break;
+					} else {
+						setIntegerParam(ADPandABlocksIsResponsive, 1);
+					}
+					uint32_t dataLength = message_length - 8; // size of the packet prefix information is 8
+					// read the rest of the packet
+					status = readDataBytes(rxBuffer, dataLength, pandaResponsive);
+					if(status == asynError){
+						setIntegerParam(ADPandABlocksIsResponsive, 0);
+						state = dataEnd;
+						break;
+					} else {
+						setIntegerParam(ADPandABlocksIsResponsive, 1);
+					}
+
+					std::vector<char> dataPacket;
+					dataPacket.insert(dataPacket.begin(), rxBuffer, rxBuffer + dataLength);
+					parseData(dataPacket, dataLength);
 					state = waitDataStart;
 				}
-				break;
-
-			case waitDataStart:
-				// read "BIN " or "END "
-				status = readDataBytes(rxBuffer, 4, pandaResponsive);
-				if(status == asynError){
-					state = dataEnd;
 					break;
-				}
 
-				if (strncmp(rxBuffer, "BIN ", 4) == 0) {
-					state = receivingData;
-				}
-				else if (strncmp(rxBuffer, "END ", 4) == 0) {
-					state = dataEnd;
-				}
-				break;
-
-			case receivingData:
-				// read next four bytes to get the packet size
-			{
-				uint32_t message_length;
-				status = readDataBytes(reinterpret_cast<char *>(&message_length), 4, pandaResponsive);
-				if(status == asynError){
-					state = dataEnd;
+				case dataEnd:
+					//reset the header string
+					header = "";
+					//change the input eos back to newline for the header
+					pasynOctet_data->setInputEos(octetPvt_data, pasynUser_data, "\n", 1);
+					//set the acquire light to 0
+					setIntegerParam(ADAcquire, 0);
+					status = readHeaderLine(rxBuffer, N_BUFF_DATA);
+					setStringParam(ADPandABlocksDataEnd, rxBuffer);
+					callParamCallbacks();
+					state = waitHeaderStart;
 					break;
-				}
-				uint32_t dataLength = message_length - 8; // size of the packet prefix information is 8
-				// read the rest of the packet
-				status = readDataBytes(rxBuffer, dataLength, pandaResponsive);
-				if(status == asynError){
-					state = dataEnd;
-					break;
-				}
-
-				std::vector<char> dataPacket;
-				dataPacket.insert(dataPacket.begin(), rxBuffer, rxBuffer + dataLength);
-				parseData(dataPacket, dataLength);
-				state = waitDataStart;
-			}
-			break;
-
-			case dataEnd:
-				//reset the header string
-				header = "";
-				//change the input eos back to newline for the header
-				pasynOctet_data->setInputEos(octetPvt_data, pasynUser_data, "\n", 1);
-				//set the acquire light to 0
-				setIntegerParam(ADAcquire, 0);
-				status = readHeaderLine(rxBuffer, N_BUFF_DATA);
-				setStringParam(ADPandABlocksDataEnd, rxBuffer);
-				callParamCallbacks();
-				state = waitHeaderStart;
-				break;
 			}
 		}
 	}
@@ -861,7 +888,7 @@ ADPandABlocks::headerMap ADPandABlocks::parseHeader(const std::string& headerStr
 	if (xmlreader == NULL){
 		//do some error handling
 		asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
-				"ERROR PARSING HEADER\n");
+				  "ERROR PARSING HEADER\n");
 		status = asynError;
 	}
 	if(status == asynSuccess)
@@ -935,13 +962,13 @@ void ADPandABlocks::getAllData(std::vector<char>& inBuffer, const int dataLen, c
 	asynUser *pasynUserRead = pasynManager->duplicateAsynUser(pasynUser_data, 0, 0);
 	char rxBuffer[readBytes];
 	status = pasynOctet_data->read(octetPvt_data, pasynUserRead, rxBuffer, readBytes,
-			&nBytesIn, &eomReason);
+								   &nBytesIn, &eomReason);
 
 	inBuffer.insert(inBuffer.end(), rxBuffer, rxBuffer+nBytesIn);
 	if(status)
 	{
 		asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,"%s:%s: Error reading data: %d'\n",
-				driverName, functionName, status);
+				  driverName, functionName, status);
 	}
 }
 
@@ -1097,7 +1124,7 @@ void ADPandABlocks::wrapFrame() {
 	numImagesCounter++;
 	//send disarm signal if we are in a mode that requires it
 	if ((imgMode == ADImageSingle && arrayCounter == 1) ||
-			(imgMode == ADImageMultiple && numImagesCounter == imgNo)) {
+		(imgMode == ADImageMultiple && numImagesCounter == imgNo)) {
 		sendCtrl("*PCAP.DISARM=");
 		setIntegerParam(ADAcquire, 0);
 	}
@@ -1136,17 +1163,19 @@ asynStatus ADPandABlocks::send(const std::string txBuffer, asynOctet *pasynOctet
 	size_t nBytesOut;
 	pasynUser->timeout = TIMEOUT;
 	status = pasynOctet->write(octetPvt, pasynUser, txBuffer.c_str(), txBuffer.length(),
-			&nBytesOut);
+							   &nBytesOut);
 	asynPrint(pasynUserSelf, ASYN_TRACE_FLOW,
-			"%s:%s: Send: '%.*s'\n", driverName, functionName, (int)txBuffer.length(), txBuffer.c_str());
-	if (status != asynSuccess) {
+			  "%s:%s: Send: '%.*s'\n", driverName, functionName, (int)txBuffer.length(), txBuffer.c_str());
+	getIntegerParam(ADPandABlocksIsConnected, &connected);
+	if (status != asynSuccess && connected) {
 		// Can't write, port probably not connected
-		getIntegerParam(ADPandABlocksIsConnected, &connected);
-		if (connected) {
-			setIntegerParam(ADPandABlocksIsConnected, 0);
-			asynPrint(pasynUserSelf, ASYN_TRACE_FLOW,
-					"%s:%s: Can't write to ADPandABlocks: '%.*s'\n", driverName, functionName, (int)txBuffer.length(), txBuffer.c_str());
-		}
+		setIntegerParam(ADPandABlocksIsConnected, 0);
+		asynPrint(pasynUserSelf, ASYN_TRACE_FLOW,
+				  "%s:%s: Can't write to ADPandABlocks: '%.*s'\n", driverName, functionName, (int)txBuffer.length(), txBuffer.c_str());
+	} else if (status == asynSuccess && !connected) {
+		setIntegerParam(ADPandABlocksIsConnected, 1);
+		asynPrint(pasynUserSelf, ASYN_TRACE_FLOW,
+				  "Reconnected to ADPandABlocks'\n");
 	}
 	return status;
 }
@@ -1347,7 +1376,7 @@ asynStatus ADPandABlocks::UpdateLookupTableParamFromWrite<int>(int param, int va
 					if(status == asynError)
 					{
 						asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,"%s:%s: Error setting: %s '\n",
-								driverName, functionName, cmdStr.str().c_str());
+								  driverName, functionName, cmdStr.str().c_str());
 					}
 					return status;
 				}
@@ -1367,7 +1396,7 @@ asynStatus ADPandABlocks::UpdateLookupTableParamFromWrite<int>(int param, int va
 					// Update PandA setpos to new value
 					setPandASetPos(it->first, value);
 				}
-				// Regular parameter update
+					// Regular parameter update
 				else
 				{
 					std::stringstream cmdStr;
@@ -1378,7 +1407,7 @@ asynStatus ADPandABlocks::UpdateLookupTableParamFromWrite<int>(int param, int va
 					if(status == asynError)
 					{
 						asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,"%s:%s: Error setting: %s '\n",
-								driverName, functionName, cmdStr.str().c_str());
+								  driverName, functionName, cmdStr.str().c_str());
 					}
 					return status;
 				}
@@ -1407,7 +1436,7 @@ asynStatus ADPandABlocks::UpdateLookupTableParamFromWrite<float>(int param, floa
 				if(status == asynError)
 				{
 					asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,"%s:%s: Error setting: %s '\n",
-							driverName, functionName, cmdStr.str().c_str());
+							  driverName, functionName, cmdStr.str().c_str());
 				}
 				callParamCallbacks();
 				return status;
@@ -1436,7 +1465,7 @@ asynStatus ADPandABlocks::UpdateLookupTableParamFromWrite<std::string>(int param
 				if(status == asynError)
 				{
 					asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,"%s:%s: Error setting: %s '\n",
-							driverName, functionName, cmdStr.str().c_str());
+							  driverName, functionName, cmdStr.str().c_str());
 				}
 				callParamCallbacks();
 				return status;
@@ -1461,13 +1490,13 @@ asynStatus ADPandABlocks::writeFloat64(asynUser *pasynUser, epicsFloat64 value)
 
 	// Check if motor parameters have changed
 	if (checkIfMotorFloatParams(param, value));
-	// Otherwise check lookup table
+		// Otherwise check lookup table
 	else status = UpdateLookupTableParamFromWrite(param, value);
 
 	if(status)
 	{
 		asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,"%s:%s: Error setting values'\n",
-				driverName, functionName);
+				  driverName, functionName);
 	}
 
 	/* Do callbacks so higher layers see any changes */
@@ -1505,28 +1534,28 @@ asynStatus ADPandABlocks::writeInt32(asynUser *pasynUser, epicsInt32 value)
 		{
 			//set the current array number
 			asynPrint(pasynUserSelf, ASYN_TRACEIO_DRIVER,
-					"SEND ARM CMD:\n");
+					  "SEND ARM CMD:\n");
 			sendCtrl("*PCAP.ARM=");
 			setIntegerParam(ADNumImagesCounter, 0);
 		}
 		else
 		{
 			asynPrint(pasynUserSelf, ASYN_TRACEIO_DRIVER,
-					"SEND DISARM CMD:\n");
+					  "SEND DISARM CMD:\n");
 			sendCtrl("*PCAP.DISARM=");
 		}
 	}
-	// Check if setpos has been called due to homing motor
+		// Check if setpos has been called due to homing motor
 	else if(checkIfReasonIsMotorSetpos(param, value));
-	// Check if need to change embedded screen type if using motorsync
+		// Check if need to change embedded screen type if using motorsync
 	else if(checkIfReasonIsMotorScreenType(param, value));
-	// Otherwise update lookup table
+		// Otherwise update lookup table
 	else status = UpdateLookupTableParamFromWrite(param, value);
 
 	if(status)
 	{
 		asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,"%s:%s: Error setting values'\n",
-				driverName, functionName);
+				  driverName, functionName);
 	}
 
 	callParamCallbacks();
@@ -1554,15 +1583,15 @@ asynStatus ADPandABlocks::writeOctet(asynUser *pasynUser, const char* value, siz
 
 	// Check if motor units have changed
 	if (checkIfReasonIsMotorUnit(param, valueStream.str()));
-	// Check if motor name is being set
+		// Check if motor name is being set
 	else if (checkIfReasonIsMotorName(param, valueStream.str()));
-	// Otherwise check lookup table
+		// Otherwise check lookup table
 	else status = UpdateLookupTableParamFromWrite(param, valueStream.str());
 
 	if(status)
 	{
 		asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,"%s:%s: Error setting values'\n",
-				driverName, functionName);
+				  driverName, functionName);
 	}
 
 	callParamCallbacks();
@@ -1582,7 +1611,7 @@ static const iocshArg ADPandABlocksConfigArg2 = { "Max number of points to captu
 static const iocshArg ADPandABlocksConfigArg3 = { "maxBuffers for areaDetector", iocshArgInt };
 static const iocshArg ADPandABlocksConfigArg4 = { "maxMemory for areaDetector", iocshArgInt };
 static const iocshArg* const ADPandABlocksConfigArgs[] = { &ADPandABlocksConfigArg0,
-		&ADPandABlocksConfigArg1, &ADPandABlocksConfigArg2, &ADPandABlocksConfigArg3, &ADPandABlocksConfigArg4 };
+														   &ADPandABlocksConfigArg1, &ADPandABlocksConfigArg2, &ADPandABlocksConfigArg3, &ADPandABlocksConfigArg4 };
 static const iocshFuncDef configADPandABlocks = { "ADPandABlocksConfig", 5, ADPandABlocksConfigArgs };
 static void configADPandABlocksCallFunc(const iocshArgBuf *args) {
 	ADPandABlocksConfig(args[0].sval, args[1].sval, args[2].ival, args[3].ival, args[4].ival);

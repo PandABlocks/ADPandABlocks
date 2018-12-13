@@ -17,6 +17,16 @@ record(bi, "$(P)$(R)CONNECTED") {
   field(SCAN, "I/O Intr")
 }
 
+record(bi, "$(P)$(R)RESPONDING") {
+  field(DESC, "Is ADPandABlocks responsive")
+  field(DTYP, "asynInt32")
+  field(INP, "@asyn($(PORT),0) ISRESPONSIVE")
+  field(ZNAM, "Not Responding")
+  field(ONAM, "Responding")
+  field(ZSV, "INVALID")
+  field(SCAN, "I/O Intr")
+}
+
 record(waveform, "$(P)$(R)HEADER") {
   field(DESC, "ADPandABlocks data header")
   field(SCAN, "I/O Intr")

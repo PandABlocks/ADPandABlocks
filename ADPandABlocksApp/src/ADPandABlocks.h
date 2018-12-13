@@ -68,7 +68,7 @@ public:
 
 public:
     ADPandABlocks(const char *portName, const char* pandaAddress, int maxPts, int maxBuffers, int maxMemory);
-
+    // virtual ~ADPandABlocks();
     /** These should be private, but get called from C, so must be public */
     void readDataPort();
     void pollCommandPort();
@@ -93,6 +93,7 @@ protected:
 
 #define FIRST_PARAM ADPandABlocksIsConnected
     int ADPandABlocksIsConnected;        // int32 read  - is ADPandABlocks connected?
+    int ADPandABlocksIsResponsive;       // int32 read  - is ADPandABlocks responsive ?
     int ADPandABlocksHeader;             // string read - data header
     int ADPandABlocksDataEnd;            // string read - end of data string
     int ADPandABlocksPCTime;             // float64array read - position compare timestamps
