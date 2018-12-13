@@ -76,6 +76,8 @@ public:
     const char *ctrlPort;
     const char *dataPort;
 
+    bool pandaResponsive;
+
     /** These functions are used in the tests, so they are public */
     asynStatus sendCtrl(const std::string txBuffer);
     asynStatus sendData(const std::string txBuffer);
@@ -127,7 +129,7 @@ private:
     void getAllData(std::vector<char>& inBuffer, const int dataLen,const  int buffLen)const;
     void outputData(const int dataLen, const int dataNo, const std::vector<char> data);
     asynStatus readHeaderLine(char* rxBuffer, const size_t buffSize)const;
-    asynStatus readDataBytes(char* rxBuffer, const size_t nBytes)const;
+    asynStatus readDataBytes(char* rxBuffer, const size_t nBytes, bool &responsive)const;
     void createPosBusParam(const char* paramName, asynParamType paramType, int* paramIndex, int paramNo);
     std::string getPosBusField(std::string posbus, const char* paramName);
     bool posBusInUse(std::string posBusName);

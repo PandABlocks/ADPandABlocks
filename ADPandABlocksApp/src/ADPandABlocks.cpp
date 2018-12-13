@@ -42,7 +42,12 @@ static void callbackC(asynUser *pasynUser, asynException exception){
 void ADPandABlocks::exceptionCallback(asynUser *pasynUser, asynException exception){
 	int port_connected = 0;
 	pasynManager->isConnected(pasynUser, &port_connected);
-	if(port_connected) sendReceivingFormat();
+	if(port_connected) {
+		pandaResponsive = false;
+		while (!pandaResponsive) {
+			sendReceivingFormat();
+		}
+	}
 }
 
 typedef int static_assert_endianness[EPICS_BYTE_ORDER != EPICS_ENDIAN_BIG ? 1 : -1];
@@ -59,7 +64,7 @@ ADPandABlocks::ADPandABlocks(const char* portName, const char* pandaAddress, int
 
 	//private variables
 	state = waitHeaderStart; //init state for the data read
-
+	pandaResponsive = false;
 	errorMsg[asynSuccess] = "asynSuccess";
 	errorMsg[asynTimeout] = "asynTimeout";
 	errorMsg[asynOverflow] = "asynOverflow";
@@ -119,6 +124,7 @@ ADPandABlocks::ADPandABlocks(const char* portName, const char* pandaAddress, int
 
 	/* Connect to the device port */
 	ctrlPort = std::string(portName).append("_CTRL").c_str();
+	drvAsynIPPortConfigure(ctrlPort, std::string(pandaAddress).append(":").append(CTRL_PORT).c_str(), 100, 0, 0);
 	/* Copied from asynOctecSyncIO->connect */
 	pasynUser_ctrl = pasynManager->createAsynUser(0, 0);
 	status = pasynManager->connectDevice(pasynUser_ctrl, ctrlPort, 0);
@@ -153,6 +159,7 @@ ADPandABlocks::ADPandABlocks(const char* portName, const char* pandaAddress, int
 
 	/* Connect to the data port */
 	dataPort = std::string(portName).append("_DATA").c_str();
+	drvAsynIPPortConfigure(dataPort, std::string(pandaAddress).append(":").append(DATA_PORT).c_str(), 100, 0, 0);
 	/* Copied from asynOctecSyncIO->connect */
 	pasynUser_data = pasynManager->createAsynUser(0, 0);
 	status = pasynManager->connectDevice(pasynUser_data, dataPort, 0);
@@ -695,7 +702,7 @@ asynStatus ADPandABlocks::readHeaderLine(char* rxBuffer, const size_t buffSize) 
 	return status;
 }
 
-asynStatus ADPandABlocks::readDataBytes(char* rxBuffer, const size_t nBytes) const {
+asynStatus ADPandABlocks::readDataBytes(char* rxBuffer, const size_t nBytes, bool &responsive) const {
 	const char *functionName = "readDataBytes";
 	int eomReason;
 	size_t nBytesIn = 0;
@@ -715,6 +722,9 @@ asynStatus ADPandABlocks::readDataBytes(char* rxBuffer, const size_t nBytes) con
 				"%s:%s: Only got %d bytes, not %d bytes with EOM reason %d\n",
 				driverName, functionName, (int)nBytesIn, (int)nBytes, eomReason);
 		return asynError;
+	}
+	if (!responsive && nBytesIn != 0) {
+		responsive = true;
 	}
 	return status;
 }
@@ -770,7 +780,7 @@ void ADPandABlocks::readDataPort() {
 
 			case waitDataStart:
 				// read "BIN " or "END "
-				status = readDataBytes(rxBuffer, 4);
+				status = readDataBytes(rxBuffer, 4, pandaResponsive);
 				if(status == asynError){
 					state = dataEnd;
 					break;
@@ -788,14 +798,14 @@ void ADPandABlocks::readDataPort() {
 				// read next four bytes to get the packet size
 			{
 				uint32_t message_length;
-				status = readDataBytes(reinterpret_cast<char *>(&message_length), 4);
+				status = readDataBytes(reinterpret_cast<char *>(&message_length), 4, pandaResponsive);
 				if(status == asynError){
 					state = dataEnd;
 					break;
 				}
 				uint32_t dataLength = message_length - 8; // size of the packet prefix information is 8
 				// read the rest of the packet
-				status = readDataBytes(rxBuffer, dataLength);
+				status = readDataBytes(rxBuffer, dataLength, pandaResponsive);
 				if(status == asynError){
 					state = dataEnd;
 					break;
