@@ -76,8 +76,8 @@ class ADPandABlocks(AsynPort):
     def __init__(self, PORT, ADDRESS, MAXBUF=1000, MAXMEM=0, **args):
         
         # create asyn ports for PandA
-        # self.control_port = AsynIP('%s:8888' % ADDRESS, '%s_CTRL' % PORT)
-        # self.data_port = AsynIP('%s:8889' % ADDRESS, '%s_DATA' % PORT)
+        self.control_port = AsynIP('%s:8888' % ADDRESS, '%s_CTRL' % PORT)
+        self.data_port = AsynIP('%s:8889' % ADDRESS, '%s_DATA' % PORT)
 
         # Call init on Device superclass
         self.__super.__init__(PORT)
