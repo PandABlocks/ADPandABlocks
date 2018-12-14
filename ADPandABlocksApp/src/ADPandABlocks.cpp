@@ -69,6 +69,8 @@ ADPandABlocks::ADPandABlocks(const char* portName, const char* pandaAddress, int
 	//private variables
 	state = waitHeaderStart; //init state for the data read
 	pandaResponsive = false;
+    epicsTimeGetCurrent(&lastHeaderErrorTime);
+
 	errorMsg[asynSuccess] = "asynSuccess";
 	errorMsg[asynTimeout] = "asynTimeout";
 	errorMsg[asynOverflow] = "asynOverflow";
@@ -691,10 +693,11 @@ asynStatus ADPandABlocks::sendReceivingFormat() {
 	return sendData("XML FRAMED SCALED\n");
 }
 
-asynStatus ADPandABlocks::readHeaderLine(char* rxBuffer, const size_t buffSize) const {
+asynStatus ADPandABlocks::readHeaderLine(char* rxBuffer, const size_t buffSize, epicsTimeStamp &lastErrorTime) const {
 	/*buffSize is the size fo rxBuffer*/
 	const char *functionName = "readHeaderLine";
 	int eomReason;
+	bool threw = false;
 	size_t nBytesIn;
 	asynStatus status = asynTimeout;
 	//check to see if rxBuffer is
@@ -702,15 +705,24 @@ asynStatus ADPandABlocks::readHeaderLine(char* rxBuffer, const size_t buffSize) 
 		status = pasynOctet_data->read(octetPvt_data, pasynUser_data, rxBuffer,
 									   buffSize, &nBytesIn, &eomReason);
 	}
+    epicsTimeStamp currentTime;
+    epicsTimeGetCurrent(&currentTime);
 	if(status && pandaResponsive) {
-		asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,"%s:%s: Error reading data: %s'\n",
-				  driverName, functionName, errorMsg[status].c_str());
+        if (epicsTimeDiffInSeconds(&currentTime, &lastErrorTime) > 0.5) {
+            asynPrint(pasynUserSelf, ASYN_TRACE_ERROR, "%s:%s: Error reading data: %s'\n",
+                      driverName, functionName, errorMsg[status].c_str());
+            threw = true;
+        }
 	}
 	if (eomReason != ASYN_EOM_EOS && pandaResponsive) {
-		asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
-				  "%s:%s: failed on 'bt%.*s'\n", driverName, functionName, (int)nBytesIn, rxBuffer);
+        if (epicsTimeDiffInSeconds(&currentTime, &lastErrorTime) > 0.5) {
+            asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
+                      "%s:%s: failed on 'bt%.*s'\n", driverName, functionName, (int) nBytesIn, rxBuffer);
+        }
+        lastErrorTime = currentTime;
 		return asynError;
 	}
+	if (threw)  lastErrorTime = currentTime;
 	return status;
 }
 
@@ -750,7 +762,7 @@ void ADPandABlocks::readDataPort() {
 		while (true) {
 			switch(state) {
 				case waitHeaderStart:
-					status = readHeaderLine(rxBuffer, N_BUFF_DATA);
+					status = readHeaderLine(rxBuffer, N_BUFF_DATA, lastHeaderErrorTime);
 					if(status == asynError){
 						state = waitHeaderStart;
 						setIntegerParam(ADPandABlocksIsResponsive, 0);
@@ -771,7 +783,7 @@ void ADPandABlocks::readDataPort() {
 					break;
 
 				case waitHeaderEnd:
-					status = readHeaderLine(rxBuffer, N_BUFF_DATA);
+					status = readHeaderLine(rxBuffer, N_BUFF_DATA, lastHeaderErrorTime);
 					if(status == asynError){
 						header.clear();
 						state = dataEnd;
@@ -786,7 +798,7 @@ void ADPandABlocks::readDataPort() {
 					if (strcmp(rxBuffer, "</header>\0") == 0) {
 						headerValues = parseHeader(header);
 						// Read the last line of the header
-						status = readHeaderLine(rxBuffer, N_BUFF_DATA);
+						status = readHeaderLine(rxBuffer, N_BUFF_DATA, lastHeaderErrorTime);
 						if(status == asynError){
 							header.clear();
 							state = dataEnd;
@@ -859,7 +871,7 @@ void ADPandABlocks::readDataPort() {
 					setIntegerParam(ADAcquire, 0);
                     setIntegerParam(ADStatus, ADStatusIdle);
                     setStringParam(ADStatusMessage, "Idle");
-					status = readHeaderLine(rxBuffer, N_BUFF_DATA);
+					status = readHeaderLine(rxBuffer, N_BUFF_DATA, lastHeaderErrorTime);
 					setStringParam(ADPandABlocksDataEnd, rxBuffer);
 					callParamCallbacks();
 					state = waitHeaderStart;
