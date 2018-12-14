@@ -73,18 +73,18 @@ class ADPandABlocks(AsynPort):
     UniqueName = "PORT"
     N_POSBUS = 32
 
-    def __init__(self, PORT, ADDRESS, MAXBUF=1000, MAXMEM=0, **args):
+    def __init__(self, PORT, HOST, MAXBUF=1000, MAXMEM=0, **args):
         
         # create asyn ports for PandA
-        self.control_port = AsynIP('%s:8888' % ADDRESS, '%s_CTRL' % PORT)
-        self.data_port = AsynIP('%s:8889' % ADDRESS, '%s_DATA' % PORT)
+        self.control_port = AsynIP('%s:8888' % HOST, '%s_CTRL' % PORT)
+        self.data_port = AsynIP('%s:8889' % HOST, '%s_DATA' % PORT)
 
         # Call init on Device superclass
         self.__super.__init__(PORT)
 
         # Store arguments away to use later
         self.PORT = PORT
-        self.ADDRESS = ADDRESS
+        self.HOST = HOST
         self.MAXBUF = MAXBUF
         self.MAXMEM = MAXMEM
         self.NELM = 100000       
@@ -100,16 +100,16 @@ class ADPandABlocks(AsynPort):
     def Initialise(self):
         # Print the command to create the device in the startup script
         #print "# Create AsynIP ports for PandA"
-        #print 'drvAsynIPPortConfigure("%(PORT)s_CTRL", "%(ADDRESS)s:8888", 100, 0, 0)'  % self.__dict__
-        #print 'drvAsynIPPortConfigure("%(PORT)s_DATA", "%(ADDRESS)s:8889", 100, 0, 0)'  % self.__dict__
+        #print 'drvAsynIPPortConfigure("%(PORT)s_CTRL", "%(HOST)s:8888", 100, 0, 0)'  % self.__dict__
+        #print 'drvAsynIPPortConfigure("%(PORT)s_DATA", "%(HOST)s:8889", 100, 0, 0)'  % self.__dict__
         print "# Create driver"
-        print 'ADPandABlocksConfig("%(PORT)s", "%(ADDRESS)s", ' \
+        print 'ADPandABlocksConfig("%(PORT)s", "%(HOST)s", ' \
             '%(NELM)d, %(MAXBUF)d, %(MAXMEM)d, 0)' % self.__dict__
 
     # tell xmlbuilder what args to supply
     ArgInfo = _MainDbFile.ArgInfo + makeArgInfo(__init__,
         PORT     = Simple("Asyn port name for the created driver", str),
-        ADDRESS  = Simple("Address of pandaBox", str),
+        HOST  = Simple("PandA Box - can be hostname or IP address", str),
         MAXBUF   = Simple("Maximum number of buffers (areaDetector)", int),
         MAXMEM   = Simple("Maximum memory (areaDetector)", int))
 
