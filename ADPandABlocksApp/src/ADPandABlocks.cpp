@@ -393,6 +393,10 @@ void ADPandABlocks::updatePandAMotorParam<int>(int motorIndex, motorField field,
 			setPandASetPos(posBusName.str(), value);
 			break;
 		}
+		default: {
+			asynPrint(pasynUserSelf, ASYN_TRACE_ERROR, "Invalid switch case for: %d\n", field);
+			break;
+		}
 	}
 	updatePandAParam(posBusName.str(), posBusField.str(), value);
 }
@@ -406,6 +410,10 @@ void ADPandABlocks::updatePandAMotorParam<ADPandABlocks::embeddedScreenType>(int
 		case screen: {
 			// Change screen type to use readOnly
 			posBusField << "SCREENTYPE";
+			break;
+		}
+		default: {
+			asynPrint(pasynUserSelf, ASYN_TRACE_ERROR, "Invalid switch case for: %d\n", field);
 			break;
 		}
 	}
@@ -426,6 +434,10 @@ void ADPandABlocks::updatePandAMotorParam<float>(int motorIndex, motorField fiel
 			posBusField << "SCALE";
 			break;
 		}
+		default: {
+			asynPrint(pasynUserSelf, ASYN_TRACE_ERROR, "Invalid switch case for: %d\n", field);
+			break;
+		}
 	}
 	updatePandAParam(posBusName.str(), posBusField.str(), value);
 }
@@ -442,6 +454,10 @@ void ADPandABlocks::updatePandAMotorParam<std::string>(int motorIndex, motorFiel
 		}
 		case motorName: {
 			posBusField << "MOTORNAME";
+			break;
+		}
+		default: {
+			asynPrint(pasynUserSelf, ASYN_TRACE_ERROR, "Invalid switch case for: %d\n", field);
 			break;
 		}
 	}
