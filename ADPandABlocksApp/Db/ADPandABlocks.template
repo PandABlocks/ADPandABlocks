@@ -1,8 +1,6 @@
 # % macro, PORT, Asyn Port name for ADPandABlocks coms
 # % macro, P, Device prefix
 # % macro, R, Device suffix
-# % macro, ADDR, address for areaDetector port
-# % macro, TIMEOUT, timeout for areaDetector
 # % gui, $(PORT), edmtab, ADPandABlocksDetector.edl, P=$(P), R=$(R), DEVICE=$(P)$(R)
 
 include "ADBase.template"
