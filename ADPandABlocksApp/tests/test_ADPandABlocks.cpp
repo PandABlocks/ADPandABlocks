@@ -209,7 +209,7 @@ BOOST_AUTO_TEST_CASE(sequence_test_short_slow)
 
 //    wait till all the arrays are there
     cout << "WAITING.." << endl;
-    while(ds->arrays.size() != frames){
+    while(ds->arrays.size() != (unsigned int) frames){
         cout << "acquired frames: " << ds->arrays.size() << "\r" << std::flush;
         // BK: std::endl := end of line + flush
     }
@@ -248,7 +248,7 @@ BOOST_AUTO_TEST_CASE(sequence_test_short_fast)
 
     //    wait till all the arrays are there
         cout << "WAITING.." << endl;
-        while(ds->arrays.size() != frames){
+        while(ds->arrays.size() != (unsigned int) frames){
             cout << "acquired frames: " << ds->arrays.size() << "\r" << std::flush;
         }
         cout << endl;
@@ -286,7 +286,7 @@ BOOST_AUTO_TEST_CASE(sequence_test_long_slow)
 
 //    wait till all the arrays are there
     cout << "WAITING.." << endl;
-    while(ds->arrays.size() != frames){
+    while(ds->arrays.size() != (unsigned int) frames){
         cout << "acquired frames: " << ds->arrays.size() << "\r" << std::flush;
     }
     cout << endl;
@@ -324,7 +324,7 @@ BOOST_AUTO_TEST_CASE(sequence_test_long_fast)
 
 //    wait till all the arrays are there
     cout << "WAITING.." << endl;
-    while(ds->arrays.size() != frames){
+    while(ds->arrays.size() != (unsigned int) frames){
         cout << "acquired frames: " << ds->arrays.size() << "\r" << std::flush;
     }
     cout << endl;
@@ -374,7 +374,7 @@ BOOST_AUTO_TEST_CASE(sequence_test)
 
 //    wait till all the arrays are there
     cout << "WAITING.." << endl;
-    while(ds->arrays.size() != frames){
+    while(ds->arrays.size() != (unsigned int) frames){
         cout << "acquired frames: " << ds->arrays.size() << "\r" << std::flush;
     }
     cout << endl;
