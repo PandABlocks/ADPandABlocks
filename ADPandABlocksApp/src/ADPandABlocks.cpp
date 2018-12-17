@@ -530,6 +530,14 @@ std::vector<std::string> ADPandABlocks::readFieldNames(int* numFields) {
 	pasynUserRead->timeout = 3.0;
 	status = pasynOctet_ctrl->read(octetPvt_ctrl, pasynUserRead, rxBuffer, N_BUFF_CTRL - 1,
 								   &nBytesIn, &eomReason);
+
+	// We failed to read the field names, return empty object
+	if (status != asynSuccess) {
+		asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
+			"%s:%s: readFieldNames read failed, error=%d\n", driverName, functionName, status);
+		return fieldNameStrings;
+	}
+
 	int i = 0;
 	while(rxBuffer[0] != '.')
 	{
