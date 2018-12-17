@@ -168,7 +168,7 @@ struct ADPandABlocksFixture
         // We need some upstream driver for our test plugin so that calls to connectToArrayPort don't fail, but we can then ignore it and send
         // arrays by calling processCallbacks directly.
         // Thus we instansiate a basic asynPortDriver object which is never used.
-        dummy_driver = new asynPortDriver(dummy_port.c_str(), 0, 1, asynGenericPointerMask, asynGenericPointerMask, 0, 0, 0, 2000000);
+        dummy_driver = new asynPortDriver(dummy_port.c_str(), 0, asynGenericPointerMask, asynGenericPointerMask, 0, 0, 0, 2000000);
 
 
         dummy_NDArrayDriver = new asynNDArrayDriver(dummy_NDArrayport.c_str(), 0, 1, 0, asynGenericPointerMask, asynGenericPointerMask, 0, 0, 0, 2000000);
