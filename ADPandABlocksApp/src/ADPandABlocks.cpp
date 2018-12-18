@@ -892,9 +892,9 @@ void ADPandABlocks::readDataPort() {
 					//change the input eos back to newline for the header
 					pasynOctet_data->setInputEos(octetPvt_data, pasynUser_data, "\n", 1);
 					//set the acquire light to 0
-					setIntegerParam(ADAcquire, 0);
                     setIntegerParam(ADStatus, ADStatusIdle);
                     setStringParam(ADStatusMessage, "Idle");
+					setIntegerParam(ADAcquire, 0);
 					status = readHeaderLine(rxBuffer, N_BUFF_DATA, lastHeaderErrorTime);
 					setStringParam(ADPandABlocksDataEnd, rxBuffer);
 					callParamCallbacks();
@@ -1168,6 +1168,8 @@ void ADPandABlocks::wrapFrame() {
 	if ((imgMode == ADImageSingle && arrayCounter == 1) ||
 		(imgMode == ADImageMultiple && numImagesCounter == imgNo)) {
 		sendCtrl("*PCAP.DISARM=");
+        setIntegerParam(ADStatus, ADStatusIdle);
+        setStringParam(ADStatusMessage, "Idle");
 		setIntegerParam(ADAcquire, 0);
 	}
 	// Set the unique ID
