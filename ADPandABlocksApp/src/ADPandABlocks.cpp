@@ -420,7 +420,7 @@ void ADPandABlocks::updatePandAMotorParam<ADPandABlocks::embeddedScreenType>(int
 	updatePandAParam(posBusName.str(), posBusField.str(), value);
 }
 template<>
-void ADPandABlocks::updatePandAMotorParam<float>(int motorIndex, motorField field, float value)
+void ADPandABlocks::updatePandAMotorParam<double>(int motorIndex, motorField field, double value)
 {
 	std::stringstream posBusName, posBusField;
 	posBusName << "INENC" << motorIndex << ".VAL";
