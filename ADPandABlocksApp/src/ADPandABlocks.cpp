@@ -1614,7 +1614,6 @@ asynStatus ADPandABlocks::writeInt32(asynUser *pasynUser, epicsInt32 value)
 			setIntegerParam(ADNumImagesCounter, 0);
 			getIntegerParam(ADNumExposures,&numExposures);
 			numExposuresCounter=0;
-			testCounter=0;
 		}
 		else
 		{
