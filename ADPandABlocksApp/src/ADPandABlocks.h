@@ -169,7 +169,7 @@ private:
     void *pcommonPvt_data;
     asynOctet *pasynOctet_data;
     void *octetPvt_data;
-    int arrayCounter, numImagesCounter, imgMode, imgNo;
+    int arrayCounter, numImagesCounter, numExposures,numExposuresCounter, imgMode, imgNo,testCounter;
 
     //vector of maps for the header values
     headerMap headerValues;
