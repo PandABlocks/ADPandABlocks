@@ -124,8 +124,8 @@ ADPandABlocks::ADPandABlocks(const char* portName, const char* pandaAddress, int
 	/* initialise areaDetector parameters */
 	setStringParam(ADManufacturer, "Diamond Light Source Ltd.");
 	setStringParam(ADModel, "ADPandABlocks");
-	setIntegerParam(ADMaxSizeX, NARRAYS + 1);
-	setIntegerParam(ADMaxSizeY, FRAMEHEIGHT);
+	setIntegerParam(ADMaxSizeX, NPOSBUS);
+	setIntegerParam(ADMaxSizeY, 1);
 	//    setIntegerParam(NDDataType, 7);
 	setIntegerParam(ADStatus, ADStatusIdle);
 	setStringParam(ADStatusMessage, "Idle");
@@ -1165,8 +1165,8 @@ void ADPandABlocks::allocateFrame() {
 	int arraysize = headerValues.size() -1;
 	size_t dims[2];
 	int nDims = 2;
-	dims[0] = arraysize*numExposures;
-	dims[1] = FRAMEHEIGHT;
+	dims[0] = arraysize;
+	dims[1] = numExposures;
 	pArray = pNDArrayPool->alloc(nDims, dims, NDFloat64, 0, NULL);
 	//clear the attribute list to get rid of previous scans
 	if (pArray != NULL) {
@@ -1613,6 +1613,7 @@ asynStatus ADPandABlocks::writeInt32(asynUser *pasynUser, epicsInt32 value)
 			sendCtrl("*PCAP.ARM=");
 			setIntegerParam(ADNumImagesCounter, 0);
 			getIntegerParam(ADNumExposures,&numExposures);
+                        if (numExposures < 1) numExposures = 1;
 			numExposuresCounter=0;
 		}
 		else
