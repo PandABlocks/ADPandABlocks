@@ -420,7 +420,7 @@ void ADPandABlocks::updatePandAMotorParam<ADPandABlocks::embeddedScreenType>(int
 	updatePandAParam(posBusName.str(), posBusField.str(), value);
 }
 template<>
-void ADPandABlocks::updatePandAMotorParam<float>(int motorIndex, motorField field, float value)
+void ADPandABlocks::updatePandAMotorParam<double>(int motorIndex, motorField field, double value)
 {
 	std::stringstream posBusName, posBusField;
 	posBusName << "INENC" << motorIndex << ".VAL";
@@ -894,6 +894,7 @@ void ADPandABlocks::readDataPort() {
 					//set the acquire light to 0
                     setIntegerParam(ADStatus, ADStatusIdle);
                     setStringParam(ADStatusMessage, "Idle");
+                    callParamCallbacks();
 					setIntegerParam(ADAcquire, 0);
 					status = readHeaderLine(rxBuffer, N_BUFF_DATA, lastHeaderErrorTime);
 					setStringParam(ADPandABlocksDataEnd, rxBuffer);
@@ -1170,7 +1171,9 @@ void ADPandABlocks::wrapFrame() {
 		sendCtrl("*PCAP.DISARM=");
         setIntegerParam(ADStatus, ADStatusIdle);
         setStringParam(ADStatusMessage, "Idle");
+        callParamCallbacks();
 		setIntegerParam(ADAcquire, 0);
+        callParamCallbacks();
 	}
 	// Set the unique ID
 	if (pArray != NULL) {

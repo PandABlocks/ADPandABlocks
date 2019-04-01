@@ -54,9 +54,10 @@ record(seq, "$(P)$(R)INENC$(ENC_IND):ONENABLE") {
 
 # % archiver 10 Monitor
 record(calcout, "$(P)$(R)INENC$(ENC_IND):SETPOSCALC") {
-  field(CALC, "A*(B>0?B:1)")
+  field(CALC, "A*(B>0?B:1)*C")
   field(INPA, "$(MOTOR).REP") #WRITES TO THE MOTOR RECORD VAL IN COUNTS INSTEAD OF :RBV
   field(INPB, "$(MOTOR):SCALE")
+  field(INPC, "$(DIR=+)1")
   field(OUT, "$(P)$(R)INENC$(ENC_IND):SETPOS PP")
 }
 

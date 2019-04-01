@@ -44,7 +44,7 @@ record(ao, "$(P)$(R)POSBUS$(POSBUS_IND):SCALE") {
   field(DESC, "INENC scale value")
   field(DTYP, "asynFloat64")
   field(OUT, "@asyn($(PORT),$(POSBUS_IND))POSBUS$(POSBUS_IND):SCALE")
-  field(PREC, 4)
+  field(PREC, 8)
   info(asyn:READBACK, "1")
 }
 
