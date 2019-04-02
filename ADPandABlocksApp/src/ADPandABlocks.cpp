@@ -105,6 +105,7 @@ ADPandABlocks::ADPandABlocks(const char* portName, const char* pandaAddress, int
 	pArray = NULL;
 	arrayCounter = 0;
 	numImagesCounter = 0;
+	numExposures = 1;
 	imgMode = ADImageContinuous;
 	imgNo = 0;
 
