@@ -134,20 +134,20 @@ ADPandABlocks::ADPandABlocks(const char* portName, const char* pandaAddress, int
 	ctrlPort = std::string(portName).append("_CTRL").c_str();
 	//drvAsynIPPortConfigure(ctrlPort, std::string(pandaAddress).append(":").append(CTRL_PORT).c_str(), 100, 0, 0);	
 	/* Copied from asynOctecSyncIO->connect */
-	pasynUser_ctrl = pasynManager->createAsynUser(0, 0);
-	status = pasynManager->connectDevice(pasynUser_ctrl, ctrlPort, 0);
+	pasynUser_ctrl_tx = pasynManager->createAsynUser(0, 0);
+	status = pasynManager->connectDevice(pasynUser_ctrl_tx, ctrlPort, 0);
 	if (status != asynSuccess) {
 		asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
 				  "%s:%s: Connect failed, port=%s, error=%d\n", driverName, functionName, ctrlPort, status);
 		return;
 	}
-	pasynInterface = pasynManager->findInterface(pasynUser_ctrl, asynCommonType, 1);
+	pasynInterface = pasynManager->findInterface(pasynUser_ctrl_tx, asynCommonType, 1);
 	if (!pasynInterface) {
 		asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
 				  "%s:%s: %s interface not supported", driverName, functionName, asynCommonType);
 		return;
 	}
-	pasynInterface = pasynManager->findInterface(pasynUser_ctrl, asynOctetType, 1);
+	pasynInterface = pasynManager->findInterface(pasynUser_ctrl_tx, asynOctetType, 1);
 	if (!pasynInterface) {
 		asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
 				  "%s:%s: %s interface not supported", driverName, functionName, asynOctetType);
@@ -157,13 +157,18 @@ ADPandABlocks::ADPandABlocks(const char* portName, const char* pandaAddress, int
 	pasynOctet_ctrl = (asynOctet *) pasynInterface->pinterface;
 	octetPvt_ctrl = pasynInterface->drvPvt;
 	asynSetOption(ctrlPort, 0, "disconnectOnReadTimeout", "Y");
-	pasynUser_ctrl->drvUser = (void *) this;
-	pasynManager->exceptionCallbackAdd(pasynUser_ctrl, callbackC);
+	pasynUser_ctrl_tx->drvUser = (void *) this;
+	pasynManager->exceptionCallbackAdd(pasynUser_ctrl_tx, callbackC);
 
 	/* Set EOS and flush */
-	pasynOctet_ctrl->flush(octetPvt_ctrl, pasynUser_ctrl);
-	pasynOctet_ctrl->setInputEos(octetPvt_ctrl, pasynUser_ctrl, "\n", 1);
-	pasynOctet_ctrl->setOutputEos(octetPvt_ctrl, pasynUser_ctrl, "\n", 1);
+	pasynOctet_ctrl->flush(octetPvt_ctrl, pasynUser_ctrl_tx);
+	pasynOctet_ctrl->setInputEos(octetPvt_ctrl, pasynUser_ctrl_tx, "\n", 1);
+	pasynOctet_ctrl->setOutputEos(octetPvt_ctrl, pasynUser_ctrl_tx, "\n", 1);
+	
+	// duplicate port & set timeout
+	
+    pasynUser_ctrl_rx = pasynManager->duplicateAsynUser(pasynUser_ctrl_tx, 0, 0);
+	pasynUser_ctrl_rx->timeout = 3.0;
 
 	/* Connect to the data port */
 	dataPort = std::string(portName).append("_DATA").c_str();
@@ -290,7 +295,7 @@ ADPandABlocks::ADPandABlocks(const char* portName, const char* pandaAddress, int
 		return;
 	}
 
-	/* Create thread to monitor data port  */
+	/* Create thread to monitor data port */ 
 	if (epicsThreadCreate("ADPandABlocksPollDataPort", epicsThreadPriorityMedium,
 						  epicsThreadGetStackSize(epicsThreadStackMedium),
 						  (EPICSTHREADFUNC) pollDataPortC, this) == NULL) {
@@ -525,10 +530,8 @@ std::vector<std::string> ADPandABlocks::readFieldNames(int* numFields) {
 	size_t nBytesIn;
 	int eomReason;
 	asynStatus status = asynSuccess;
-	asynUser *pasynUserRead = pasynManager->duplicateAsynUser(pasynUser_ctrl, 0, 0);
 	std::vector<std::string> fieldNameStrings;
-	pasynUserRead->timeout = 3.0;
-	status = pasynOctet_ctrl->read(octetPvt_ctrl, pasynUserRead, rxBuffer, N_BUFF_CTRL - 1,
+	status = pasynOctet_ctrl->read(octetPvt_ctrl, pasynUser_ctrl_rx, rxBuffer, N_BUFF_CTRL - 1,
 								   &nBytesIn, &eomReason);
 
 	// We failed to read the field names, return empty object
@@ -558,7 +561,7 @@ std::vector<std::string> ADPandABlocks::readFieldNames(int* numFields) {
 			fieldNameStrings.push_back(strippedLabel);
 		}
 		// Push the whole bitmask for 'n' to the vector of vectors
-		status = pasynOctet_ctrl->read(octetPvt_ctrl, pasynUserRead, rxBuffer, N_BUFF_CTRL - 1,
+		status = pasynOctet_ctrl->read(octetPvt_ctrl, pasynUser_ctrl_rx, rxBuffer, N_BUFF_CTRL - 1,
 									   &nBytesIn, &eomReason);
 	}
 	*numFields = i;
@@ -572,9 +575,7 @@ asynStatus ADPandABlocks::readPosBusValues(std::string* posBusValue) {
 	size_t nBytesIn;
 	int eomReason;
 	asynStatus status = asynSuccess;
-	asynUser *pasynUserRead = pasynManager->duplicateAsynUser(pasynUser_ctrl, 0, 0);
-	pasynUserRead->timeout = 3.0;
-	status = pasynOctet_ctrl->read(octetPvt_ctrl, pasynUserRead, rxBuffer, N_BUFF_CTRL - 1,
+	status = pasynOctet_ctrl->read(octetPvt_ctrl, pasynUser_ctrl_rx, rxBuffer, N_BUFF_CTRL - 1,
 								   &nBytesIn, &eomReason);
 	if (eomReason & ASYN_EOM_EOS) {
 		// Replace the terminator with a null so we can use it as a string
@@ -1002,11 +1003,10 @@ void ADPandABlocks::getAllData(std::vector<char>& inBuffer, const int dataLen, c
 	size_t readBytes = dataLen - buffLen;
 	int eomReason;
 	asynStatus status = asynSuccess;
-	asynUser *pasynUserRead = pasynManager->duplicateAsynUser(pasynUser_data, 0, 0);
+	// asynUser *pasynUserRead = pasynManager->duplicateAsynUser(pasynUser_data, 0, 0);
 	char rxBuffer[readBytes];
-	status = pasynOctet_data->read(octetPvt_data, pasynUserRead, rxBuffer, readBytes,
-								   &nBytesIn, &eomReason);
-
+	status = pasynOctet_data->read(octetPvt_data, pasynUser_data, rxBuffer, readBytes,
+								   &nBytesIn, &eomReason);    
 	inBuffer.insert(inBuffer.end(), rxBuffer, rxBuffer+nBytesIn);
 	if(status)
 	{
@@ -1199,7 +1199,7 @@ asynStatus ADPandABlocks::sendData(const std::string txBuffer){
 }
 
 asynStatus ADPandABlocks::sendCtrl(const std::string txBuffer){
-	asynStatus status = send(txBuffer, pasynOctet_ctrl, octetPvt_ctrl, pasynUser_ctrl);
+	asynStatus status = send(txBuffer, pasynOctet_ctrl, octetPvt_ctrl, pasynUser_ctrl_tx);
 	return status;
 }
 

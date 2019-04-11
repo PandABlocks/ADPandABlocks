@@ -161,7 +161,8 @@ private:
     void removeSubString(std::string &string, std::string &subString);    
 private:
     NDArray *pArray;
-    asynUser *pasynUser_ctrl;
+    asynUser *pasynUser_ctrl_tx;
+    asynUser *pasynUser_ctrl_rx;
     asynOctet *pasynOctet_ctrl;
     void *octetPvt_ctrl; // BK: is there a good reason for this to be part of the global state?
     asynUser *pasynUser_data;
