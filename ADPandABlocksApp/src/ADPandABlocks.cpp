@@ -1468,7 +1468,7 @@ asynStatus ADPandABlocks::UpdateLookupTableParamFromWrite<int>(int param, int va
 	return asynSuccess;
 }
 template<>
-asynStatus ADPandABlocks::UpdateLookupTableParamFromWrite<float>(int param, float value)
+asynStatus ADPandABlocks::UpdateLookupTableParamFromWrite<double>(int param, double value)
 {
 	const char *functionName = "UpdateLookupTableParamFromWrite<float>";
 	if(posBusLookup.empty() == true) return asynSuccess;
