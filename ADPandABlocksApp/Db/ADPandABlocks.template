@@ -138,10 +138,3 @@ record(ai, "$(P)$(R)AcquirePeriod_RBV") {
   field(DISA, "1")
 }
 
-record(longout, "$(P)$(R)NumExposures") {
-  field(DISA, "1")
-}
-
-record(longin, "$(P)$(R)NumExposures_RBV") {
-  field(DISA, "1")
-}

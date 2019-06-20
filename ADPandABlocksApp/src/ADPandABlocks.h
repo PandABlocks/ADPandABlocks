@@ -28,23 +28,14 @@
 #define N_BUFF_CTRL 255
 #define N_BUFF_DATA 65536
 
-/* This is the number of waveforms to store */
-#define NARRAYS 10
-
 /* This is the number of positions on the posbus*/
 #define NPOSBUS 32
 
 /* This is the number of encoders (motors) */
 #define NENC 4
 
-/* This is the number of filtered waveforms to allow */
-#define NFILT 4
-
 /* The timeout waiting for a response from ADPandABlocks */
 #define TIMEOUT 1.0
-
-/* This is the frame height for the NDArrays */
-#define FRAMEHEIGHT 1
 
 /* We want to block while waiting on an asyn port forever.
  * Unfortunately putting 0 or a large number causes it to
@@ -170,8 +161,7 @@ private:
     void *pcommonPvt_data;
     asynOctet *pasynOctet_data;
     void *octetPvt_data;
-    int arrayCounter, numImagesCounter, imgMode, imgNo;
-
+    int arrayCounter, numImagesCounter, numExposures,numExposuresCounter, imgMode, imgNo;
     //vector of maps for the header values
     headerMap headerValues;
 
