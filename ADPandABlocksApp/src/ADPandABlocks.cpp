@@ -921,6 +921,11 @@ ADPandABlocks::headerMap ADPandABlocks::parseHeader(const std::string& headerStr
 	 * the first map will always be the 'data' node,
 	 * then each field will be pushed onto the vector sequentially
 	 */
+	//Array to store how many of each data type present in header
+	//dataTypes[0] = doubles
+	//datatypes[1] = uint32_t
+	int dataTypes[2];
+
 	std::map<std::string, std::string> tmpValues;
 	headerMap tmpHeaderValues;
 
@@ -956,6 +961,35 @@ ADPandABlocks::headerMap ADPandABlocks::parseHeader(const std::string& headerStr
 		}
 	}
 	xmlFreeTextReader(xmlreader);
+
+	/*
+	 *  As this method is only called before the first frame it makes sense to any map travsering here, once.
+	 *  What it in the map is stored in arrays for fast access on every frame.
+	 */
+	typeArray[0]=0;
+	nameCaptArray[0]="";
+	setLen=0;
+	headerArraySize=tmpHeaderValues.size();
+
+
+	/*
+	 * Depending on the data type populate typeArray with a 1 for a double and a 2 for an int.
+	 * Also keep setLen up to date with the total size so far.
+	 */
+	for(int j = 0; j < tmpHeaderValues.size()-1; j++){;
+        if(tmpHeaderValues[j+1].find("type")->second=="double") {
+			typeArray[j+1]=1;
+			setLen += sizeof(double);
+		}
+        else {
+			typeArray[j+1]=2;
+			setLen += sizeof(uint32_t);
+		}
+
+		nameCaptArray[j+1]=strdup(tmpHeaderValues[j+1].find("name")->second.c_str());
+		nameCaptArray[j+1]=strcat(nameCaptArray[j+1],".");
+		nameCaptArray[j+1]=strcat(nameCaptArray[j+1],tmpHeaderValues[j+1].find("capture")->second.c_str());
+	}
 
 	callParamCallbacks();
 	return tmpHeaderValues;
@@ -1033,24 +1067,12 @@ void ADPandABlocks::outputData(const int dataLen, const int dataNo, const std::v
     try{
         int linecount = 0; //number of lines of data received and parsed
         //get the length of an individual dataSet
-        int setLen = 0;
         int writeAttributes = 0;
         int endOfFrame = 0;
 
-        for(size_t i = 0; i < headerValues.size()-1; ++i)
-        {
-            if(getHeaderValue(i+1, "type") == "double")
-            {
-                setLen += sizeof(double);
-            }
-            else if (getHeaderValue(i+1, "type") == "uint32")
-            {
-                setLen += sizeof(uint32_t);
-            }
-        }
         const char* ptridx = &data.front();
         int noDataSets = data.size() / setLen; //number of data sets in the received binary data
-        std::string dataType;
+
         //find other possible data types..
 
         //loop over the data sets in the received data
@@ -1081,29 +1103,28 @@ void ADPandABlocks::outputData(const int dataLen, const int dataNo, const std::v
                 for (int i = 0; i < dataNo; ++i) {
 
                     // NDAttributes are used to store the actual captured data
-                    std::string desc("sample value");
+
                     //find out what type the individual point is
                     //from the header and assign the appropriate pointer.
-                    dataType = getHeaderValue(i + 1, "type");
-                    if (dataType == "double") {
+
+                    if(typeArray[i+1] == 1) {
                         // Create the NDAttributes and initialise them with data value (headerValue[0] is the data info)
                         if(writeAttributes) {
                             pArray->pAttributeList->add(
-                                    (getHeaderValue(i + 1, "name") + "." +
-                                     getHeaderValue(i + 1, "capture")).c_str(),
-                                    desc.c_str(),
-                                    NDAttrFloat64,
-                                    (double *) ptridx);
+								(nameCaptArray[i+1]),
+								"sample value",
+								NDAttrFloat64,
+								(double *) ptridx);
                         }
                         // Write data for every trigger but if using multiple exposures don't overwrite data from a previous exposure
                         ((double *) pArray->pData)[i+(dataNo*numExposuresCounter)] = *(double *) ptridx;
                         ptridx += sizeof(double);
-                    } else if (dataType == "uint32") {
+                    } else if (typeArray[i+1] == 2) {
                         // Create the NDAttributes and initialise them with data value (headerValue[0] is the data info)
                         if(writeAttributes) {
                             pArray->pAttributeList->add(
-                                    (getHeaderValue(i + 1, "name") + "." + getHeaderValue(i + 1, "capture")).c_str(),
-                                    desc.c_str(),
+                                    (nameCaptArray[i+1]),
+                                    "sample value",
                                     NDAttrUInt32,
                                     (uint32_t *) ptridx);
                         }
@@ -1111,20 +1132,19 @@ void ADPandABlocks::outputData(const int dataLen, const int dataNo, const std::v
                         // Write data for every trigger but if using multiple exposures don't overwrite data from a previous exposure
                         ((double *) pArray->pData)[i+(dataNo*numExposuresCounter)] = (double) value;
 
-                        //Determine if we need to populate the Bit Mask values
-                        std::string headerLabel = getHeaderValue(i + 1, "name");
+                        //Determine if we need to populate the Bit Mask value
+                        std::string headerLabel = nameCaptArray[i+1];
                         size_t bitsFound = headerLabel.find("BITS");
                         if (bitsFound != std::string::npos) {
                             int blockNum = atoi(headerLabel.substr(bitsFound + 4, 1).c_str());
                             uint8_t maskPtr;
-                            std::string desc("bit mask");
                             if (pArray != NULL) {
                                 for (int maski = 0; maski < 32; maski++) {
                                     //shift and mask the value and push into individual NDAttrs
                                     maskPtr = (value >> maski) & 0x01;
                                     pArray->pAttributeList->add(
                                             bitMasks[blockNum][maski].c_str(),
-                                            desc.c_str(),
+                                            "bit mask",
                                             NDAttrUInt8,
                                             &maskPtr);
                                 }

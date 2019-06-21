@@ -164,7 +164,11 @@ private:
     int arrayCounter, numImagesCounter, numExposures,numExposuresCounter, imgMode, imgNo;
     //vector of maps for the header values
     headerMap headerValues;
-
+    // Important header information stored in arrays for efficiency.
+    int typeArray[1024];
+    char* nameCaptArray[1024];
+    int headerArraySize;
+    int setLen;
     //Vector containing vector of strings for bit mask values
     std::vector<std::vector<std::string> > bitMasks;
 
