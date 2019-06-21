@@ -1147,7 +1147,7 @@ void ADPandABlocks::outputData(const int dataLen, const int dataNo, const std::v
 
             /* Increment number of lines processed*/
             linecount++;
-            callParamCallbacks();
+            //callParamCallbacks();
         }
 
     }
@@ -1207,7 +1207,7 @@ void ADPandABlocks::wrapFrame() {
 	// Update the counters
 	setIntegerParam(NDArrayCounter, arrayCounter);
 	setIntegerParam(ADNumImagesCounter, numImagesCounter);
-	callParamCallbacks();
+	//callParamCallbacks();
 	this->unlock();
 	if (pArray != NULL) {
 		// Ship the array off
