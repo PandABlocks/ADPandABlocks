@@ -1204,6 +1204,7 @@ void ADPandABlocks::wrapFrame() {
 	epicsTimeGetCurrent(&arrayTime);
 	if (pArray != NULL) {
 		pArray->timeStamp = arrayTime.secPastEpoch;
+        pArray->timeStamp +=0.000000001*arrayTime.nsec;
 		// Save the NDAttributes if there are any
 		getAttributes(pArray->pAttributeList);
 	}
