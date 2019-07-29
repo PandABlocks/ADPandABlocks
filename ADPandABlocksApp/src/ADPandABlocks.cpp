@@ -1265,13 +1265,13 @@ asynStatus ADPandABlocks::send(const std::string txBuffer, asynOctet *pasynOctet
 		setIntegerParam(ADPandABlocksIsConnected, 0);
         setIntegerParam(ADStatus, ADStatusDisconnected);
         setStringParam(ADStatusMessage, "Disconnected");
-		asynPrint(pasynUserSelf, ASYN_TRACE_FLOW,
+		asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
 				  "%s:%s: Can't write to ADPandABlocks: '%.*s'\n", driverName, functionName, (int)txBuffer.length(), txBuffer.c_str());
 	} else if (status == asynSuccess && !connected) {
 		setIntegerParam(ADPandABlocksIsConnected, 1);
         setIntegerParam(ADStatus, ADStatusIdle);
         setStringParam(ADStatusMessage, "Idle");
-		asynPrint(pasynUserSelf, ASYN_TRACE_FLOW,
+		asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
 				  "Reconnected to ADPandABlocks'\n");
 	}
 	return status;
