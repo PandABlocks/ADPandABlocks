@@ -12,6 +12,7 @@ PROD_IOC += tests
 tests_SRCS += tests.cpp
 tests_SRCS += test_ADPandABlocks.cpp
 tests_SRCS += testingutilities.cpp
+tests_LIBS += $(EPICS_BASE_IOC_LIBS)
 
 ifdef BOOST_LIB
 	boost_unit_test_framework_DIR=$(BOOST_LIB)
