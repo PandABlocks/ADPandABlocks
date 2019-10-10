@@ -537,8 +537,15 @@ std::vector<std::string> ADPandABlocks::readFieldNames(int* numFields) {
 
 	// We failed to read the field names, return empty object
 	if (status != asynSuccess) {
-		asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
-			"%s:%s: readFieldNames read failed, error=%d\n", driverName, functionName, status);
+
+		// Check if we are connected
+		int connected;
+		getIntegerParam(ADPandABlocksIsConnected, &connected);
+		// Only print error if we expect a response
+		if (connected) {
+			asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
+				"%s:%s: readFieldNames read failed, error=%d\n", driverName, functionName, status);
+		}
 		return fieldNameStrings;
 	}
 
@@ -1267,12 +1274,13 @@ asynStatus ADPandABlocks::send(const std::string txBuffer, asynOctet *pasynOctet
         setStringParam(ADStatusMessage, "Disconnected");
 		asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
 				  "%s:%s: Can't write to ADPandABlocks: '%.*s'\n", driverName, functionName, (int)txBuffer.length(), txBuffer.c_str());
+		asynPrint(pasynUserSelf, ASYN_TRACE_ERROR, "PandA box appears to be disconnected. Polling errors will be suppressed.\n");
 	} else if (status == asynSuccess && !connected) {
 		setIntegerParam(ADPandABlocksIsConnected, 1);
         setIntegerParam(ADStatus, ADStatusIdle);
         setStringParam(ADStatusMessage, "Idle");
 		asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
-				  "Reconnected to ADPandABlocks'\n");
+				  "Reconnected to ADPandABlocks\n");
 	}
 	return status;
 }
