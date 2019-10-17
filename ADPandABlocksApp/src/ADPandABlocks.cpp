@@ -1696,6 +1696,12 @@ asynStatus ADPandABlocks::writeOctet(asynUser *pasynUser, const char* value, siz
 		// Otherwise check lookup table
 	else status = UpdateLookupTableParamFromWrite(param, valueStream.str());
 
+	if (param < FIRST_PARAM)
+    {
+	    // call parent class if attribute isn't ours
+	    status = asynNDArrayDriver::writeOctet(pasynUser, value, nChars, nActual);
+    }
+
 	if(status)
 	{
 		asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,"%s:%s: Error setting values'\n",
