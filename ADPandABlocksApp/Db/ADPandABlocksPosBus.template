@@ -40,6 +40,7 @@ record(mbbo, "$(P)$(R)POSBUS$(POSBUS_IND):CAPTURE") {
   info(asyn:READBACK, "1")
 }
 
+#% archiver 10 Monitor
 record(ao, "$(P)$(R)POSBUS$(POSBUS_IND):SCALE") {
   field(DESC, "INENC scale value")
   field(DTYP, "asynFloat64")
@@ -48,6 +49,7 @@ record(ao, "$(P)$(R)POSBUS$(POSBUS_IND):SCALE") {
   info(asyn:READBACK, "1")
 }
 
+#% archiver 10 Monitor
 record(ao, "$(P)$(R)POSBUS$(POSBUS_IND):OFFSET") {
   field(DESC, "INENC offset value")
   field(DTYP, "asynFloat64")
