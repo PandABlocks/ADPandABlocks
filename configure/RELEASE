@@ -28,7 +28,7 @@ WORK=/dls_sw/work/R3.14.12.7/support
 ASYN=$(SUPPORT)/asyn/4-34
 
 # areaDetector for plugins like NDPluginStats
-ADCORE=$(SUPPORT)/ADCore/3-4dls2
+ADCORE=$(SUPPORT)/ADCore/3-6dls3
 MOTOR=$(SUPPORT)/motor/7-0dls1
 
 # If using the sequencer, point SNCSEQ at its top directory:
