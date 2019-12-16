@@ -1,0 +1,44 @@
+# % macro, PORT, Asyn Port name for ADPandABlocks comms
+# % macro, P, Device prefix
+# % macro, R, Device suffix
+# % macro TTL_IND, Index of custom param
+
+record(stringout, "$(P)$(R)TTL$(TTL_IND):_BLOCK") {
+  field(DTYP, "asynOctetWrite")
+  field(VAL, "TTLOUT$(TTL_IND)")
+  field(OUT, "@asyn($(PORT),0)PARAM0$(TTL_IND):BLOCK")
+  field(PINI, "YES")
+}
+
+record(stringout, "$(P)$(R)TTL$(TTL_IND):_FIELD") {
+  field(DTYP, "asynOctetWrite")
+  field(VAL, "VAL")
+  field(OUT, "@asyn($(PORT),0)PARAM0$(TTL_IND):FIELD")
+  field(PINI, "YES")
+}
+
+record(stringout, "$(P)$(R)TTL$(TTL_IND):_DEMAND") {
+  field(DTYP, "asynOctetWrite")
+  field(OUT, "@asyn($(PORT),0)PARAM0$(TTL_IND):DEMAND")
+}
+
+record(stringin, "$(P)$(R)TTL$(TTL_IND):CUSTOM") {
+  field(VAL, "CUSTOM")
+}
+
+record(scalcout, "$(P)$(R)TTL$(TTL_IND):_CALC") {
+  field(CALC, "A==0 ? 'ZERO' : ( A==1 ? 'ONE' : AA)")
+  field(INPA, $(P)$(R)TTL$(TTL_IND):OUTPUT)
+  field(INAA, $(P)$(R)TTL$(TTL_IND):CUSTOM)
+  field(OUT, "$(P)$(R)TTL$(TTL_IND):_DEMAND PP")
+}
+
+record(mbbi, "$(P)$(R)TTL$(TTL_IND):OUTPUT") {
+  field(ZRST, "ZERO")
+  field(ONST, "ONE")
+  field(TWST, "CUSTOM")
+  field(VAL, 0)
+  field(PINI, "YES")
+  field(FLNK, "$(P)$(R)TTL$(TTL_IND):_CALC")
+}
+

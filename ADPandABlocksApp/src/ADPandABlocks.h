@@ -34,6 +34,9 @@
 /* This is the number of encoders (motors) */
 #define NENC 4
 
+/* This is the number of custom params */
+#define NCUSTOM 10
+
 /* The timeout waiting for a response from ADPandABlocks */
 #define TIMEOUT 1.0
 
@@ -106,7 +109,11 @@ protected:
     int ADPandABlocksMUnits[NENC];       // string write    - motor units from GeoBrick
     int ADPandABlocksMScreenType[NENC];  // int32 write 	- Applies writeOnly embedded screen if using MotorSync
     int ADPandABlocksMCalibrate[NENC];   // int32 read 		- Calibrates encoder position
-    int ADPandABlocksMMotorName[NENC]; // string write 	- motor name from GeoBrick
+    int ADPandABlocksMMotorName[NENC];   // string write 	    - motor name from GeoBrick
+    int ADPandABlocksCustomParamBlock[NCUSTOM];    // string write 	- Custom Panda param to read/write (Block name)
+    int ADPandABlocksCustomParamField[NCUSTOM];    // string write 	- Custom Panda param to read/write (Field name)
+    int ADPandABlocksCustomParamDemand[NCUSTOM];   // string write 	- Custom Panda param demand value
+    int ADPandABlocksCustomParamRBV[NCUSTOM];      // string read 	    - Custom Panda param readback value
 #define NUM_PARAMS (&LAST_PARAM - &FIRST_PARAM + 1 + NPOSBUS*9 + NENC*6)
 
 private:
@@ -140,6 +147,8 @@ private:
     bool checkIfReasonIsMotorSetpos(int reason, int value);
     bool checkIfReasonIsMotorScreenType(int reason, int value);
     bool checkIfReasonIsMotorName(int reason, std::string name);
+    bool checkIfReasonIsCustomParam(int reason, std::string name);
+    void updateCustomParamLookup(int paramIndex, std::string paramName, std::string paramNameEnd);
     template<typename T>
     void updatePandAParam(std::string name, std::string field, T value);
     template<typename T>

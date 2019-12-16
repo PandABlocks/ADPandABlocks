@@ -266,6 +266,17 @@ ADPandABlocks::ADPandABlocks(const char* portName, const char* pandaAddress, int
 		createParam(str, asynParamOctet, &ADPandABlocksMMotorName[a]);
 	}
 
+    /*Make the params for the custom block params*/
+    for(int a = 0; a < NCUSTOM; a++)
+    {
+        epicsSnprintf(str, NBUFF, "PARAM%02d:BLOCK", a+1);
+        createParam(str, asynParamOctet, &ADPandABlocksCustomParamBlock[a]);
+        epicsSnprintf(str, NBUFF, "PARAM%02d:FIELD", a+1);
+        createParam(str, asynParamOctet, &ADPandABlocksCustomParamField[a]);
+        epicsSnprintf(str, NBUFF, "PARAM%02d:DEMAND", a+1);
+        createParam(str, asynParamOctet, &ADPandABlocksCustomParamDemand[a]);
+    }
+
 	// Create the lookup table parameters for the position bus
 	int posBusInd = 0;
 	for(std::vector<std::string>::iterator it = posFields[0].begin(); it != posFields[0].end(); ++it)
@@ -1452,6 +1463,54 @@ bool ADPandABlocks::checkIfReasonIsMotorName(int reason, std::string name)
 	return false;
 }
 
+// Set custom param
+bool ADPandABlocks::checkIfReasonIsCustomParam(int reason, std::string name)
+{
+    for (int i=0; i<NCUSTOM; i++)
+    {
+        if (reason == ADPandABlocksCustomParamBlock[i])
+        {
+            updateCustomParamLookup(i, name, "");
+            return true;
+        }
+        if (reason == ADPandABlocksCustomParamField[i])
+        {
+            updateCustomParamLookup(i, "", name);
+            return true;
+        }
+    }
+    return false;
+}
+
+void ADPandABlocks::updateCustomParamLookup(int paramIndex, std::string paramName, std::string paramNameEnd)
+{
+    int* asynParamInd = &ADPandABlocksCustomParamDemand[paramIndex];
+    if (paramNameEnd.length() == 0) {
+        if (paramName.length() > 0) {
+            //  New block was set, wipe field & return
+            setStringParam(ADPandABlocksCustomParamField[paramIndex], "");
+            return;
+        }
+        getStringParam(ADPandABlocksCustomParamField[paramIndex], paramNameEnd);
+    }
+    if (paramName.length() == 0) {
+        getStringParam(ADPandABlocksCustomParamBlock[paramIndex], paramName);
+    }
+    std::map<std::string, std::map<std::string, int*> >::iterator it = posBusLookup.find(paramName);
+    if (it == posBusLookup.end()) {
+        posBusLookup.insert(std::pair<std::string, std::map<std::string, int*> > (paramName, std::map<std::string, int*>()));
+        it = posBusLookup.find(paramName);
+    }
+    for (it = posBusLookup.begin(); it != posBusLookup.end(); ++it) {
+        for (std::map<std::string, int *>::iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2) {
+            if (*asynParamInd == *it2->second) {
+                posBusLookup[paramName].erase(it2);
+            }
+        }
+    }
+    posBusLookup[paramName].insert(std::pair<std::string, int*>(paramNameEnd, asynParamInd));
+}
+
 // Search and update lookup table parameter, sending command to PandA if required
 template<typename T>
 asynStatus ADPandABlocks::UpdateLookupTableParamFromWrite(int param, T value)
@@ -1693,6 +1752,9 @@ asynStatus ADPandABlocks::writeOctet(asynUser *pasynUser, const char* value, siz
 	if (checkIfReasonIsMotorUnit(param, valueStream.str()));
 		// Check if motor name is being set
 	else if (checkIfReasonIsMotorName(param, valueStream.str()));
+	// Check if is setting for custom param
+	else if (checkIfReasonIsCustomParam(param, valueStream.str()));
+
 		// Otherwise check lookup table
 	else status = UpdateLookupTableParamFromWrite(param, valueStream.str());
 

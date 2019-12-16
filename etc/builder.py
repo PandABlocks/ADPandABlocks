@@ -5,7 +5,7 @@ from iocbuilder.modules.ADCore import ADCore, ADBaseTemplate, includesTemplates,
 from iocbuilder.arginfo import *
 from iocbuilder.modules.motor import MotorLib
 
-# Peform template subsitution
+# Perform template subsitution
 @includesTemplates(ADBaseTemplate)
 class _MainDbFile (AutoSubstitution):
     TemplateFile = 'ADPandABlocks.template'
@@ -17,6 +17,12 @@ class _MotorSyncTemplate (AutoSubstitution):
     """Synchronises motor record MRES, OFFSET, UNITS with PandABlocks INENC and
     sets position after home"""
     TemplateFile = 'ADPandABlocksMotorSync.template'
+
+class _CustomParamTemplate (AutoSubstitution):
+    TemplateFile = 'ADPandABlocksCustomParam.template'
+
+class TTLControl(AutoSubstitution):
+    TemplateFile = 'ADPandABlocksTTLControl.template'
 
 class MotorSync (Device):
 
@@ -72,6 +78,7 @@ class ADPandABlocks(AsynPort):
 
     UniqueName = "PORT"
     N_POSBUS = 32
+    N_CUSTOM = 0
 
     def __init__(self, PORT, HOST, MAXBUF=1000, MAXMEM=0, **args):
         
@@ -87,8 +94,8 @@ class ADPandABlocks(AsynPort):
         self.HOST = HOST
         self.MAXBUF = MAXBUF
         self.MAXMEM = MAXMEM
-        self.NELM = 100000       
-        
+        self.NELM = 100000
+
         # Perform template subsitutions to create our DB file
         makeTemplateInstance(_MainDbFile, locals(), args)
         locals().update(args)
@@ -96,6 +103,10 @@ class ADPandABlocks(AsynPort):
         # Create the templates for the position bus entries
         for i in range(self.N_POSBUS):
             makeTemplateInstance(_PosBusTemplate, locals(), {'POSBUS_IND' : ("%d" % i)})
+
+        # Create templates for custom params
+        for i in range(self.N_CUSTOM):
+            makeTemplateInstance(_CustomParamTemplate, locals(), {'PARAM_IND' : ("%02d" % (i + 1))})
 
     def Initialise(self):
         # Print the command to create the device in the startup script
@@ -109,7 +120,7 @@ class ADPandABlocks(AsynPort):
     # tell xmlbuilder what args to supply
     ArgInfo = _MainDbFile.ArgInfo + makeArgInfo(__init__,
         PORT     = Simple("Asyn port name for the created driver", str),
-        HOST  = Simple("PandA Box - can be hostname or IP address", str),
+        HOST     = Simple("PandA Box - can be hostname or IP address", str),
         MAXBUF   = Simple("Maximum number of buffers (areaDetector)", int),
         MAXMEM   = Simple("Maximum memory (areaDetector)", int))
 
