@@ -1,41 +1,43 @@
 # % macro, PORT, Asyn Port name for ADPandABlocks comms
 # % macro, P, Device prefix
 # % macro, R, Device suffix
-# % macro TTL_IND, Index of custom param
+# % macro, TTL_IND, Index of custom param
+# % macro, PARAM1_IND
+# % macro, PARAM2_IND
 
 record(stringout, "$(P)$(R)TTL$(TTL_IND):_BLOCK") {
   field(DTYP, "asynOctetWrite")
   field(VAL, "TTLOUT$(TTL_IND)")
-  field(OUT, "@asyn($(PORT),0)PARAM01:BLOCK")
+  field(OUT, "@asyn($(PORT),0)PARAM$(PARAM1_IND):BLOCK")
   field(PINI, "YES")
 }
 
 record(stringout, "$(P)$(R)TTL$(TTL_IND):_FIELD") {
   field(DTYP, "asynOctetWrite")
   field(VAL, "VAL")
-  field(OUT, "@asyn($(PORT),0)PARAM01:FIELD")
+  field(OUT, "@asyn($(PORT),0)PARAM$(PARAM1_IND):FIELD")
   field(PINI, "YES")
 }
 
 record(stringout, "$(P)$(R)TTL$(TTL_IND):_DEMAND") {
   field(DTYP, "asynOctetWrite")
-  field(OUT, "@asyn($(PORT),0)PARAM01:DEMAND")
+  field(OUT, "@asyn($(PORT),0)PARAM$(PARAM1_IND):DEMAND")
 }
 
 record(stringin, "$(P)$(R)TTL$(TTL_IND):RBV") {
   field(DTYP, "asynOctetRead")
-  field(INP, "@asyn($(PORT),0)PARAM02:RBV")
+  field(INP, "@asyn($(PORT),0)PARAM$(PARAM2_IND):RBV")
+  field(SCAN, "I/O Intr")
 }
 
 record(stringout, "$(P)$(R)TTL$(TTL_IND):RBV:_BLOCK") {
   field(DTYP, "asynOctetWrite")
-  field(OUT, "@asyn($(PORT),0)PARAM02:BLOCK")
+  field(OUT, "@asyn($(PORT),0)PARAM$(PARAM2_IND):BLOCK")
 }
 
 record(stringout, "$(P)$(R)TTL$(TTL_IND):RBV:_FIELD") {
   field(DTYP, "asynOctetWrite")
-  field(OUT, "@asyn($(PORT),0)PARAM02:FIELD")
-  field(SCAN, "I/O Intr")
+  field(OUT, "@asyn($(PORT),0)PARAM$(PARAM2_IND):FIELD")
 }
 
 record(stringin, "$(P)$(R)TTL$(TTL_IND):CUSTOM") {
