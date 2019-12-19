@@ -5,24 +5,35 @@ from iocbuilder.modules.ADCore import ADCore, ADBaseTemplate, includesTemplates,
 from iocbuilder.arginfo import *
 from iocbuilder.modules.motor import MotorLib
 
+
 # Perform template subsitution
 @includesTemplates(ADBaseTemplate)
 class _MainDbFile (AutoSubstitution):
     TemplateFile = 'ADPandABlocks.template'
 
+
 class _PosBusTemplate (AutoSubstitution):
     TemplateFile = 'ADPandABlocksPosBus.template'
+
 
 class _MotorSyncTemplate (AutoSubstitution):
     """Synchronises motor record MRES, OFFSET, UNITS with PandABlocks INENC and
     sets position after home"""
     TemplateFile = 'ADPandABlocksMotorSync.template'
 
+
 class _CustomParamTemplate (AutoSubstitution):
     TemplateFile = 'ADPandABlocksCustomParam.template'
 
+
 class TTLControl(AutoSubstitution):
     TemplateFile = 'ADPandABlocksTTLControl.template'
+
+# Use TTL output for software triggering a detector with a gated pulse
+# Probably not something we should encourage, just use malcolm!
+# class SoftTTLTrigger(AutoSubstitution):
+#    TemplateFile = 'ADPandABlocksSoftTTLTrigger.template'
+
 
 class MotorSync (Device):
 

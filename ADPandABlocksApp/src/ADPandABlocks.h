@@ -134,7 +134,7 @@ private:
     bool posBusInUse(std::string posBusName);
     void createLookup(std::string paramName, std::string paramNameEnd, int* paramInd, int posBusInd);
     std::vector<std::string> stringSplit(const std::string& s, char delimiter);
-    void processChanges(std::string cmd, bool posn);
+    void processChanges(std::string cmd);
     void updateScaledPositionValue(std::string posBusName);
     int getEncoderNumberFromName(std::string posBusName);
     void calibrateEncoderPosition(int encoderNumer);
@@ -158,7 +158,8 @@ private:
     double stringToDouble(std::string str);
     int stringToInteger(std::string str);
     std::string doubleToString(double value);
-    void removeSubString(std::string &string, std::string &subString);    
+    void removeSubString(std::string &string, std::string &subString);
+    bool checkIfCustomPosBusParam(std::string posBusName, std::string fieldName, std::string val);
 private:
     NDArray *pArray;
     asynUser *pasynUser_ctrl_tx;

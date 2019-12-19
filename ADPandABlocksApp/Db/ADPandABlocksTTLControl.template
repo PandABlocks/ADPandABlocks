@@ -6,31 +6,61 @@
 record(stringout, "$(P)$(R)TTL$(TTL_IND):_BLOCK") {
   field(DTYP, "asynOctetWrite")
   field(VAL, "TTLOUT$(TTL_IND)")
-  field(OUT, "@asyn($(PORT),0)PARAM0$(TTL_IND):BLOCK")
+  field(OUT, "@asyn($(PORT),0)PARAM01:BLOCK")
   field(PINI, "YES")
 }
 
 record(stringout, "$(P)$(R)TTL$(TTL_IND):_FIELD") {
   field(DTYP, "asynOctetWrite")
   field(VAL, "VAL")
-  field(OUT, "@asyn($(PORT),0)PARAM0$(TTL_IND):FIELD")
+  field(OUT, "@asyn($(PORT),0)PARAM01:FIELD")
   field(PINI, "YES")
 }
 
 record(stringout, "$(P)$(R)TTL$(TTL_IND):_DEMAND") {
   field(DTYP, "asynOctetWrite")
-  field(OUT, "@asyn($(PORT),0)PARAM0$(TTL_IND):DEMAND")
+  field(OUT, "@asyn($(PORT),0)PARAM01:DEMAND")
+}
+
+record(stringin, "$(P)$(R)TTL$(TTL_IND):RBV") {
+  field(DTYP, "asynOctetRead")
+  field(INP, "@asyn($(PORT),0)PARAM02:RBV")
+}
+
+record(stringout, "$(P)$(R)TTL$(TTL_IND):RBV:_BLOCK") {
+  field(DTYP, "asynOctetWrite")
+  field(OUT, "@asyn($(PORT),0)PARAM02:BLOCK")
+}
+
+record(stringout, "$(P)$(R)TTL$(TTL_IND):RBV:_FIELD") {
+  field(DTYP, "asynOctetWrite")
+  field(OUT, "@asyn($(PORT),0)PARAM02:FIELD")
+  field(SCAN, "I/O Intr")
 }
 
 record(stringin, "$(P)$(R)TTL$(TTL_IND):CUSTOM") {
   field(VAL, "CUSTOM")
+  field(FLNK, "$(P)$(R)TTL$(TTL_IND):_CALC1")
 }
 
-record(scalcout, "$(P)$(R)TTL$(TTL_IND):_CALC") {
+record(scalcout, "$(P)$(R)TTL$(TTL_IND):_CALC0") {
   field(CALC, "A==0 ? 'ZERO' : ( A==1 ? 'ONE' : AA)")
   field(INPA, $(P)$(R)TTL$(TTL_IND):OUTPUT)
   field(INAA, $(P)$(R)TTL$(TTL_IND):CUSTOM)
   field(OUT, "$(P)$(R)TTL$(TTL_IND):_DEMAND PP")
+}
+
+record(scalcout, "$(P)$(R)TTL$(TTL_IND):_CALC1") {
+  field(CALC, "SSCANF(AA, '%[^.].%*s')")
+  field(INAA, $(P)$(R)TTL$(TTL_IND):CUSTOM)
+  field(FLNK, "$(P)$(R)TTL$(TTL_IND):_CALC2")
+  field(OUT, "$(P)$(R)TTL$(TTL_IND):RBV:_BLOCK PP")
+}
+
+record(scalcout, "$(P)$(R)TTL$(TTL_IND):_CALC2") {
+  field(CALC, "SSCANF(AA, '%*[^.].%s')")
+  field(INAA, $(P)$(R)TTL$(TTL_IND):CUSTOM)
+  field(OUT, "$(P)$(R)TTL$(TTL_IND):RBV:_FIELD PP")
 }
 
 record(mbbi, "$(P)$(R)TTL$(TTL_IND):OUTPUT") {
@@ -39,6 +69,6 @@ record(mbbi, "$(P)$(R)TTL$(TTL_IND):OUTPUT") {
   field(TWST, "CUSTOM")
   field(VAL, 0)
   field(PINI, "YES")
-  field(FLNK, "$(P)$(R)TTL$(TTL_IND):_CALC")
+  field(FLNK, "$(P)$(R)TTL$(TTL_IND):_CALC0")
 }
 

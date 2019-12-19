@@ -275,6 +275,9 @@ ADPandABlocks::ADPandABlocks(const char* portName, const char* pandaAddress, int
         createParam(str, asynParamOctet, &ADPandABlocksCustomParamField[a]);
         epicsSnprintf(str, NBUFF, "PARAM%02d:DEMAND", a+1);
         createParam(str, asynParamOctet, &ADPandABlocksCustomParamDemand[a]);
+
+        epicsSnprintf(str, NBUFF, "PARAM%02d:RBV", a+1);
+        createParam(str, asynParamOctet, &ADPandABlocksCustomParamRBV[a]);
     }
 
 	// Create the lookup table parameters for the position bus
@@ -295,8 +298,7 @@ ADPandABlocks::ADPandABlocks(const char* portName, const char* pandaAddress, int
 	}
 
 	// Initialise position bus values
-	processChanges("*CHANGES.ATTR?", false);
-	processChanges("*CHANGES.POSN?", true);
+	processChanges("*CHANGES?");
 
 	/* Create thread to monitor command port for position bus changes */
 	if (epicsThreadCreate("ADPandABlocksPollCommandPort", epicsThreadPriorityMedium,
@@ -366,7 +368,7 @@ void ADPandABlocks::updatePandAParam<int>(std::string name, std::string field, i
 	{
 		if(posBusLookup[name].find(field) != posBusLookup[name].end())
 		{
-			if (field == "VAL")
+		    if (field == "VAL")
 			{
 				setIntegerParam(*posBusLookup[name]["UNSCALEDVAL"], value);
 				updateScaledPositionValue(name);
@@ -626,8 +628,7 @@ void ADPandABlocks::pollCommandPort(){
 	{
 		epicsTimeGetCurrent(&pollStartTime);
 		this->lock();
-		processChanges("*CHANGES.ATTR?", false);
-		processChanges("*CHANGES.POSN?", true);
+        processChanges("*CHANGES?");
 		this->unlock();
 		callParamCallbacks();
 		epicsTimeGetCurrent(&pollEndTime);
@@ -635,7 +636,38 @@ void ADPandABlocks::pollCommandPort(){
 	}
 }
 
-void ADPandABlocks::processChanges(std::string cmd, bool posn)
+bool ADPandABlocks::checkIfCustomPosBusParam(std::string posBusName, std::string fieldName, std::string val) {
+    std::map<std::string, std::map<std::string, int*> >::iterator it = posBusLookup.find(posBusName);
+    if (it != posBusLookup.end()) {
+        std::map<std::string, int*>::iterator it2 = it->second.find(fieldName);
+        if (it2 != it->second.end()) {
+            for (int ind = 0; ind < NCUSTOM; ind++) {
+                int reason = *(it2->second);
+                if (reason == ADPandABlocksCustomParamDemand[ind]) {
+                    setStringParam(ADPandABlocksCustomParamRBV[ind], val.c_str());
+                    return true;
+                }
+                /*if (reason == ADPandABlocksCustomParamRBV[ind]) {
+                    setStringParam(ADPandABlocksCustomParamRBV[ind], val.c_str());
+                    return true;
+                }
+
+                if (reason == ADPandABlocksCustomParamBlock[i])
+                {
+                    return true;
+                }
+                if (reason == ADPandABlocksCustomParamField[i])
+                {
+                    return true;
+                }
+                 */
+            }
+        }
+    }
+    return false;
+}
+
+void ADPandABlocks::processChanges(std::string cmd)
 {
 	std::vector<std::vector<std::string> > changed;
 	std::vector<std::string> changedField;
@@ -652,9 +684,18 @@ void ADPandABlocks::processChanges(std::string cmd, bool posn)
 		changedField = stringSplit(changedParts[0], '.');
 		std::string fieldName = changedField[1];
 		std::string fieldVal = "";
-		if(posn){
-			posBusName << changedParts[0];
-			fieldName = "VAL";
+
+		if (changedField.size() == 2) {
+		    if (changedField[0].rfind("INENC",0) == 0) {
+                if (changedField[1] == "VAL") {
+                    posBusName << changedParts[0];
+                    fieldName = "VAL";
+                }
+            }
+		    else {
+                posBusName << changedField[0];
+		        fieldName = changedField[1];
+		    }
 		}
 		else{
 			posBusName << changedField[0] << "." << changedField[1];
@@ -665,24 +706,18 @@ void ADPandABlocks::processChanges(std::string cmd, bool posn)
 			fieldVal = changedParts[1];
 		}
 		posBusNameStr = posBusName.str();
-
-		// Update asyn parameter
-		if (fieldName == "CAPTURE")
-		{
-			updatePandAParam(posBusNameStr, fieldName, captureType[fieldVal.c_str()]);
-		}
-		else if (fieldName == "VAL")
-		{
-			updatePandAParam(posBusNameStr, fieldName, stringToInteger(fieldVal));
-		}
-		else if (fieldName == "SCALE" || fieldName == "OFFSET")
-		{
-			updatePandAParam(posBusNameStr, fieldName, stringToDouble(fieldVal));
-		}
-		else
-		{
-			updatePandAParam(posBusNameStr, fieldName, fieldVal);
-		}
+        if (!checkIfCustomPosBusParam(posBusNameStr, fieldName, fieldVal)) {
+            // Update asyn parameter
+            if (fieldName == "CAPTURE") {
+                updatePandAParam(posBusNameStr, fieldName, captureType[fieldVal.c_str()]);
+            } else if (fieldName == "VAL") {
+                updatePandAParam(posBusNameStr, fieldName, stringToInteger(fieldVal));
+            } else if (fieldName == "SCALE" || fieldName == "OFFSET") {
+                updatePandAParam(posBusNameStr, fieldName, stringToDouble(fieldVal));
+            } else {
+                updatePandAParam(posBusNameStr, fieldName, fieldVal);
+            }
+        }
 
 	}
 }
@@ -1478,6 +1513,13 @@ bool ADPandABlocks::checkIfReasonIsCustomParam(int reason, std::string name)
             updateCustomParamLookup(i, "", name);
             return true;
         }
+        /*
+        if(reason == ADPandABlocksCustomParamDemand[i])
+        {
+            // updateCustomParamLookup(i, "", name);
+            return true;
+        }
+         */
     }
     return false;
 }
