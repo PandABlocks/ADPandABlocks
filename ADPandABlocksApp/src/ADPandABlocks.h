@@ -150,7 +150,7 @@ private:
     bool checkIfReasonIsCustomParam(int reason, std::string name);
     void updateCustomParamLookup(int paramIndex, std::string paramName, std::string paramNameEnd);
     template<typename T>
-    void updatePandAParam(std::string name, std::string field, T value);
+    bool updatePandAParam(std::string name, std::string field, T value);
     template<typename T>
     void updatePandAMotorParam(int motorIndex, motorField field, T value);
     template<typename T>
@@ -159,7 +159,7 @@ private:
     int stringToInteger(std::string str);
     std::string doubleToString(double value);
     void removeSubString(std::string &string, std::string &subString);
-    bool checkIfCustomPosBusParam(std::string posBusName, std::string fieldName, std::string val);
+    bool checkIfCustomParam(std::string paramName, std::string fieldName, std::string val);
 private:
     NDArray *pArray;
     asynUser *pasynUser_ctrl_tx;
@@ -187,6 +187,9 @@ private:
 
     //Lookup table for posbus params
     std::map<std::string, std::map<std::string, int*> > posBusLookup;
+
+    //Lookup table for custom params
+    std::map<std::string, std::map<std::string, int*> > customParamLookup;
 
     //Capture type map
     std::map<std::string, int> captureType;
