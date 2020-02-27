@@ -24,6 +24,12 @@ record(stringout, "$(P)$(R)TTL$(TTL_IND):_DEMAND") {
   field(OUT, "@asyn($(PORT),0)PARAM$(PARAM1_IND):DEMAND")
 }
 
+record(stringin, "$(P)$(R)TTL$(TTL_IND):_RBV") {
+  field(DTYP, "asynOctetRead")
+  field(INP, "@asyn($(PORT),0)PARAM$(PARAM1_IND):RBV")
+  field(SCAN, "I/O Intr")
+}
+
 record(stringin, "$(P)$(R)TTL$(TTL_IND):_CUSTOM_RBV") {
   field(DTYP, "asynOctetRead")
   field(INP, "@asyn($(PORT),0)PARAM$(PARAM2_IND):RBV")

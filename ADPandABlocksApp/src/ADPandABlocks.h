@@ -4,6 +4,7 @@
 #include <cstring>
 #include <string>
 #include <map>
+#include <utility>
 #include <vector>
 
 #include <libxml/xmlreader.h>
@@ -188,8 +189,8 @@ private:
     //Lookup table for posbus params
     std::map<std::string, std::map<std::string, int*> > posBusLookup;
 
-    //Lookup table for custom params
-    std::map<std::string, std::map<std::string, int*> > customParamLookup;
+    //Lookup table for custom params (pair of demand param & rbv param)
+    std::map<std::string, std::map<std::string, std::pair<int*, int* > > > customParamLookup;
 
     //Capture type map
     std::map<std::string, int> captureType;
