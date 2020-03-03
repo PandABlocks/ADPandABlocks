@@ -1,0 +1,67 @@
+# % macro, PORT, Asyn Port name for ADPandABlocks comms
+# % macro, P, Device prefix
+# % macro, R, Device suffix
+# % macro, TTL_IND, Index of custom param
+# % macro, PARAM1_IND
+# % macro, PARAM2_IND
+
+record(stringout, "$(P)$(R)TTL$(TTL_IND):_BLOCK") {
+  field(DTYP, "asynOctetWrite")
+  field(VAL, "TTLOUT$(TTL_IND)")
+  field(OUT, "@asyn($(PORT),0)PARAM$(PARAM1_IND):BLOCK")
+  field(PINI, "YES")
+}
+
+record(stringout, "$(P)$(R)TTL$(TTL_IND):_FIELD") {
+  field(DTYP, "asynOctetWrite")
+  field(VAL, "VAL")
+  field(OUT, "@asyn($(PORT),0)PARAM$(PARAM1_IND):FIELD")
+  field(PINI, "YES")
+}
+
+record(stringin, "$(P)$(R)TTL$(TTL_IND):_LINK") {
+  field(DTYP, "asynOctetRead")
+  field(INP, "@asyn($(PORT),0)PARAM$(PARAM1_IND):RBV")
+  field(FLNK, "$(P)$(R)TTL$(TTL_IND):_CALC1")
+  field(SCAN, "I/O Intr")
+}
+
+record(stringin, "$(P)$(R)TTL$(TTL_IND):_LINK_RBV") {
+  field(DTYP, "asynOctetRead")
+  field(INP, "@asyn($(PORT),0)PARAM$(PARAM2_IND):RBV")
+  field(SCAN, "I/O Intr")
+  field(FLNK, "$(P)$(R)TTL$(TTL_IND):_CALC3")
+}
+
+record(ai, "$(P)$(R)TTL$(TTL_IND):RBV") {
+}
+
+record(scalcout, "$(P)$(R)TTL$(TTL_IND):_CALC3") {
+  field(CALC, "SSCANF(AA, '%d')")
+  field(INAA, $(P)$(R)TTL$(TTL_IND):_LINK_RBV)
+  field(OUT, "$(P)$(R)TTL$(TTL_IND):RBV PP")
+}
+
+record(stringout, "$(P)$(R)TTL$(TTL_IND):RBV:_BLOCK") {
+  field(DTYP, "asynOctetWrite")
+  field(OUT, "@asyn($(PORT),0)PARAM$(PARAM2_IND):BLOCK")
+}
+
+record(stringout, "$(P)$(R)TTL$(TTL_IND):RBV:_FIELD") {
+  field(DTYP, "asynOctetWrite")
+  field(OUT, "@asyn($(PORT),0)PARAM$(PARAM2_IND):FIELD")
+}
+
+record(scalcout, "$(P)$(R)TTL$(TTL_IND):_CALC1") {
+  field(CALC, "SSCANF(AA, '%[^.].%*s')")
+  field(INAA, $(P)$(R)TTL$(TTL_IND):_LINK)
+  field(FLNK, "$(P)$(R)TTL$(TTL_IND):_CALC2")
+  field(OUT, "$(P)$(R)TTL$(TTL_IND):RBV:_BLOCK PP")
+}
+
+record(scalcout, "$(P)$(R)TTL$(TTL_IND):_CALC2") {
+  field(CALC, "SSCANF(AA, '%*[^.].%s')")
+  field(INAA, $(P)$(R)TTL$(TTL_IND):_LINK)
+  field(OUT, "$(P)$(R)TTL$(TTL_IND):RBV:_FIELD PP")
+}
+

@@ -30,7 +30,13 @@ class _TTLControl(AutoSubstitution):
     TemplateFile = 'ADPandABlocksTTLControl.template'
 
 
+class _TTLReadback(AutoSubstitution):
+    TemplateFile = 'ADPandABlocksTTLOutRBV.template'
+
+
 numTTLControl = 0
+
+
 class TTLControl(Device):
     def __init__(self, PORT, P, R, TTL_IND=1):
         global numTTLControl
@@ -45,6 +51,23 @@ class TTLControl(Device):
                           R=Simple("Device suffix", str),
                           PORT=Simple("Asyn port", str),
                           TTL_IND=Choice("TTL output index", [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]))
+    
+
+class TTLReadback(Device):
+    def __init__(self, PORT, P, R, TTL_IND=1):
+        global numTTLControl
+        PARAM1_IND = "%02d" % ((numTTLControl * 2) + 1)
+        PARAM2_IND = "%02d" % ((numTTLControl * 2) + 2)
+        self.template = _TTLReadback(PORT=PORT, P=P, R=R, TTL_IND=TTL_IND, PARAM1_IND=PARAM1_IND,
+                                    PARAM2_IND=PARAM2_IND)
+        numTTLControl += 1
+
+    ArgInfo = makeArgInfo(__init__,
+                          P=Simple("Device prefix", str),
+                          R=Simple("Device suffix", str),
+                          PORT=Simple("Asyn port", str),
+                          TTL_IND=Choice("TTL output index", [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]))
+
 
 
 # Use TTL output for software triggering a detector with a gated pulse
