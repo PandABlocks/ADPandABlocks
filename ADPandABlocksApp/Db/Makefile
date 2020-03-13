@@ -19,6 +19,7 @@ DB += ADPandABlocksPosBus.template
 DB += ADPandABlocksMotorSync.template
 DB += ADPandABlocksCustomParam.template
 DB += ADPandABlocksTTLControl.template
+DB += ADPandABlocksTTLOutRBV.template
 DB += ADPandABlocksSoftTTLTrigger.template
 
 #----------------------------------------------------
