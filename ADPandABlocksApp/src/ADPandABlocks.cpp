@@ -502,7 +502,6 @@ void ADPandABlocks::updatePandAMotorParam<double>(int motorIndex, motorField fie
             asynPrint(pasynUserSelf, ASYN_TRACE_ERROR, "Invalid switch case for: %d\n", field);
             break;
         }
-        }
     }
     updatePandAParam(posBusName.str(), posBusField.str(), value);
 }
