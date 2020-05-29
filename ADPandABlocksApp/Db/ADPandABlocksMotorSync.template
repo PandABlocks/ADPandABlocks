@@ -102,7 +102,7 @@ record(longout, "$(P)$(R)INENC$(ENC_IND):CALIBRATE") {
   field(OUT, "@asyn($(PORT),0)INENC$(ENC_IND):CALIBRATE")
   field(FLNK, "$(P)$(R)INENC$(ENC_IND):SETPOSCALC.PROC PP")
   info(asyn:READBACK, "1")
- }
+}
 
  # Underlying motor name
 record (stringout, "$(P)$(R)INENC$(ENC_IND):MOTORNAME") {

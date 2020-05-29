@@ -3,6 +3,7 @@ TOP=../..
 include $(TOP)/configure/CONFIG
 
 #USR_CXXFLAGS += -Werror
+USR_CXXFLAGS += -g
 USR_CXXFLAGS += -Wall -Wextra
 USR_CXXFLAGS += -Wno-unused-parameter
 

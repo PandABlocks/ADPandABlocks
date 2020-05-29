@@ -1,0 +1,40 @@
+# % macro, PORT, Asyn Port name for ADPandABlocks comms
+# % macro, P, Device prefix
+# % macro, R, Device suffix
+# % macro PARAM_IND, Index of custom param
+
+record(stringout, "$(P)$(R)PARAM$(PARAM_IND):BLOCK") {
+  field(DESC, "Custom Param block name")
+  field(DTYP, "asynOctetWrite")
+  field(OUT, "@asyn($(PORT),0)PARAM$(PARAM_IND):BLOCK")
+}
+
+record(stringin, "$(P)$(R)PARAM$(PARAM_IND):BLOCK_RBV") {
+  field(DESC, "Custom Param block name")
+  field(DTYP, "asynOctetRead")
+  field(INP, "@asyn($(PORT),0)PARAM$(PARAM_IND):BLOCK")
+}
+
+record(stringout, "$(P)$(R)PARAM$(PARAM_IND):FIELD") {
+  field(DESC, "Custom Param field name")
+  field(DTYP, "asynOctetWrite")
+  field(OUT, "@asyn($(PORT),0)PARAM$(PARAM_IND):FIELD")
+}
+
+record(stringin, "$(P)$(R)PARAM$(PARAM_IND):FIELD_RBV") {
+  field(DESC, "Custom Param field name")
+  field(DTYP, "asynOctetRead")
+  field(INP, "@asyn($(PORT),0)PARAM$(PARAM_IND):FIELD")
+}
+
+record(stringout, "$(P)$(R)PARAM$(PARAM_IND):DEMAND") {
+  field(DESC, "Custom Param demand value")
+  field(DTYP, "asynOctetWrite")
+  field(OUT, "@asyn($(PORT),0)PARAM$(PARAM_IND):DEMAND")
+}
+
+record(stringin, "$(P)$(R)PARAM$(PARAM_IND):DEMAND_RBV") {
+  field(DESC, "Custom Param demand value")
+  field(DTYP, "asynOctetRead")
+  field(INP), "@asyn($(PORT),0)PARAM$(PARAM_IND):DEMAND")
+}

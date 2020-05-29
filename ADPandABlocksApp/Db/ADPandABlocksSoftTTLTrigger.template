@@ -1,0 +1,168 @@
+# % macro, PORT, Asyn Port name for ADPandABlocks comms
+# % macro, P, Device prefix
+# % macro, R, Device suffix
+# % macro TTL_IND, Index of custom param
+# % macro PULSE_IND, Index of custom param
+
+record(stringout, "$(P)$(R)SOFTTRIG$(TTL_IND):_TTL:_BLOCK") {
+  field(DTYP, "asynOctetWrite")
+  field(VAL, "TTLOUT$(TTL_IND)")
+  field(OUT, "@asyn($(PORT),0)PARAM01:BLOCK")
+  field(PINI, "YES")
+}
+
+record(stringout, "$(P)$(R)SOFTTRIG$(TTL_IND):_TTL:_FIELD") {
+  field(DTYP, "asynOctetWrite")
+  field(VAL, "VAL")
+  field(OUT, "@asyn($(PORT),0)PARAM01:FIELD")
+  field(PINI, "YES")
+}
+
+record(stringout, "$(P)$(R)SOFTTRIG$(TTL_IND):_TTL:_DEMAND") {
+  field(DTYP, "asynOctetWrite")
+  field(VAL, "PULSE$(TTL_IND).OUT")
+  field(OUT, "@asyn($(PORT),0)PARAM01:DEMAND")
+  field(PINI, "YES")
+}
+
+record(stringout, "$(P)$(R)SOFTTRIG$(TTL_IND):_PULSE:WIDTH:_BLOCK") {
+  field(DTYP, "asynOctetWrite")
+  field(VAL, "PULSE$(TTL_IND)")
+  field(OUT, "@asyn($(PORT),0)PARAM02:BLOCK")
+  field(PINI, "YES")
+}
+
+record(stringout, "$(P)$(R)SOFTTRIG$(TTL_IND):_PULSE:WIDTH:_FIELD") {
+  field(DTYP, "asynOctetWrite")
+  field(VAL, "WIDTH")
+  field(OUT, "@asyn($(PORT),0)PARAM02:FIELD")
+  field(PINI, "YES")
+}
+
+record(stringout, "$(P)$(R)SOFTTRIG$(TTL_IND):_PULSE:WIDTH:_DEMAND") {
+  field(DTYP, "asynOctetWrite")
+  field(OUT, "@asyn($(PORT),0)PARAM02:DEMAND")
+}
+
+record(stringout, "$(P)$(R)SOFTTRIG$(TTL_IND):_PULSE:UNITS:_BLOCK") {
+  field(DTYP, "asynOctetWrite")
+  field(VAL, "PULSE$(TTL_IND).WIDTH")
+  field(OUT, "@asyn($(PORT),0)PARAM03:BLOCK")
+  field(PINI, "YES")
+}
+
+record(stringout, "$(P)$(R)SOFTTRIG$(TTL_IND):_PULSE:UNITS:_FIELD") {
+  field(DTYP, "asynOctetWrite")
+  field(VAL, "UNITS")
+  field(OUT, "@asyn($(PORT),0)PARAM03:FIELD")
+  field(PINI, "YES")
+}
+
+record(stringout, "$(P)$(R)SOFTTRIG$(TTL_IND):_PULSE:UNITS:_DEMAND") {
+  field(DTYP, "asynOctetWrite")
+  field(VAL, "s")
+  field(OUT, "@asyn($(PORT),0)PARAM03:DEMAND")
+  field(PINI, "YES")
+}
+
+record(stringout, "$(P)$(R)SOFTTRIG$(TTL_IND):_PULSE:ENA:_BLOCK") {
+  field(DTYP, "asynOctetWrite")
+  field(VAL, "PULSE$(TTL_IND)")
+  field(OUT, "@asyn($(PORT),0)PARAM04:BLOCK")
+  field(PINI, "YES")
+}
+
+record(stringout, "$(P)$(R)SOFTTRIG$(TTL_IND):_PULSE:ENA:_FIELD") {
+  field(DTYP, "asynOctetWrite")
+  field(VAL, "ENABLE")
+  field(OUT, "@asyn($(PORT),0)PARAM04:FIELD")
+  field(PINI, "YES")
+}
+
+record(stringout, "$(P)$(R)SOFTTRIG$(TTL_IND):_PULSE:ENA:_DEMAND") {
+  field(DTYP, "asynOctetWrite")
+  field(VAL, "ONE")
+  field(OUT, "@asyn($(PORT),0)PARAM04:DEMAND")
+  field(PINI, "YES")
+}
+
+record(stringout, "$(P)$(R)SOFTTRIG$(TTL_IND):_PULSE:TRIG:_BLOCK") {
+  field(DTYP, "asynOctetWrite")
+  field(VAL, "PULSE$(TTL_IND)")
+  field(OUT, "@asyn($(PORT),0)PARAM05:BLOCK")
+  field(PINI, "YES")
+}
+
+record(stringout, "$(P)$(R)SOFTTRIG$(TTL_IND):_PULSE:TRIG:_FIELD") {
+  field(DTYP, "asynOctetWrite")
+  field(VAL, "TRIG")
+  field(OUT, "@asyn($(PORT),0)PARAM05:FIELD")
+  field(PINI, "YES")
+}
+
+record(stringout, "$(P)$(R)SOFTTRIG$(TTL_IND):_PULSE:TRIG:_DEMAND") {
+  field(DTYP, "asynOctetWrite")
+  field(OUT, "@asyn($(PORT),0)PARAM05:DEMAND")
+  field(PINI, "YES")
+}
+
+record(stringout, "$(P)$(R)SOFTTRIG$(TTL_IND):_PULSE:EDGE:_BLOCK") {
+  field(DTYP, "asynOctetWrite")
+  field(VAL, "PULSE$(TTL_IND)")
+  field(OUT, "@asyn($(PORT),0)PARAM06:BLOCK")
+  field(PINI, "YES")
+}
+
+record(stringout, "$(P)$(R)SOFTTRIG$(TTL_IND):_PULSE:EDGE:_FIELD") {
+  field(DTYP, "asynOctetWrite")
+  field(VAL, "TRIG_EDGE")
+  field(OUT, "@asyn($(PORT),0)PARAM06:FIELD")
+  field(PINI, "YES")
+}
+
+record(stringout, "$(P)$(R)SOFTTRIG$(TTL_IND):_PULSE:EDGE:_DEMAND") {
+  field(DTYP, "asynOctetWrite")
+  field(VAL, "Either")
+  field(OUT, "@asyn($(PORT),0)PARAM06:DEMAND")
+  field(PINI, "YES")
+}
+
+record(scalcout, "$(P)$(R)SOFTTRIG$(TTL_IND):_CALC0") {
+  field(CALC, "A==0 ? 'ZERO' : 'ONE'")
+  field(INPA, "$(P)$(R)SOFTTRIG$(TTL_IND):_CALC1")
+  field(OUT, "$(P)$(R)SOFTTRIG$(TTL_IND):_PULSE:TRIG:_DEMAND PP")
+}
+
+record(calcout, "$(P)$(R)SOFTTRIG$(TTL_IND):_CALC1") {
+  field(CALC, "(A+1) % 2")
+  field(INPA, "$(P)$(R)SOFTTRIG$(TTL_IND):_FLIP")
+  field(OUT, "$(P)$(R)SOFTTRIG$(TTL_IND):_FLIP")
+  field(FLNK, "$(P)$(R)SOFTTRIG$(TTL_IND):_CALC0")
+  field(SCAN, "Passive")
+}
+
+record(ai, "$(P)$(R)SOFTTRIG$(TTL_IND):_FLIP") {
+  field(VAL, 0)
+}
+
+record(fanout, "$(P)$(R)SOFTTRIG$(TTL_IND):Acquire") {
+  field(LNK1, "$(P)$(R)SOFTTRIG$(TTL_IND):_CALC1")
+}
+
+record(ao, "$(P)$(R)SOFTTRIG$(TTL_IND):AcquireTime") {
+  field(OUT, "$(P)$(R)SOFTTRIG$(TTL_IND):_PULSE:WIDTH:_DEMAND PP")
+}
+
+record(stringin, "$(P)$(R)SOFTTRIG$(TTL_IND):AcquireTime_RBV") {
+  field(DTYP, "asynOctetRead")
+  field(INP, "@asyn($(PORT),0)PARAM02:RBV")
+  field(SCAN, "I/O Intr")
+}
+
+record(fanout, "$(P)$(R)SOFTTRIG$(TTL_IND):Configure") {
+  field(LNK1, "$(P)$(R)SOFTTRIG$(TTL_IND):_TTL:_DEMAND")
+  field(LNK2, "$(P)$(R)SOFTTRIG$(TTL_IND):_PULSE:ENA:_DEMAND")
+  field(LNK3, "$(P)$(R)SOFTTRIG$(TTL_IND):_PULSE:UNITS:_DEMAND")
+  field(LNK4, "$(P)$(R)SOFTTRIG$(TTL_IND):_PULSE:EDGE:_DEMAND")
+}
+

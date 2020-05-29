@@ -4,6 +4,7 @@
 #include <cstring>
 #include <string>
 #include <map>
+#include <utility>
 #include <vector>
 
 #include <libxml/xmlreader.h>
@@ -33,6 +34,9 @@
 
 /* This is the number of encoders (motors) */
 #define NENC 4
+
+/* This is the number of custom params */
+#define NCUSTOM 10
 
 /* The timeout waiting for a response from ADPandABlocks */
 #define TIMEOUT 1.0
@@ -106,7 +110,11 @@ protected:
     int ADPandABlocksMUnits[NENC];       // string write    - motor units from GeoBrick
     int ADPandABlocksMScreenType[NENC];  // int32 write 	- Applies writeOnly embedded screen if using MotorSync
     int ADPandABlocksMCalibrate[NENC];   // int32 read 		- Calibrates encoder position
-    int ADPandABlocksMMotorName[NENC]; // string write 	- motor name from GeoBrick
+    int ADPandABlocksMMotorName[NENC];   // string write 	    - motor name from GeoBrick
+    int ADPandABlocksCustomParamBlock[NCUSTOM];    // string write 	- Custom Panda param to read/write (Block name)
+    int ADPandABlocksCustomParamField[NCUSTOM];    // string write 	- Custom Panda param to read/write (Field name)
+    int ADPandABlocksCustomParamDemand[NCUSTOM];   // string write 	- Custom Panda param demand value
+    int ADPandABlocksCustomParamRBV[NCUSTOM];      // string read 	    - Custom Panda param readback value
 #define NUM_PARAMS (&LAST_PARAM - &FIRST_PARAM + 1 + NPOSBUS*9 + NENC*6)
 
 private:
@@ -127,7 +135,7 @@ private:
     bool posBusInUse(std::string posBusName);
     void createLookup(std::string paramName, std::string paramNameEnd, int* paramInd, int posBusInd);
     std::vector<std::string> stringSplit(const std::string& s, char delimiter);
-    void processChanges(std::string cmd, bool posn);
+    void processChanges(std::string cmd);
     void updateScaledPositionValue(std::string posBusName);
     int getEncoderNumberFromName(std::string posBusName);
     void calibrateEncoderPosition(int encoderNumer);
@@ -140,8 +148,10 @@ private:
     bool checkIfReasonIsMotorSetpos(int reason, int value);
     bool checkIfReasonIsMotorScreenType(int reason, int value);
     bool checkIfReasonIsMotorName(int reason, std::string name);
+    bool checkIfReasonIsCustomParam(int reason, std::string name);
+    void updateCustomParamLookup(int paramIndex, std::string paramName, std::string paramNameEnd);
     template<typename T>
-    void updatePandAParam(std::string name, std::string field, T value);
+    bool updatePandAParam(std::string name, std::string field, T value);
     template<typename T>
     void updatePandAMotorParam(int motorIndex, motorField field, T value);
     template<typename T>
@@ -149,7 +159,8 @@ private:
     double stringToDouble(std::string str);
     int stringToInteger(std::string str);
     std::string doubleToString(double value);
-    void removeSubString(std::string &string, std::string &subString);    
+    void removeSubString(std::string &string, std::string &subString);
+    bool checkIfCustomParam(std::string paramName, std::string fieldName, std::string val);
 private:
     NDArray *pArray;
     asynUser *pasynUser_ctrl_tx;
@@ -177,6 +188,9 @@ private:
 
     //Lookup table for posbus params
     std::map<std::string, std::map<std::string, int*> > posBusLookup;
+
+    //Lookup table for custom params (pair of demand param & rbv param)
+    std::map<std::string, std::map<std::string, std::pair<int*, int* > > > customParamLookup;
 
     //Capture type map
     std::map<std::string, int> captureType;

@@ -107,9 +107,10 @@ record(longout, "$(P)$(R)POSBUS$(POSBUS_IND):SETPOS") {
 }
 
 # Underlying motor name from MotorSync template (if it exists)
-record (stringout, "$(P)$(R)POSBUS$(POSBUS_IND):MOTORNAME") {
+record (stringin, "$(P)$(R)POSBUS$(POSBUS_IND):MOTORNAME") {
   field(DESC, "Name of motor")
-  field(DTYP, "asynOctetWrite")
-  field(OUT, "@asyn($(PORT),$(POSBUS_IND))POSBUS$(POSBUS_IND):MOTORNAME")
-  info(asyn:READBACK, "1")
+  field(DTYP, "asynOctetRead")
+  field(INP, "@asyn($(PORT),$(POSBUS_IND))POSBUS$(POSBUS_IND):MOTORNAME")
+  field(SCAN, "I/O Intr")
+  #info(asyn:READBACK, "1")
 }
