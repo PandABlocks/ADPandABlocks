@@ -92,21 +92,21 @@ protected:
     int ADPandABlocksPosFields[NPOSBUS]; // string read     - position field names
     int ADPandABlocksPosVals[NPOSBUS];   // string read     - position field scaled values
     int ADPandABlocksPosUnscaledVals[NPOSBUS];// int32 read - position field unscaled values
-    int ADPandABlocksScale[NPOSBUS];     // float64 write  	- motor scale
+    int ADPandABlocksScale[NPOSBUS];     // float64 write   - motor scale
     int ADPandABlocksSetpos[NPOSBUS];     // float64 write  - motor setpos
     int ADPandABlocksOffset[NPOSBUS];    // float64 write   - motor offset
-    int ADPandABlocksUnits[NPOSBUS];     // string write 	- motor units
+    int ADPandABlocksUnits[NPOSBUS];     // string write    - motor units
     int ADPandABlocksCapture[NPOSBUS];   // string write    - pcap capture type
-    int ADPandABlocksScreenType[NPOSBUS];// int32 write   	- embedded screen to use for each bus
-    int ADPandABlocksCalibrate[NPOSBUS]; // int32 write 	- Used for calibrating encoders via MCalibrate param
-    int ADPandABlocksMotorName[NPOSBUS]; // string write 	- motor name
+    int ADPandABlocksScreenType[NPOSBUS];// int32 write     - embedded screen to use for each bus
+    int ADPandABlocksCalibrate[NPOSBUS]; // int32 write     - Used for calibrating encoders via MCalibrate param
+    int ADPandABlocksMotorName[NPOSBUS]; // string write    - motor name
     int ADPandABlocksMScale[NENC];       // float64 write   - motor scale from GeoBrick
-    int ADPandABlocksMSetpos[NENC];      // int32 write   	- motor setpos from GeoBrick (Calibrate encoder when homed)
+    int ADPandABlocksMSetpos[NENC];      // int32 write     - motor setpos from GeoBrick (Calibrate encoder when homed)
     int ADPandABlocksMOffset[NENC];      // float64 write   - motor offset from GeoBrick
     int ADPandABlocksMUnits[NENC];       // string write    - motor units from GeoBrick
-    int ADPandABlocksMScreenType[NENC];  // int32 write 	- Applies writeOnly embedded screen if using MotorSync
-    int ADPandABlocksMCalibrate[NENC];   // int32 read 		- Calibrates encoder position
-    int ADPandABlocksMMotorName[NENC]; // string write 	- motor name from GeoBrick
+    int ADPandABlocksMScreenType[NENC];  // int32 write     - Applies writeOnly embedded screen if using MotorSync
+    int ADPandABlocksMCalibrate[NENC];   // int32 read      - Calibrates encoder position
+    int ADPandABlocksMMotorName[NENC]; // string write  - motor name from GeoBrick
 #define NUM_PARAMS (&LAST_PARAM - &FIRST_PARAM + 1 + NPOSBUS*9 + NENC*6)
 
 private:

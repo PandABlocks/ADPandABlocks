@@ -17,6 +17,7 @@ include $(TOP)/configure/CONFIG
 DB += ADPandABlocks.template
 DB += ADPandABlocksPosBus.template
 DB += ADPandABlocksMotorSync.template
+DB += ADPandABlocks_detail.template
 
 #----------------------------------------------------
 # In a Diamond IOC Application, build db files from

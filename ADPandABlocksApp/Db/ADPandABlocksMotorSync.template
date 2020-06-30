@@ -1,5 +1,6 @@
 #====================================================================#
 # Template file: ADPandABlocksEnc.template
+#
 # Macros:
 # % macro, MOTOR, pv of motor record
 # % macro, P, Device prefix
@@ -10,7 +11,7 @@
 # % macro, MULT, scale factor multiply
 # % macro, READONLY, Should screen be read-only
 # % macro, HOMESETTLE, Delay after home for calibrating motor position
-#------
+#====================================================================#
 
 
 record(calcout, "$(P)$(R)INENC$(ENC_IND):SCALECALC") {

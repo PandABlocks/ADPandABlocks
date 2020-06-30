@@ -1,7 +1,17 @@
+#====================================================================#
+# Template file: ADPandABlocks.template
+#
+# Macros:
 # % macro, PORT, Asyn Port name for ADPandABlocks coms
 # % macro, P, Device prefix
 # % macro, R, Device suffix
+#
+# EDM:
 # % gui, $(PORT), edmtab, ADPandABlocksDetector.edl, P=$(P), R=$(R), DEVICE=$(P)$(R)
+#====================================================================#
+
+# CSS screen
+include "ADPandABlocks_detail.template"
 
 include "ADBase.template"
 
@@ -137,4 +147,3 @@ record(ao, "$(P)$(R)AcquirePeriod") {
 record(ai, "$(P)$(R)AcquirePeriod_RBV") {
   field(DISA, "1")
 }
-

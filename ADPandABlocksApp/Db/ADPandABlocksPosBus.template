@@ -1,10 +1,12 @@
 #====================================================================#
 # Template file: ADPandABlocksPosBus.template
+#
 # Macros:
 # % macro, PORT, Asyn Port name for ADPandABlocks coms
 # % macro, P, Device prefix
 # % macro, R, Device suffix
 # % macro, POSBUS_IND, Position Bus index
+#====================================================================#
 
 record(stringin, "$(P)$(R)POSBUS$(POSBUS_IND)") {
   field(DESC, "Data end string")
