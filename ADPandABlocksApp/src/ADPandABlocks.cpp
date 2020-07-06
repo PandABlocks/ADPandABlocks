@@ -115,7 +115,7 @@ ADPandABlocks::ADPandABlocks(const char* portName, const char* pandaAddress, int
     createParam("ISRESPONSIVE", asynParamInt32, &ADPandABlocksIsResponsive);
     setIntegerParam(ADPandABlocksIsResponsive, 0);
 
-    /*Create a parameter to store the header value /*/
+    /*Create a parameter to store the header value */
     createParam("HEADER", asynParamOctet, &ADPandABlocksHeader);
 
     /*Create a parameter to store the end of data string */
@@ -928,11 +928,6 @@ ADPandABlocks::headerMap ADPandABlocks::parseHeader(const std::string& headerStr
      * the first map will always be the 'data' node,
      * then each field will be pushed onto the vector sequentially
      */
-    //Array to store how many of each data type present in header
-    //dataTypes[0] = doubles
-    //datatypes[1] = uint32_t
-    int dataTypes[2];
-
     std::map<std::string, std::string> tmpValues;
     headerMap tmpHeaderValues;
 
@@ -974,7 +969,7 @@ ADPandABlocks::headerMap ADPandABlocks::parseHeader(const std::string& headerStr
      *  What it in the map is stored in arrays for fast access on every frame.
      */
     typeArray[0]=0;
-    nameCaptArray[0]="";
+    nameCaptArray[0]=(char * )"";
     setLen=0;
     headerArraySize=tmpHeaderValues.size();
 
@@ -983,7 +978,7 @@ ADPandABlocks::headerMap ADPandABlocks::parseHeader(const std::string& headerStr
      * Depending on the data type populate typeArray with a 1 for a double and a 2 for an int.
      * Also keep setLen up to date with the total size so far.
      */
-    for(int j = 0; j < tmpHeaderValues.size()-1; j++){;
+    for(unsigned int j = 0; j < tmpHeaderValues.size()-1; j++){;
         if(tmpHeaderValues[j+1].find("type")->second=="double") {
             typeArray[j+1]=1;
             setLen += sizeof(double);
