@@ -2,6 +2,7 @@ from iocbuilder import AutoSubstitution, Device
 from iocbuilder.modules.asyn import Asyn, AsynPort, AsynIP
 from iocbuilder.modules.ADCore import ADCore, ADBaseTemplate, includesTemplates, \
     makeTemplateInstance
+from iocbuilder.modules.calc import Calc
 from iocbuilder.arginfo import *
 from iocbuilder.modules.motor import MotorLib
 
@@ -38,6 +39,7 @@ numTTLControl = 0
 
 
 class TTLControl(Device):
+    Dependencies = (Calc, )
     def __init__(self, PORT, P, R, TTL_IND=1):
         global numTTLControl
         PARAM1_IND = "%02d" % ((numTTLControl * 2) + 1)
@@ -54,6 +56,7 @@ class TTLControl(Device):
     
 
 class TTLReadback(Device):
+    Dependencies = (Calc, )
     def __init__(self, PORT, P, R, TTL_IND=1):
         global numTTLControl
         PARAM1_IND = "%02d" % ((numTTLControl * 2) + 1)
