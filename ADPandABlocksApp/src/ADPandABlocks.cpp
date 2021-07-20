@@ -1207,6 +1207,8 @@ void ADPandABlocks::wrapFrame() {
     if (pArray != NULL) {
         pArray->timeStamp = arrayTime.secPastEpoch;
         pArray->timeStamp +=0.000000001*arrayTime.nsec;
+        // Required as of ADCore 2-0 - https://cars.uchicago.edu/software/epics/areaDetectorTimeStampSupport.html
+        updateTimeStamp(&pArray->epicsTS);
         // Save the NDAttributes if there are any
         getAttributes(pArray->pAttributeList);
     }
