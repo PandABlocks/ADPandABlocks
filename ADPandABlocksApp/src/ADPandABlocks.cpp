@@ -132,8 +132,9 @@ ADPandABlocks::ADPandABlocks(const char* portName, const char* pandaAddress, int
     setStringParam(ADStatusMessage, "Idle");
 
     /* Connect to the device port */
-    ctrlPort = std::string(portName).append("_CTRL").c_str();
-    //drvAsynIPPortConfigure(ctrlPort, std::string(pandaAddress).append(":").append(CTRL_PORT).c_str(), 100, 0, 0); 
+    ctrlPortName = std::string(portName).append("_CTRL");
+    ctrlPort = ctrlPortName.c_str();
+
     /* Copied from asynOctecSyncIO->connect */
     pasynUser_ctrl_tx = pasynManager->createAsynUser(0, 0);
     status = pasynManager->connectDevice(pasynUser_ctrl_tx, ctrlPort, 0);
@@ -172,8 +173,9 @@ ADPandABlocks::ADPandABlocks(const char* portName, const char* pandaAddress, int
     pasynUser_ctrl_rx->timeout = 3.0;
 
     /* Connect to the data port */
-    dataPort = std::string(portName).append("_DATA").c_str();
-    //drvAsynIPPortConfigure(dataPort, std::string(pandaAddress).append(":").append(DATA_PORT).c_str(), 100, 0, 0);
+    dataPortName = std::string(portName).append("_DATA");
+    dataPort = dataPortName.c_str();
+
     /* Copied from asynOctecSyncIO->connect */
     pasynUser_data = pasynManager->createAsynUser(0, 0);
     status = pasynManager->connectDevice(pasynUser_data, dataPort, 0);

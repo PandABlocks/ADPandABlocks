@@ -66,6 +66,8 @@ public:
 
     const char *ctrlPort;
     const char *dataPort;
+    std::string ctrlPortName;
+    std::string dataPortName;
 
     bool pandaResponsive;
     epicsTimeStamp lastHeaderErrorTime;
