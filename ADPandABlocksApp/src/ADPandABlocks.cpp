@@ -29,15 +29,18 @@ static void pollDataPortC(void *userPvt) {
     pPvt->readDataPort();
 }
 
+
 static void pollCommandPortC(void *userPvt) {
     ADPandABlocks *pPvt = (ADPandABlocks *) userPvt;
     pPvt->pollCommandPort();
 }
 
+
 static void callbackC(asynUser *pasynUser, asynException exception){
     ADPandABlocks *pPvt = (ADPandABlocks *) pasynUser->drvUser;
     pPvt->exceptionCallback(pasynUser, exception);
 }
+
 
 void ADPandABlocks::exceptionCallback(asynUser *pasynUser, asynException exception){
     int port_connected = 0;
@@ -54,10 +57,13 @@ void ADPandABlocks::exceptionCallback(asynUser *pasynUser, asynException excepti
     }
 }
 
+
 typedef int static_assert_endianness[EPICS_BYTE_ORDER != EPICS_ENDIAN_BIG ? 1 : -1];
+
 
 static const char *driverName = "ADPandABlocks";
 static std::map<asynStatus, std::string> errorMsg;
+
 
 ADPandABlocks::ADPandABlocks(const char* portName, const char* pandaAddress, int maxPts, int maxBuffers, int maxMemory) :
         ADDriver(portName, 1 /*maxAddr*/, NUM_PARAMS, maxBuffers, maxMemory,
@@ -308,11 +314,13 @@ ADPandABlocks::ADPandABlocks(const char* portName, const char* pandaAddress, int
     }
 };
 
+
 /*
 ADPandABlocks::~ADPandABlocks () {
     pandaResponsive = false;
 }
 */
+
 
 /*
  * Update PandA parameter using lookup table
@@ -377,6 +385,7 @@ void ADPandABlocks::updatePandAParam<ADPandABlocks::embeddedScreenType>(std::str
         }
     }
 }
+
 
 /*
  * Update motor field params
@@ -472,6 +481,7 @@ void ADPandABlocks::updatePandAMotorParam<std::string>(int motorIndex, motorFiel
     updatePandAParam(posBusName.str(), posBusField.str(), value);
 }
 
+
 std::string ADPandABlocks::getPosBusField(std::string posbus, const char* paramName){
     std::string field;
     std::stringstream cmdStr;
@@ -481,11 +491,13 @@ std::string ADPandABlocks::getPosBusField(std::string posbus, const char* paramN
     return field;
 }
 
+
 void ADPandABlocks::createPosBusParam(const char* paramName, asynParamType paramType, int* paramIndex, int paramNo){
     char str[NBUFF];
     epicsSnprintf(str, NBUFF, "POSBUS%d:%s", paramNo, paramName);
     createParam(str, paramType, paramIndex);
 }
+
 
 bool ADPandABlocks::posBusInUse(std::string posBusName) {
     // Unused position buses will have the name POSBUS<N>
@@ -494,7 +506,7 @@ bool ADPandABlocks::posBusInUse(std::string posBusName) {
     else return false;
 }
 
-// TODO: consider renaming paramName to position bus name
+
 void ADPandABlocks::createLookup(std::string paramName, std::string paramNameEnd, int* paramInd, int posBusInd)
 {
     std::map<std::string, int*> lpMap2;
@@ -525,6 +537,7 @@ void ADPandABlocks::createLookup(std::string paramName, std::string paramNameEnd
         posBusLookup[paramName].insert(std::pair<std::string, int*>(paramNameEnd, paramInd));
     }
 }
+
 
 /* This is the function that will be run for the read thread */
 std::vector<std::string> ADPandABlocks::readFieldNames(int* numFields) {
@@ -578,6 +591,7 @@ std::vector<std::string> ADPandABlocks::readFieldNames(int* numFields) {
     return fieldNameStrings;
 }
 
+
 /* This is the function that will be run for the read thread */
 asynStatus ADPandABlocks::readPosBusValues(std::string* posBusValue) {
     const char *functionName = "readPosBusValues";
@@ -610,6 +624,7 @@ asynStatus ADPandABlocks::readPosBusValues(std::string* posBusValue) {
     return status;
 }
 
+
 void ADPandABlocks::pollCommandPort(){
     /*  This will check if anything has changed on the panda and update the
         Readback values */
@@ -625,6 +640,7 @@ void ADPandABlocks::pollCommandPort(){
         epicsThreadSleep(0.1-epicsTimeDiffInSeconds(&pollEndTime, &pollStartTime));
     }
 }
+
 
 void ADPandABlocks::processChanges(std::string cmd, bool posn)
 {
@@ -678,6 +694,7 @@ void ADPandABlocks::processChanges(std::string cmd, bool posn)
     }
 }
 
+
 void ADPandABlocks::updateScaledPositionValue(std::string posBusName)
 {
     double scale, offset;
@@ -688,6 +705,7 @@ void ADPandABlocks::updateScaledPositionValue(std::string posBusName)
     setDoubleParam(*posBusLookup[posBusName]["VAL"], counts*scale + offset);
 }
 
+
 double ADPandABlocks::stringToDouble(std::string str)
 {
     std::stringstream strStream(str);
@@ -695,6 +713,7 @@ double ADPandABlocks::stringToDouble(std::string str)
     strStream >> value;
     return value;
 }
+
 
 int ADPandABlocks::stringToInteger(std::string str)
 {
@@ -704,12 +723,14 @@ int ADPandABlocks::stringToInteger(std::string str)
     return value;
 }
 
+
 std::string ADPandABlocks::doubleToString(double value)
 {
     std::stringstream strStream;
     strStream << value;
     return strStream.str();
 }
+
 
 std::vector<std::string> ADPandABlocks::stringSplit(const std::string& s, char delimiter)
 {
@@ -723,10 +744,12 @@ std::vector<std::string> ADPandABlocks::stringSplit(const std::string& s, char d
     return tokens;
 }
 
+
 asynStatus ADPandABlocks::sendReceivingFormat() {
 
     return sendData("XML FRAMED SCALED\n");
 }
+
 
 asynStatus ADPandABlocks::readHeaderLine(char* rxBuffer, const size_t buffSize, epicsTimeStamp &lastErrorTime) const {
     /*buffSize is the size fo rxBuffer*/
@@ -761,6 +784,7 @@ asynStatus ADPandABlocks::readHeaderLine(char* rxBuffer, const size_t buffSize, 
     return status;
 }
 
+
 asynStatus ADPandABlocks::readDataBytes(char* rxBuffer, const size_t nBytes, bool &responsive) const {
     const char *functionName = "readDataBytes";
     int eomReason;
@@ -787,6 +811,7 @@ asynStatus ADPandABlocks::readDataBytes(char* rxBuffer, const size_t nBytes, boo
     }
     return status;
 }
+
 
 /*this function reads from the data port*/
 void ADPandABlocks::readDataPort() {
@@ -999,6 +1024,7 @@ ADPandABlocks::headerMap ADPandABlocks::parseHeader(const std::string& headerStr
     return tmpHeaderValues;
 }
 
+
 asynStatus ADPandABlocks::extractHeaderData(const xmlTextReaderPtr xmlreader, std::map<std::string, std::string>& values)const
 {
     /*Get the attribute values for a node and place in the map values*/
@@ -1021,6 +1047,7 @@ asynStatus ADPandABlocks::extractHeaderData(const xmlTextReaderPtr xmlreader, st
     return asynSuccess;
 }
 
+
 std::string ADPandABlocks::getHeaderValue(const int index, const std::string attribute)const
 {
     /*return the value of an attribute of a given element*/
@@ -1034,6 +1061,7 @@ std::string ADPandABlocks::getHeaderValue(const int index, const std::string att
         throw std::out_of_range("attribute not in map");
     }
 }
+
 
 void ADPandABlocks::getAllData(std::vector<char>& inBuffer, const int dataLen, const int buffLen)const
 {
@@ -1054,6 +1082,7 @@ void ADPandABlocks::getAllData(std::vector<char>& inBuffer, const int dataLen, c
     }
 }
 
+
 void ADPandABlocks::parseData(std::vector<char> dataBuffer, const int dataLen){
     int buffLen = dataBuffer.size(); //actual length of received input data stream (could be multiple lines)
     int dataNo = headerValues.size() - 1; //number of received data points (total header fields - 'data' = number of captured fields)
@@ -1064,6 +1093,7 @@ void ADPandABlocks::parseData(std::vector<char> dataBuffer, const int dataLen){
     }
     outputData(dataLen, dataNo, dataBuffer);
 }
+
 
 void ADPandABlocks::outputData(const int dataLen, const int dataNo, const std::vector<char> data)
 {
@@ -1180,6 +1210,7 @@ void ADPandABlocks::outputData(const int dataLen, const int dataNo, const std::v
     }
 }
 
+
 void ADPandABlocks::allocateFrame() {
     // Release the old NDArray if it exists
     if (pArray != NULL) {
@@ -1198,6 +1229,7 @@ void ADPandABlocks::allocateFrame() {
         pArray->pAttributeList->clear();
     }
 }
+
 
 void ADPandABlocks::wrapFrame() {
     this->lock();
@@ -1242,6 +1274,7 @@ void ADPandABlocks::wrapFrame() {
     }
 }
 
+
 /* Send helper function
  * called with lock taken
  */
@@ -1250,10 +1283,12 @@ asynStatus ADPandABlocks::sendData(const std::string txBuffer){
     return status;
 }
 
+
 asynStatus ADPandABlocks::sendCtrl(const std::string txBuffer){
     asynStatus status = send(txBuffer, pasynOctet_ctrl, octetPvt_ctrl, pasynUser_ctrl_tx);
     return status;
 }
+
 
 asynStatus ADPandABlocks::send(const std::string txBuffer, asynOctet *pasynOctet, void* octetPvt, asynUser* pasynUser) {
     const char *functionName = "send";
@@ -1284,6 +1319,7 @@ asynStatus ADPandABlocks::send(const std::string txBuffer, asynOctet *pasynOctet
     return status;
 }
 
+
 // Get encoder number from name of position bus
 int ADPandABlocks::getEncoderNumberFromName(std::string posBusName)
 {
@@ -1305,6 +1341,7 @@ int ADPandABlocks::getEncoderNumberFromName(std::string posBusName)
 
 }
 
+
 // Calibrate encoder position by number (1..4)
 void ADPandABlocks::calibrateEncoderPosition(int encoderNumber)
 {
@@ -1317,6 +1354,7 @@ void ADPandABlocks::calibrateEncoderPosition(int encoderNumber)
     }
 }
 
+
 // Set position of encoder (1..4) to custom value
 void ADPandABlocks::setEncoderPosition(int encoderNumber, int value)
 {
@@ -1325,6 +1363,7 @@ void ADPandABlocks::setEncoderPosition(int encoderNumber, int value)
         setIntegerParam(ADPandABlocksMSetpos[encoderNumber-1], value);
     }
 }
+
 
 // Erase substring from string in place
 void ADPandABlocks::removeSubString(std::string &string, std::string &subString)
@@ -1351,6 +1390,7 @@ void ADPandABlocks::setPandASetPos(std::string posBusName, int value){
     sendCtrl(setPosCmd.str());
 }
 
+
 // Check motor offset and scale
 bool ADPandABlocks::checkIfMotorFloatParams(int reason, double value)
 {
@@ -1365,6 +1405,7 @@ bool ADPandABlocks::checkIfMotorFloatParams(int reason, double value)
     }
     return motorParamChanged;
 }
+
 
 // Check if motor offset has changed
 bool ADPandABlocks::checkIfReasonIsMotorOffset(int reason, double value)
@@ -1394,6 +1435,7 @@ bool ADPandABlocks::checkIfReasonIsMotorScale(int reason, double value)
     return false;
 }
 
+
 // Check if motor record units have changed
 bool ADPandABlocks::checkIfReasonIsMotorUnit(int reason, std::string value)
 {
@@ -1408,6 +1450,7 @@ bool ADPandABlocks::checkIfReasonIsMotorUnit(int reason, std::string value)
     return false;
 }
 
+
 // Check if motor record setpos have changed
 bool ADPandABlocks::checkIfReasonIsMotorSetpos(int reason, int value)
 {
@@ -1421,6 +1464,7 @@ bool ADPandABlocks::checkIfReasonIsMotorSetpos(int reason, int value)
     }
     return false;
 }
+
 
 // Change embedded window to readOnly if using motorSync template
 bool ADPandABlocks::checkIfReasonIsMotorScreenType(int reason, int value)
@@ -1437,6 +1481,7 @@ bool ADPandABlocks::checkIfReasonIsMotorScreenType(int reason, int value)
     return false;
 }
 
+
 // Set motor name param
 bool ADPandABlocks::checkIfReasonIsMotorName(int reason, std::string name)
 {
@@ -1450,6 +1495,7 @@ bool ADPandABlocks::checkIfReasonIsMotorName(int reason, std::string name)
     }
     return false;
 }
+
 
 // Search and update lookup table parameter, sending command to PandA if required
 template<typename T>
@@ -1579,6 +1625,7 @@ asynStatus ADPandABlocks::UpdateLookupTableParamFromWrite<std::string>(int param
     return asynSuccess;
 }
 
+
 /** Called when asyn clients call pasynFloat64->write().
  * This function performs actions for some parameters
  * For all parameters it sets the value in the parameter library and calls any registered callbacks..
@@ -1608,6 +1655,7 @@ asynStatus ADPandABlocks::writeFloat64(asynUser *pasynUser, epicsFloat64 value)
     return status;
 
 }
+
 
 /** Called when asyn clients call pasynInt32->write().
  * This function performs actions for some parameters
@@ -1669,6 +1717,7 @@ asynStatus ADPandABlocks::writeInt32(asynUser *pasynUser, epicsInt32 value)
     return status;
 }
 
+
 /** Called when asyn clients call pasynOctet->write().
  * This function performs actions for some parameters
  * For all parameters it sets the value in the parameter library and calls any registered callbacks..
@@ -1717,6 +1766,7 @@ extern "C" int ADPandABlocksConfig(const char *portName, const char* pandaAddres
     return (asynSuccess);
 }
 
+
 /** Code for iocsh registration */
 static const iocshArg ADPandABlocksConfigArg0 = { "Port name", iocshArgString };
 static const iocshArg ADPandABlocksConfigArg1 = { "Panda address", iocshArgString };
@@ -1730,9 +1780,11 @@ static void configADPandABlocksCallFunc(const iocshArgBuf *args) {
     ADPandABlocksConfig(args[0].sval, args[1].sval, args[2].ival, args[3].ival, args[4].ival);
 }
 
+
 static void ADPandABlocksRegister(void) {
     iocshRegister(&configADPandABlocks, configADPandABlocksCallFunc);
 }
+
 
 extern "C" {
 epicsExportRegistrar(ADPandABlocksRegister);
