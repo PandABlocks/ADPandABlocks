@@ -482,6 +482,12 @@ void ADPandABlocks::updatePandAMotorParam<std::string>(int motorIndex, motorFiel
 }
 
 
+/*
+ * Get position bus field
+ * \param[in] name Bus name
+ * \param[in] paramName Parameter name
+ * \param[out] field Bus field
+ */
 std::string ADPandABlocks::getPosBusField(std::string posbus, const char* paramName){
     std::string field;
     std::stringstream cmdStr;
@@ -492,6 +498,13 @@ std::string ADPandABlocks::getPosBusField(std::string posbus, const char* paramN
 }
 
 
+/*
+ * Create position bus parameter
+ * \param[in] paramName Parameter name
+ * \param[in] paramType Parameter type
+ * \param[in] paramIndex Parameter index
+ * \param[in] paramNo Parameter number
+ */
 void ADPandABlocks::createPosBusParam(const char* paramName, asynParamType paramType, int* paramIndex, int paramNo){
     char str[NBUFF];
     epicsSnprintf(str, NBUFF, "POSBUS%d:%s", paramNo, paramName);
@@ -499,6 +512,11 @@ void ADPandABlocks::createPosBusParam(const char* paramName, asynParamType param
 }
 
 
+/*
+ * Check if the position bus is in use
+ * \param[in] posBusName Position bus name
+ * \param[out] boolean Bus is in use
+ */
 bool ADPandABlocks::posBusInUse(std::string posBusName) {
     // Unused position buses will have the name POSBUS<N>
     std::size_t found = posBusName.find("POSBUS");
@@ -507,6 +525,13 @@ bool ADPandABlocks::posBusInUse(std::string posBusName) {
 }
 
 
+/*
+ * Create lookup table parameter
+ * \param[in] paramName Parameter name prefix
+ * \param[in] paramNameEnd Parameter name suffix
+ * \param[in] paramInd Parameter index
+ * \param[in] posBusInd Position bus index
+ */
 void ADPandABlocks::createLookup(std::string paramName, std::string paramNameEnd, int* paramInd, int posBusInd)
 {
     std::map<std::string, int*> lpMap2;
@@ -539,7 +564,11 @@ void ADPandABlocks::createLookup(std::string paramName, std::string paramNameEnd
 }
 
 
-/* This is the function that will be run for the read thread */
+/*
+ * Read field names (called from read thread)
+ * \param[in] numFields Number of fields updated
+ * \param[out] fieldNameStrings Vector of updated field names
+ */
 std::vector<std::string> ADPandABlocks::readFieldNames(int* numFields) {
     const char *functionName = "readFieldNames";
     char rxBuffer[N_BUFF_CTRL];
@@ -592,7 +621,11 @@ std::vector<std::string> ADPandABlocks::readFieldNames(int* numFields) {
 }
 
 
-/* This is the function that will be run for the read thread */
+/*
+ * Read position bus values (called from read thread)
+ * \param[in] posBusValue 
+ * \param[out] status Asyn status for reading from control port 
+ */
 asynStatus ADPandABlocks::readPosBusValues(std::string* posBusValue) {
     const char *functionName = "readPosBusValues";
     char rxBuffer[N_BUFF_CTRL];
@@ -625,6 +658,9 @@ asynStatus ADPandABlocks::readPosBusValues(std::string* posBusValue) {
 }
 
 
+/*
+ * Poll the command port at 10Hz
+ */
 void ADPandABlocks::pollCommandPort(){
     /*  This will check if anything has changed on the panda and update the
         Readback values */
@@ -642,6 +678,11 @@ void ADPandABlocks::pollCommandPort(){
 }
 
 
+/*
+ * Process changes on the position bus
+ * \param[in] cmd Control command to query changes
+ * \param[in] posn Whether we are querying positions
+ */
 void ADPandABlocks::processChanges(std::string cmd, bool posn)
 {
     std::vector<std::vector<std::string> > changed;
@@ -695,6 +736,10 @@ void ADPandABlocks::processChanges(std::string cmd, bool posn)
 }
 
 
+/*
+ * Update the scaled position value
+ * \param[in] posBusName Position bus name
+ */
 void ADPandABlocks::updateScaledPositionValue(std::string posBusName)
 {
     double scale, offset;
@@ -706,6 +751,11 @@ void ADPandABlocks::updateScaledPositionValue(std::string posBusName)
 }
 
 
+/*
+ * Convert a string to a double
+ * \param[in] str String to convert
+ * \param[out] value Value of converted string
+ */
 double ADPandABlocks::stringToDouble(std::string str)
 {
     std::stringstream strStream(str);
@@ -715,6 +765,11 @@ double ADPandABlocks::stringToDouble(std::string str)
 }
 
 
+/*
+ * Convert a string to an integer
+ * \param[in] str String to convert
+ * \param[out] value Value of converted string
+ */
 int ADPandABlocks::stringToInteger(std::string str)
 {
     std::stringstream strStream(str);
@@ -724,6 +779,11 @@ int ADPandABlocks::stringToInteger(std::string str)
 }
 
 
+/*
+ * Convert a double to a string
+ * \param[in] value Double to convert
+ * \param[out] string Converted string 
+ */
 std::string ADPandABlocks::doubleToString(double value)
 {
     std::stringstream strStream;
@@ -732,6 +792,12 @@ std::string ADPandABlocks::doubleToString(double value)
 }
 
 
+/*
+ * Split a string using a delimiter
+ * \param[in] s String to split
+ * \param[in] delimiter Delimiter to split string with
+ * \param[out] tokens Vector of split string components
+ */
 std::vector<std::string> ADPandABlocks::stringSplit(const std::string& s, char delimiter)
 {
     std::vector<std::string> tokens;
